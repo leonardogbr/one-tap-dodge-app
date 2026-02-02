@@ -28,6 +28,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
   const [obstacles, setObstacles] = useState<Obstacle[]>([]);
   const [coins, setCoins] = useState<Coin[]>([]);
   const [nearMissFlash, setNearMissFlash] = useState(false);
+  const [coinMultiplierActive, setCoinMultiplierActive] = useState(false);
 
   const stateRef = useRef<GameLoopState | null>(null);
   const rafIdRef = useRef<number | null>(null);
@@ -59,8 +60,11 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
       gameTimeMs: 0,
       laneCenterX: dimensions.laneCenterX,
       screenHeight: dimensions.height,
+      nearMissStreak: 0,
+      coinMultiplierActiveUntil: 0,
     };
     stateRef.current = state;
+    state.lastCoinSpawnTime = Date.now();
     setPhase('playing');
     setScore(0);
     setPlayer({ ...state.player });
@@ -101,17 +105,30 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
         setShieldMeter(currentShield + result.coinsCollected * COIN_TO_SHIELD);
       }
 
+      if (result.obstaclePassedWithoutNearMiss) {
+        state.nearMissStreak = 0;
+      }
       if (result.nearMissIds.length > 0) {
         setNearMissFlash(true);
         setTimeout(() => setNearMissFlash(false), 150);
+        if (nowMs >= state.coinMultiplierActiveUntil) {
+          state.nearMissStreak += result.nearMissIds.length;
+          if (state.nearMissStreak >= 5) {
+            state.coinMultiplierActiveUntil = nowMs + 10000;
+            state.nearMissStreak = 0;
+          }
+        }
       }
+      setCoinMultiplierActive(
+        state.coinMultiplierActiveUntil > 0 && nowMs < state.coinMultiplierActiveUntil
+      );
 
       if (result.collided) {
+        state.nearMissStreak = 0;
         const consumed = consumeShield();
         if (consumed && result.collidedObstacleId) {
           removeObstacleById(state, result.collidedObstacleId);
           setObstacles([...state.obstacles]);
-          // keep playing
         } else {
           endRun();
           setPhase('game_over');
@@ -141,6 +158,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
     obstacles,
     coins,
     nearMissFlash,
+    coinMultiplierActive,
     highScore,
     startGame,
     swapLane,

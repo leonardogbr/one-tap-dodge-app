@@ -12,6 +12,7 @@ interface HUDProps {
   coinsThisRun?: number;
   shieldMeter?: number; // 0–1
   nearMissFlash?: boolean;
+  coinMultiplierActive?: boolean;
 }
 
 export function HUD({
@@ -20,12 +21,18 @@ export function HUD({
   coinsThisRun = 0,
   shieldMeter = 0,
   nearMissFlash,
+  coinMultiplierActive = false,
 }: HUDProps) {
   return (
     <View style={styles.container} pointerEvents="none">
       <Text style={styles.score}>{score}</Text>
       {best > 0 && (
         <Text style={styles.best}>Best: {best}</Text>
+      )}
+      {coinMultiplierActive && (
+        <View style={styles.coinMultiplierBadge}>
+          <Text style={styles.coinMultiplierText}>2x coins!</Text>
+        </View>
       )}
       <View style={styles.row}>
         <Text style={styles.coins}>🪙 {coinsThisRun}</Text>
@@ -81,6 +88,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textMuted,
     marginTop: spacing.xs,
+  },
+  coinMultiplierBadge: {
+    marginTop: spacing.xs,
+    backgroundColor: colors.success,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: 8,
+  },
+  coinMultiplierText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.background,
   },
   row: {
     flexDirection: 'row',

@@ -16,6 +16,7 @@ import {
   PLAYER_CENTER_Y_FRACTION,
   OBSTACLE_HEIGHT,
   COIN_SPAWN_INTERVAL_MS,
+  COIN_FIRST_SPAWN_DELAY_MS,
   COIN_WIDTH,
   COIN_HEIGHT,
 } from './constants';
@@ -35,14 +36,19 @@ export interface GameLoopState {
   /** Lane center X positions [left, right] */
   laneCenterX: [number, number];
   screenHeight: number;
+  /** Near-miss streak (0–5); when 5, activate 2x coins for 10s. Only counts outside bonus. */
+  nearMissStreak: number;
+  /** Timestamp (ms) until which 2x coins spawn is active; 0 = inactive */
+  coinMultiplierActiveUntil: number;
 }
 
 export interface TickResult {
   phase: 'playing' | 'paused' | 'game_over';
   score: number;
   nearMissIds: string[];
+  /** True if an obstacle passed below the player without triggering near-miss → reset streak */
+  obstaclePassedWithoutNearMiss: boolean;
   collided: boolean;
-  /** When collided, obstacle id so hook can remove it if shield consumed */
   collidedObstacleId: string | null;
   coinsCollected: number;
 }
@@ -62,11 +68,14 @@ export function tick(
   let collidedObstacleId: string | null = null;
   let coinsCollected = 0;
 
+  let obstaclePassedWithoutNearMiss = false;
+
   if (state.phase !== 'playing') {
     return {
       phase: state.phase,
       score: state.score,
       nearMissIds: [],
+      obstaclePassedWithoutNearMiss: false,
       collided: false,
       collidedObstacleId: null,
       coinsCollected: 0,
@@ -116,9 +125,19 @@ export function tick(
     state.lastSpawnTime = currentTimeMs;
   }
 
-  // 4. Spawn coins (every COIN_SPAWN_INTERVAL_MS) — avoid lane with obstacle in top zone
-  if (currentTimeMs - state.lastCoinSpawnTime >= COIN_SPAWN_INTERVAL_MS) {
-    const TOP_ZONE_Y = 120; // obstacles with top edge above this are "in top zone"
+  // 4. Spawn coins — during 2x bonus, interval is half (spawn 2x more often, one coin per spawn)
+  const coinMultiplierActive =
+    state.coinMultiplierActiveUntil > 0 &&
+    currentTimeMs < state.coinMultiplierActiveUntil;
+  const coinIntervalMs = coinMultiplierActive
+    ? COIN_SPAWN_INTERVAL_MS / 2
+    : COIN_SPAWN_INTERVAL_MS;
+
+  if (
+    state.gameTimeMs >= COIN_FIRST_SPAWN_DELAY_MS &&
+    currentTimeMs - state.lastCoinSpawnTime >= coinIntervalMs
+  ) {
+    const TOP_ZONE_Y = 120;
     const obstaclesInTopByLane: [Lane, number][] = [
       [LANE_LEFT, 0],
       [LANE_RIGHT, 0],
@@ -129,24 +148,23 @@ export function tick(
         else obstaclesInTopByLane[1][1]++;
       }
     }
-    // Prefer lane with no obstacle in top zone; if both clear, random
-    let lane: Lane;
-    if (obstaclesInTopByLane[0][1] === 0 && obstaclesInTopByLane[1][1] === 0) {
-      lane = Math.random() < 0.5 ? LANE_LEFT : LANE_RIGHT;
-    } else if (obstaclesInTopByLane[0][1] === 0) {
-      lane = LANE_LEFT;
-    } else if (obstaclesInTopByLane[1][1] === 0) {
-      lane = LANE_RIGHT;
-    } else {
-      // Both lanes have obstacle in top zone — spawn in lane with fewer, or random
-      lane =
-        obstaclesInTopByLane[0][1] <= obstaclesInTopByLane[1][1]
-          ? LANE_LEFT
-          : LANE_RIGHT;
-    }
+
+    const pickLane = (): Lane => {
+      if (obstaclesInTopByLane[0][1] === 0 && obstaclesInTopByLane[1][1] === 0) {
+        return Math.random() < 0.5 ? LANE_LEFT : LANE_RIGHT;
+      }
+      if (obstaclesInTopByLane[0][1] === 0) return LANE_LEFT;
+      if (obstaclesInTopByLane[1][1] === 0) return LANE_RIGHT;
+      return obstaclesInTopByLane[0][1] <= obstaclesInTopByLane[1][1]
+        ? LANE_LEFT
+        : LANE_RIGHT;
+    };
+
+    const lane = pickLane();
     const laneX = state.laneCenterX[lane];
-    const newCoin = createCoin(lane, laneX - COIN_WIDTH / 2, -COIN_HEIGHT);
-    state.coins.push(newCoin);
+    state.coins.push(
+      createCoin(lane, laneX - COIN_WIDTH / 2, -COIN_HEIGHT)
+    );
     state.lastCoinSpawnTime = currentTimeMs;
   }
 
@@ -178,6 +196,18 @@ export function tick(
       state.player.centerY
     );
     nearMissIds.push(...awarded);
+    const playerY = state.player.centerY;
+    for (const obs of state.obstacles) {
+      const obsBottom = obs.y + obs.height;
+      if (
+        obsBottom > playerY &&
+        obsBottom < playerY + 60 &&
+        !obs.nearMissAwarded
+      ) {
+        obstaclePassedWithoutNearMiss = true;
+        break;
+      }
+    }
   }
 
   // 8. Score: survival (accumulate ms, 1 point per 100ms) + near-miss bonus
@@ -194,6 +224,7 @@ export function tick(
     phase: state.phase,
     score: state.score,
     nearMissIds,
+    obstaclePassedWithoutNearMiss,
     collided,
     collidedObstacleId,
     coinsCollected,

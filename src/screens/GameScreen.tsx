@@ -45,6 +45,7 @@ export function GameScreen() {
     obstacles,
     coins,
     nearMissFlash,
+    coinMultiplierActive,
     highScore,
     startGame,
     swapLane,
@@ -135,6 +136,7 @@ export function GameScreen() {
           coinsThisRun={coinsThisRun}
           shieldMeter={shieldMeter}
           nearMissFlash={nearMissFlash}
+          coinMultiplierActive={coinMultiplierActive}
         />
 
         {/* Idle / Game Over overlay */}
