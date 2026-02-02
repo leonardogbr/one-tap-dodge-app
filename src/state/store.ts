@@ -13,6 +13,8 @@ export interface GameSlice {
   coinsThisRun: number;
   highScore: number;
   canRevive: boolean;
+  /** How many revives (rewarded ads) used this run; reset on startRun. */
+  revivesUsedThisRun: number;
   shieldMeter: number; // 0–1, fills from coins
   /** Actions */
   setPhase: (phase: GamePhase) => void;
@@ -21,6 +23,7 @@ export interface GameSlice {
   addCoinsThisRun: (n: number) => void;
   setHighScore: (n: number) => void;
   setCanRevive: (v: boolean) => void;
+  incrementRevivesUsedThisRun: () => void;
   setShieldMeter: (v: number) => void;
   consumeShield: () => boolean;
   startRun: () => void;
@@ -73,6 +76,7 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
   coinsThisRun: 0,
   highScore: 0,
   canRevive: true,
+  revivesUsedThisRun: 0,
   shieldMeter: 0,
   setPhase: (phase) => set({ phase }),
   setScore: (score) => {
@@ -83,6 +87,8 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
   addCoinsThisRun: (n) => set((s) => ({ coinsThisRun: s.coinsThisRun + n })),
   setHighScore: (n) => set({ highScore: n }),
   setCanRevive: (v) => set({ canRevive: v }),
+  incrementRevivesUsedThisRun: () =>
+    set((s) => ({ revivesUsedThisRun: s.revivesUsedThisRun + 1 })),
   setShieldMeter: (v) => set({ shieldMeter: Math.min(1, Math.max(0, v)) }),
   consumeShield: () => {
     const { shieldMeter } = get();
@@ -98,6 +104,7 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
       score: 0,
       coinsThisRun: 0,
       canRevive: true,
+      revivesUsedThisRun: 0,
       shieldMeter: 0,
     }),
   endRun: () => {

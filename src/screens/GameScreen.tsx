@@ -3,7 +3,7 @@
  * Phase 1: single screen, no navigation.
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   TouchableWithoutFeedback,
   TouchableOpacity,
   useWindowDimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -18,6 +19,7 @@ import type { RootStackParamList } from './SkinsScreen';
 import { useGameLoop, type GameLoopDimensions } from '../hooks/useGameLoop';
 import { useGameStore } from '../state/store';
 import { HUD } from '../components/overlays/HUD';
+import { isRewardedLoaded, showRewarded, showInterstitial } from '../services/ads';
 import { colors, spacing } from '../theme';
 import {
   PLAYER_RADIUS,
@@ -25,6 +27,7 @@ import {
   OBSTACLE_HEIGHT,
   COIN_WIDTH,
   COIN_HEIGHT,
+  INTERSTITIAL_AFTER_GAME_OVERS,
 } from '../engine/constants';
 
 export function GameScreen() {
@@ -49,19 +52,85 @@ export function GameScreen() {
     highScore,
     startGame,
     swapLane,
+    revive,
   } = useGameLoop(dimensions);
 
+  const [reviveLoading, setReviveLoading] = useState(false);
   const coinsThisRun = useGameStore((s) => s.coinsThisRun);
   const shieldMeter = useGameStore((s) => s.shieldMeter);
+  const canRevive = useGameStore((s) => s.canRevive);
+  const gameOversSinceLastInterstitial = useGameStore(
+    (s) => s.gameOversSinceLastInterstitial
+  );
+  const removeAds = useGameStore((s) => s.removeAds);
+  const resetGameOversSinceLastInterstitial = useGameStore(
+    (s) => s.resetGameOversSinceLastInterstitial
+  );
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Game'>>();
+
+  // Interstitial only from "Play again" or "Skins" (game_over). Never after Rewarded (revive).
+  const handlePlayAgain = useCallback(async () => {
+    if (phase !== 'game_over') return;
+    if (
+      !removeAds &&
+      gameOversSinceLastInterstitial >= INTERSTITIAL_AFTER_GAME_OVERS
+    ) {
+      await showInterstitial();
+      resetGameOversSinceLastInterstitial();
+      // Next frame so ad teardown can finish; reduces perceived delay vs blocking
+      requestAnimationFrame(() => {
+        startGame();
+      });
+      return;
+    }
+    startGame();
+  }, [
+    phase,
+    startGame,
+    removeAds,
+    gameOversSinceLastInterstitial,
+    resetGameOversSinceLastInterstitial,
+  ]);
+
+  const handleSkins = useCallback(async () => {
+    if (
+      phase === 'game_over' &&
+      !removeAds &&
+      gameOversSinceLastInterstitial >= INTERSTITIAL_AFTER_GAME_OVERS
+    ) {
+      await showInterstitial();
+      resetGameOversSinceLastInterstitial();
+      requestAnimationFrame(() => {
+        navigation.navigate('Skins');
+      });
+      return;
+    }
+    navigation.navigate('Skins');
+  }, [
+    phase,
+    navigation,
+    removeAds,
+    gameOversSinceLastInterstitial,
+    resetGameOversSinceLastInterstitial,
+  ]);
 
   const handlePress = useCallback(() => {
     if (phase === 'playing') {
       swapLane();
-    } else if (phase === 'idle' || phase === 'game_over') {
+    } else if (phase === 'idle') {
       startGame();
+    } else if (phase === 'game_over') {
+      handlePlayAgain();
     }
-  }, [phase, swapLane, startGame]);
+  }, [phase, swapLane, startGame, handlePlayAgain]);
+
+  const handleRevive = useCallback(async () => {
+    if (!canRevive || !isRewardedLoaded() || reviveLoading) return;
+    setReviveLoading(true);
+    const earned = await showRewarded();
+    setReviveLoading(false);
+    if (earned) revive();
+  }, [canRevive, reviveLoading, revive]);
 
   if (!dimensions) {
     return <View style={[styles.container, { width: screenWidth, height: screenHeight }]} />;
@@ -148,9 +217,29 @@ export function GameScreen() {
             {phase === 'game_over' && (
               <Text style={styles.overlayScore}>Score: {score}</Text>
             )}
+            {phase === 'game_over' && canRevive && (
+              <TouchableOpacity
+                style={[
+                  styles.overlayReviveBtn,
+                  (!isRewardedLoaded() || reviveLoading) && styles.overlayReviveBtnDisabled,
+                ]}
+                onPress={handleRevive}
+                disabled={!isRewardedLoaded() || reviveLoading}
+              >
+                {reviveLoading ? (
+                  <ActivityIndicator color={colors.background} size="small" />
+                ) : (
+                  <Text style={styles.overlayReviveBtnText}>
+                    {isRewardedLoaded()
+                      ? 'Watch Ad to Continue'
+                      : 'Loading ad…'}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={styles.overlayMainBtn}
-              onPress={phase === 'idle' ? startGame : startGame}
+              onPress={phase === 'idle' ? startGame : handlePlayAgain}
             >
               <Text style={styles.overlayMainBtnText}>
                 {phase === 'idle' ? 'Tap to start' : 'Play again'}
@@ -158,7 +247,7 @@ export function GameScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.overlaySkinsBtn}
-              onPress={() => navigation.navigate('Skins')}
+              onPress={handleSkins}
             >
               <Text style={styles.overlaySkinsBtnText}>Skins</Text>
             </TouchableOpacity>
@@ -224,6 +313,23 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: colors.primary,
     marginBottom: spacing.md,
+  },
+  overlayReviveBtn: {
+    backgroundColor: colors.success,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: 12,
+    marginBottom: spacing.sm,
+    minWidth: 200,
+    alignItems: 'center',
+  },
+  overlayReviveBtnDisabled: {
+    opacity: 0.7,
+  },
+  overlayReviveBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.background,
   },
   overlayMainBtn: {
     backgroundColor: colors.primary,

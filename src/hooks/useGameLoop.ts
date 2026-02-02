@@ -10,9 +10,10 @@ import {
   createInitialPlayer,
   swapPlayerLane,
   removeObstacleById,
+  setReviveGrace,
   type GameLoopState,
 } from '../engine/gameLoop';
-import { COIN_TO_SHIELD } from '../engine/constants';
+import { COIN_TO_SHIELD, MAX_REVIVES_PER_RUN } from '../engine/constants';
 import { useGameStore } from '../state/store';
 
 export interface GameLoopDimensions {
@@ -33,6 +34,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
   const stateRef = useRef<GameLoopState | null>(null);
   const rafIdRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
+  const lastCollidedObstacleIdRef = useRef<string | null>(null);
 
   const {
     setScore: setStoreScore,
@@ -41,6 +43,8 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
     consumeShield,
     endRun,
     startRun: storeStartRun,
+    setCanRevive,
+    incrementRevivesUsedThisRun,
     highScore,
   } = useGameStore();
 
@@ -62,6 +66,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
       screenHeight: dimensions.height,
       nearMissStreak: 0,
       coinMultiplierActiveUntil: 0,
+      reviveGraceUntil: 0,
     };
     stateRef.current = state;
     state.lastCoinSpawnTime = Date.now();
@@ -79,6 +84,23 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
       setPlayer((p) => (p ? { ...stateRef.current!.player } : null));
     }
   }, []);
+
+  const revive = useCallback(() => {
+    const state = stateRef.current;
+    const id = lastCollidedObstacleIdRef.current;
+    if (!state || state.phase !== 'game_over' || !id) return;
+    lastCollidedObstacleIdRef.current = null;
+    removeObstacleById(state, id);
+    // Clear all obstacles and pause spawn for 2s so the user can reorient after the ad
+    setReviveGrace(state, Date.now() + 2000);
+    state.phase = 'playing';
+    incrementRevivesUsedThisRun();
+    setPhase('playing');
+    setObstacles([...state.obstacles]);
+    setCoins([...state.coins]);
+    setPlayer({ ...state.player });
+    lastTimeRef.current = Date.now();
+  }, [incrementRevivesUsedThisRun]);
 
   useEffect(() => {
     if (!dimensions || phase !== 'playing' || !stateRef.current) return;
@@ -130,12 +152,20 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
           removeObstacleById(state, result.collidedObstacleId);
           setObstacles([...state.obstacles]);
         } else {
+          lastCollidedObstacleIdRef.current = result.collidedObstacleId;
           endRun();
+          setCanRevive(
+            useGameStore.getState().revivesUsedThisRun < MAX_REVIVES_PER_RUN
+          );
           setPhase('game_over');
           return;
         }
       } else if (result.phase === 'game_over') {
+        lastCollidedObstacleIdRef.current = result.collidedObstacleId;
         endRun();
+        setCanRevive(
+          useGameStore.getState().revivesUsedThisRun < MAX_REVIVES_PER_RUN
+        );
         setPhase('game_over');
         return;
       }
@@ -162,5 +192,6 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
     highScore,
     startGame,
     swapLane,
+    revive,
   };
 }

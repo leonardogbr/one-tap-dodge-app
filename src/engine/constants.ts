@@ -44,3 +44,8 @@ export const MAX_OBSTACLE_SPEED = 500;
 /** Difficulty: spawn interval decrease per 2000 score (ms) */
 export const SPAWN_INTERVAL_DECREASE = 50;
 export const MIN_SPAWN_INTERVAL_MS = 500;
+
+/** Monetization: show interstitial after this many game overs (less intrusive). */
+export const INTERSTITIAL_AFTER_GAME_OVERS = 5;
+/** Monetization: max rewarded revives per run (more chances to continue same run). */
+export const MAX_REVIVES_PER_RUN = 3;

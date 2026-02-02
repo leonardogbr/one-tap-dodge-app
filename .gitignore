@@ -22,6 +22,9 @@ DerivedData
 *.xcuserstate
 **/.xcode.env.local
 
+# react-native-config codegen
+ios/tmp.xcconfig
+
 # Android/IntelliJ
 #
 build/
@@ -34,6 +37,9 @@ local.properties
 *.keystore
 !debug.keystore
 .kotlin/
+
+# Environment (secrets)
+.env
 
 # node.js
 #

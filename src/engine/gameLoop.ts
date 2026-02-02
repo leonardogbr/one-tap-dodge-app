@@ -40,6 +40,8 @@ export interface GameLoopState {
   nearMissStreak: number;
   /** Timestamp (ms) until which 2x coins spawn is active; 0 = inactive */
   coinMultiplierActiveUntil: number;
+  /** After revive: no obstacle spawn until this time (ms); 0 = no grace */
+  reviveGraceUntil: number;
 }
 
 export interface TickResult {
@@ -102,8 +104,13 @@ export function tick(
     (c) => c.y + c.height < state.screenHeight + 50
   );
 
-  // 3. Spawn obstacles — avoid lane with coin in top zone so coin/obstacle don't overlap
-  if (shouldSpawn(state.lastSpawnTime, currentTimeMs, state.score)) {
+  // 3. Spawn obstacles — skip during revive grace so player can reorient
+  const inReviveGrace =
+    state.reviveGraceUntil > 0 && currentTimeMs < state.reviveGraceUntil;
+  if (
+    !inReviveGrace &&
+    shouldSpawn(state.lastSpawnTime, currentTimeMs, state.score)
+  ) {
     const TOP_ZONE_Y = 120;
     const laneWithCoinInTop = state.coins.some((c) => c.y < TOP_ZONE_Y)
       ? (state.coins.find((c) => c.y < TOP_ZONE_Y)?.lane ?? null)
@@ -235,6 +242,15 @@ export function tick(
 export function removeObstacleById(state: GameLoopState, id: string): void {
   state.obstacles = state.obstacles.filter((o) => o.id !== id);
   state.phase = 'playing';
+}
+
+/** Clear all obstacles and set grace period (no spawn) until graceEndMs. Use after revive. */
+export function setReviveGrace(
+  state: GameLoopState,
+  graceEndMs: number
+): void {
+  state.obstacles = [];
+  state.reviveGraceUntil = graceEndMs;
 }
 
 export function createInitialPlayer(
