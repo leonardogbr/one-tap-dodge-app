@@ -3,18 +3,29 @@
  * Phase 1: single screen, no navigation.
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableWithoutFeedback,
+  TouchableOpacity,
   useWindowDimensions,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from './SkinsScreen';
 import { useGameLoop, type GameLoopDimensions } from '../hooks/useGameLoop';
+import { useGameStore } from '../state/store';
 import { HUD } from '../components/overlays/HUD';
 import { colors, spacing } from '../theme';
-import { PLAYER_RADIUS, OBSTACLE_WIDTH, OBSTACLE_HEIGHT } from '../engine/constants';
+import {
+  PLAYER_RADIUS,
+  OBSTACLE_WIDTH,
+  OBSTACLE_HEIGHT,
+  COIN_WIDTH,
+  COIN_HEIGHT,
+} from '../engine/constants';
 
 export function GameScreen() {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
@@ -32,10 +43,16 @@ export function GameScreen() {
     score,
     player,
     obstacles,
+    coins,
     nearMissFlash,
+    highScore,
     startGame,
     swapLane,
   } = useGameLoop(dimensions);
+
+  const coinsThisRun = useGameStore((s) => s.coinsThisRun);
+  const shieldMeter = useGameStore((s) => s.shieldMeter);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Game'>>();
 
   const handlePress = useCallback(() => {
     if (phase === 'playing') {
@@ -78,6 +95,23 @@ export function GameScreen() {
             />
           ))}
 
+          {/* Coins */}
+          {coins.map((coin) => (
+            <View
+              key={coin.id}
+              style={[
+                styles.coin,
+                {
+                  left: coin.x,
+                  top: coin.y,
+                  width: COIN_WIDTH,
+                  height: COIN_HEIGHT,
+                  borderRadius: COIN_WIDTH / 2,
+                },
+              ]}
+            />
+          ))}
+
           {/* Player */}
           {player && (
             <View
@@ -95,7 +129,13 @@ export function GameScreen() {
           )}
         </View>
 
-        <HUD score={score} nearMissFlash={nearMissFlash} />
+        <HUD
+          score={score}
+          best={highScore}
+          coinsThisRun={coinsThisRun}
+          shieldMeter={shieldMeter}
+          nearMissFlash={nearMissFlash}
+        />
 
         {/* Idle / Game Over overlay */}
         {(phase === 'idle' || phase === 'game_over') && (
@@ -106,9 +146,20 @@ export function GameScreen() {
             {phase === 'game_over' && (
               <Text style={styles.overlayScore}>Score: {score}</Text>
             )}
-            <Text style={styles.overlayHint}>
-              Tap to {phase === 'idle' ? 'start' : 'play again'}
-            </Text>
+            <TouchableOpacity
+              style={styles.overlayMainBtn}
+              onPress={phase === 'idle' ? startGame : startGame}
+            >
+              <Text style={styles.overlayMainBtnText}>
+                {phase === 'idle' ? 'Tap to start' : 'Play again'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.overlaySkinsBtn}
+              onPress={() => navigation.navigate('Skins')}
+            >
+              <Text style={styles.overlaySkinsBtnText}>Skins</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -143,6 +194,12 @@ const styles = StyleSheet.create({
     opacity: 0.95,
     borderRadius: 8,
   },
+  coin: {
+    position: 'absolute',
+    backgroundColor: '#ffd700',
+    borderWidth: 2,
+    borderColor: '#b8860b',
+  },
   player: {
     position: 'absolute',
     backgroundColor: colors.primary,
@@ -164,9 +221,24 @@ const styles = StyleSheet.create({
   overlayScore: {
     fontSize: 20,
     color: colors.primary,
+    marginBottom: spacing.md,
+  },
+  overlayMainBtn: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: 12,
     marginBottom: spacing.sm,
   },
-  overlayHint: {
+  overlayMainBtnText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.background,
+  },
+  overlaySkinsBtn: {
+    paddingVertical: spacing.sm,
+  },
+  overlaySkinsBtnText: {
     fontSize: 16,
     color: colors.textMuted,
   },

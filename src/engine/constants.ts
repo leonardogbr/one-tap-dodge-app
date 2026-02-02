@@ -28,6 +28,13 @@ export const BASE_OBSTACLE_SPEED = 280;
 /** Spawn: min interval between spawns (ms) */
 export const SPAWN_INTERVAL_MS = 1200;
 
+/** Coins: size and spawn interval (ms) */
+export const COIN_WIDTH = 28;
+export const COIN_HEIGHT = 28;
+export const COIN_SPAWN_INTERVAL_MS = 4000;
+/** Shield: each coin adds this much to meter (0–1). */
+export const COIN_TO_SHIELD = 0.08;
+
 /** Difficulty: speed increase per 1000 score (px/s) */
 export const SPEED_INCREASE_PER_1000 = 15;
 export const MAX_OBSTACLE_SPEED = 500;

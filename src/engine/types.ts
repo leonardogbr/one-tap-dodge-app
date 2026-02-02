@@ -28,6 +28,15 @@ export interface Obstacle {
   nearMissAwarded: boolean;
 }
 
+export interface Coin {
+  id: string;
+  lane: Lane;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface GameConfig {
   screenWidth: number;
   screenHeight: number;

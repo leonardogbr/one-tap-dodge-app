@@ -1,21 +1,27 @@
 /**
- * One Tap Dodge — Phase 1: Game screen only.
+ * One Tap Dodge — Phase 2: Game, coins, shield, skins, persistence.
  */
 
 import React from 'react';
 import { StatusBar, View, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { GameScreen } from './src/screens/GameScreen';
+import { NavigationContainer } from '@react-navigation/native';
+import { RootNavigator } from './src/navigation/RootNavigator';
+import { usePersistedStore } from './src/hooks/usePersistedStore';
 
 function App() {
+  usePersistedStore();
+
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <StatusBar barStyle="light-content" backgroundColor="#0d1117" />
-        <View style={styles.container}>
-          <GameScreen />
-        </View>
+        <NavigationContainer>
+          <View style={styles.container}>
+            <RootNavigator />
+          </View>
+        </NavigationContainer>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

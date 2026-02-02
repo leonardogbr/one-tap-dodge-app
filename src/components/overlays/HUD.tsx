@@ -1,5 +1,5 @@
 /**
- * HUD — score and optional best. Phase 1: score only.
+ * HUD — score, best, coins, shield meter, near-miss. Phase 2.
  */
 
 import React from 'react';
@@ -9,16 +9,51 @@ import { colors, spacing } from '../../theme';
 interface HUDProps {
   score: number;
   best?: number;
+  coinsThisRun?: number;
+  shieldMeter?: number; // 0–1
   nearMissFlash?: boolean;
 }
 
-export function HUD({ score, best = 0, nearMissFlash }: HUDProps) {
+export function HUD({
+  score,
+  best = 0,
+  coinsThisRun = 0,
+  shieldMeter = 0,
+  nearMissFlash,
+}: HUDProps) {
   return (
     <View style={styles.container} pointerEvents="none">
       <Text style={styles.score}>{score}</Text>
       {best > 0 && (
         <Text style={styles.best}>Best: {best}</Text>
       )}
+      <View style={styles.row}>
+        <Text style={styles.coins}>🪙 {coinsThisRun}</Text>
+        <View style={styles.shieldWrap}>
+          <View
+            style={[
+              styles.shieldBar,
+              shieldMeter >= 1 && styles.shieldBarReady,
+            ]}
+          >
+            <View
+              style={[
+                styles.shieldFill,
+                shieldMeter >= 1 && styles.shieldFillReady,
+                { width: `${Math.min(100, shieldMeter * 100)}%` },
+              ]}
+            />
+          </View>
+          <Text
+            style={[
+              styles.shieldLabel,
+              shieldMeter >= 1 && styles.shieldLabelReady,
+            ]}
+          >
+            {shieldMeter >= 1 ? 'Shield READY' : 'Shield'}
+          </Text>
+        </View>
+      </View>
       {nearMissFlash && (
         <View style={styles.nearMissBadge}>
           <Text style={styles.nearMissText}>+50</Text>
@@ -46,6 +81,51 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textMuted,
     marginTop: spacing.xs,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+    gap: spacing.sm,
+  },
+  coins: {
+    fontSize: 14,
+    color: colors.text,
+  },
+  shieldWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  shieldBar: {
+    width: 80,
+    height: 8,
+    backgroundColor: colors.backgroundLight,
+    borderRadius: 4,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  shieldBarReady: {
+    borderColor: colors.success,
+    borderWidth: 1.5,
+  },
+  shieldFill: {
+    height: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: 4,
+  },
+  shieldFillReady: {
+    backgroundColor: colors.success,
+  },
+  shieldLabel: {
+    fontSize: 12,
+    color: colors.textMuted,
+    minWidth: 52,
+  },
+  shieldLabelReady: {
+    color: colors.success,
+    fontWeight: '700',
   },
   nearMissBadge: {
     position: 'absolute',

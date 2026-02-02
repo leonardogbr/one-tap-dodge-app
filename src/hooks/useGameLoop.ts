@@ -1,15 +1,19 @@
 /**
  * Game loop hook — runs tick in requestAnimationFrame, exposes state and actions.
+ * Phase 2: syncs with store (high score, coins, shield).
  */
 
 import { useCallback, useRef, useState, useEffect } from 'react';
-import type { Player, Obstacle } from '../engine/types';
+import type { Player, Obstacle, Coin } from '../engine/types';
 import {
   tick,
   createInitialPlayer,
   swapPlayerLane,
+  removeObstacleById,
   type GameLoopState,
 } from '../engine/gameLoop';
+import { COIN_TO_SHIELD } from '../engine/constants';
+import { useGameStore } from '../state/store';
 
 export interface GameLoopDimensions {
   width: number;
@@ -22,21 +26,35 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
   const [score, setScore] = useState(0);
   const [player, setPlayer] = useState<Player | null>(null);
   const [obstacles, setObstacles] = useState<Obstacle[]>([]);
+  const [coins, setCoins] = useState<Coin[]>([]);
   const [nearMissFlash, setNearMissFlash] = useState(false);
 
   const stateRef = useRef<GameLoopState | null>(null);
   const rafIdRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
 
+  const {
+    setScore: setStoreScore,
+    addCoinsThisRun,
+    setShieldMeter,
+    consumeShield,
+    endRun,
+    startRun: storeStartRun,
+    highScore,
+  } = useGameStore();
+
   const startGame = useCallback(() => {
     if (!dimensions) return;
+    storeStartRun();
     const state: GameLoopState = {
       phase: 'playing',
       player: createInitialPlayer(dimensions.height),
       obstacles: [],
+      coins: [],
       score: 0,
       accumulatedScoreMs: 0,
       lastSpawnTime: 0,
+      lastCoinSpawnTime: 0,
       obstacleSpeed: 280,
       gameTimeMs: 0,
       laneCenterX: dimensions.laneCenterX,
@@ -47,8 +65,9 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
     setScore(0);
     setPlayer({ ...state.player });
     setObstacles([]);
+    setCoins([]);
     lastTimeRef.current = Date.now();
-  }, [dimensions]);
+  }, [dimensions, storeStartRun]);
 
   const swapLane = useCallback(() => {
     if (stateRef.current?.phase === 'playing') {
@@ -70,16 +89,36 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
 
       const result = tick(state, deltaMs, nowMs);
 
+      setStoreScore(state.score);
       setScore(state.score);
       setPlayer({ ...state.player });
       setObstacles([...state.obstacles]);
+      setCoins([...state.coins]);
+
+      if (result.coinsCollected > 0) {
+        addCoinsThisRun(result.coinsCollected);
+        const currentShield = useGameStore.getState().shieldMeter;
+        setShieldMeter(currentShield + result.coinsCollected * COIN_TO_SHIELD);
+      }
 
       if (result.nearMissIds.length > 0) {
         setNearMissFlash(true);
         setTimeout(() => setNearMissFlash(false), 150);
       }
 
-      if (result.phase === 'game_over') {
+      if (result.collided) {
+        const consumed = consumeShield();
+        if (consumed && result.collidedObstacleId) {
+          removeObstacleById(state, result.collidedObstacleId);
+          setObstacles([...state.obstacles]);
+          // keep playing
+        } else {
+          endRun();
+          setPhase('game_over');
+          return;
+        }
+      } else if (result.phase === 'game_over') {
+        endRun();
         setPhase('game_over');
         return;
       }
@@ -100,7 +139,9 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
     score,
     player,
     obstacles,
+    coins,
     nearMissFlash,
+    highScore,
     startGame,
     swapLane,
   };
