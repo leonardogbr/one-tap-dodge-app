@@ -94,6 +94,7 @@ export function GameScreen() {
 
   const [reviveLoading, setReviveLoading] = useState(false);
   const [countdownStep, setCountdownStep] = useState<CountdownStep>(null);
+  const [waitingForAd, setWaitingForAd] = useState(false);
   const [playAgainEnabled, setPlayAgainEnabled] = useState(false);
   const [playAgainCountdown, setPlayAgainCountdown] = useState(0);
   const gameOverAtRef = useRef<number>(0);
@@ -168,9 +169,11 @@ export function GameScreen() {
       !justClosedRewarded &&
       gameOversSinceLastInterstitial >= INTERSTITIAL_AFTER_GAME_OVERS
     ) {
-      await showInterstitial();
-      resetGameOversSinceLastInterstitial();
       resetForCountdown();
+      setWaitingForAd(true);
+      await showInterstitial();
+      setWaitingForAd(false);
+      resetGameOversSinceLastInterstitial();
       startCountdown(startGame);
       return;
     }
@@ -207,9 +210,11 @@ export function GameScreen() {
 
   const handleRevive = useCallback(async () => {
     if (!canRevive || !isRewardedLoaded() || reviveLoading) return;
+    setWaitingForAd(true);
     setReviveLoading(true);
     const earned = await showRewarded();
     setReviveLoading(false);
+    setWaitingForAd(false);
     if (earned) {
       lastRewardedClosedAtRef.current = Date.now();
       startCountdown(revive);
@@ -339,7 +344,7 @@ export function GameScreen() {
         )}
 
         {/* Pause overlay — hidden during countdown so countdown is shown on game view */}
-        {phase === 'paused' && countdownStep === null && (
+        {phase === 'paused' && countdownStep === null && !waitingForAd && (
           <Animated.View
             style={styles.overlay}
             entering={FadeIn.duration(180)}
@@ -356,7 +361,7 @@ export function GameScreen() {
         )}
 
         {/* Idle / Game Over overlay — hidden during countdown so countdown is shown on game view */}
-        {(phase === 'idle' || phase === 'game_over') && countdownStep === null && (
+        {(phase === 'idle' || phase === 'game_over') && countdownStep === null && !waitingForAd && (
           <Animated.View
             style={styles.overlay}
             entering={phase === 'game_over' ? FadeIn.duration(400).delay(300) : FadeIn.duration(220)}
