@@ -25,7 +25,8 @@ export function usePersistedStore() {
     soundOn: true,
     musicOn: true,
     hapticsOn: true,
-    removeAds: false,
+    themeMode: 'system',
+    locale: 'system',
   });
 
   useEffect(() => {
@@ -67,17 +68,20 @@ export function usePersistedStore() {
         state.soundOn !== last.current.soundOn ||
         state.musicOn !== last.current.musicOn ||
         state.hapticsOn !== last.current.hapticsOn ||
-        state.removeAds !== last.current.removeAds
+        state.themeMode !== last.current.themeMode ||
+        state.locale !== last.current.locale
       ) {
         last.current.soundOn = state.soundOn;
         last.current.musicOn = state.musicOn;
         last.current.hapticsOn = state.hapticsOn;
-        last.current.removeAds = state.removeAds;
+        last.current.themeMode = state.themeMode;
+        last.current.locale = state.locale;
         persistSettings({
           soundOn: state.soundOn,
           musicOn: state.musicOn,
           hapticsOn: state.hapticsOn,
-          removeAds: state.removeAds,
+          themeMode: state.themeMode,
+          locale: state.locale,
         });
       }
     });

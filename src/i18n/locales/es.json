@@ -1,0 +1,65 @@
+{
+  "common": {
+    "back": "← Atrás",
+    "play": "Jugar",
+    "home": "Inicio",
+    "settings": "Ajustes",
+    "resume": "Continuar",
+    "quit": "Salir",
+    "equip": "Equipar",
+    "equipped": "Equipado",
+    "unlock": "Desbloquear",
+    "locked": "Bloqueado"
+  },
+  "home": {
+    "title": "One Tap Dodge",
+    "subtitle": "Toca para cambiar de carril. Esquiva los obstáculos.",
+    "howToPlay": "Cómo jugar",
+    "skins": "Apariencias"
+  },
+  "game": {
+    "tapToStart": "Toca para empezar",
+    "gameOver": "Fin del juego",
+    "playAgain": "Jugar de nuevo",
+    "score": "Puntuación",
+    "paused": "Pausado",
+    "watchAdToContinue": "Ver anuncio para continuar",
+    "loadingAd": "Cargando anuncio…",
+    "countdownGo": "¡YA!"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "soundEffects": "Efectos de sonido",
+    "music": "Música",
+    "haptics": "Vibración",
+    "language": "Idioma",
+    "theme": "Tema",
+    "languageSystem": "Sistema",
+    "themeDark": "Oscuro",
+    "themeLight": "Claro",
+    "themeSystem": "Sistema"
+  },
+  "skins": {
+    "title": "Personalización",
+    "classic": "Clásico",
+    "cyber_blue": "Cyber Azul",
+    "magma": "Magma",
+    "matrix": "Matrix",
+    "void": "Void",
+    "neon_striker": "Neon Striker",
+    "gold_ace": "As Dorado",
+    "phantom": "Fantasma",
+    "inferno": "Infierno"
+  },
+  "howToPlay": {
+    "title": "Cómo jugar",
+    "rule1": "Toca para cambiar entre el carril izquierdo y derecho.",
+    "rule2": "Evita los obstáculos rojos. Un golpe = fin del juego (o usa el escudo).",
+    "rule3": "Acércate sin golpear para obtener +50 de near-miss.",
+    "rule4": "Recoge monedas para llenar el escudo. Escudo lleno = un golpe gratis.",
+    "rule5": "Tras 5 near-misses seguidos, obtén 2x monedas durante 10 segundos."
+  },
+  "splash": {
+    "loading": "Cargando..."
+  }
+}

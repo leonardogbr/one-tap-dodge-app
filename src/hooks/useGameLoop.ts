@@ -15,6 +15,7 @@ import {
 } from '../engine/gameLoop';
 import { COIN_TO_SHIELD, MAX_REVIVES_PER_RUN } from '../engine/constants';
 import { useGameStore } from '../state/store';
+import { triggerHaptic } from '../services/haptics';
 
 export interface GameLoopDimensions {
   width: number;
@@ -30,11 +31,14 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
   const [coins, setCoins] = useState<Coin[]>([]);
   const [nearMissFlash, setNearMissFlash] = useState(false);
   const [coinMultiplierActive, setCoinMultiplierActive] = useState(false);
+  const [laneSwapTick, setLaneSwapTick] = useState(0);
 
   const stateRef = useRef<GameLoopState | null>(null);
   const rafIdRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
   const lastCollidedObstacleIdRef = useRef<string | null>(null);
+  /** Lane chosen in resetForCountdown; startGame reuses it so the player does not jump after countdown. */
+  const pendingInitialLaneRef = useRef<0 | 1 | null>(null);
 
   const {
     setScore: setStoreScore,
@@ -48,12 +52,47 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
     highScore,
   } = useGameStore();
 
+  /**
+   * Reset visuals for countdown (empty board, initial player). Loop does not run (phase 'paused').
+   * Call when starting countdown for a new game so the old game is not visible underneath.
+   */
+  const resetForCountdown = useCallback(() => {
+    if (!dimensions) return;
+    const initialPlayer = createInitialPlayer(dimensions.height);
+    pendingInitialLaneRef.current = initialPlayer.lane;
+    const state: GameLoopState = {
+      phase: 'paused',
+      player: initialPlayer,
+      obstacles: [],
+      coins: [],
+      score: 0,
+      accumulatedScoreMs: 0,
+      lastSpawnTime: 0,
+      lastCoinSpawnTime: 0,
+      obstacleSpeed: 280,
+      gameTimeMs: 0,
+      laneCenterX: dimensions.laneCenterX,
+      screenHeight: dimensions.height,
+      nearMissStreak: 0,
+      coinMultiplierActiveUntil: 0,
+      reviveGraceUntil: 0,
+    };
+    stateRef.current = state;
+    setPhase('paused');
+    setScore(0);
+    setObstacles([]);
+    setCoins([]);
+    setPlayer({ ...initialPlayer });
+  }, [dimensions]);
+
   const startGame = useCallback(() => {
     if (!dimensions) return;
     storeStartRun();
+    const lane = pendingInitialLaneRef.current;
+    if (lane !== null) pendingInitialLaneRef.current = null;
     const state: GameLoopState = {
       phase: 'playing',
-      player: createInitialPlayer(dimensions.height),
+      player: createInitialPlayer(dimensions.height, lane ?? undefined),
       obstacles: [],
       coins: [],
       score: 0,
@@ -82,8 +121,33 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
     if (stateRef.current?.phase === 'playing') {
       swapPlayerLane(stateRef.current);
       setPlayer((p) => (p ? { ...stateRef.current!.player } : null));
+      setLaneSwapTick((t) => t + 1);
+      triggerHaptic('swap');
     }
   }, []);
+
+  const pause = useCallback(() => {
+    const state = stateRef.current;
+    if (!state || state.phase !== 'playing') return;
+    state.phase = 'paused';
+    setPhase('paused');
+  }, []);
+
+  const resume = useCallback(() => {
+    const state = stateRef.current;
+    if (!state || state.phase !== 'paused') return;
+    state.phase = 'playing';
+    setPhase('playing');
+    lastTimeRef.current = Date.now();
+  }, []);
+
+  const quitFromPause = useCallback(() => {
+    const state = stateRef.current;
+    if (!state || state.phase !== 'paused') return;
+    endRun();
+    state.phase = 'game_over';
+    setPhase('game_over');
+  }, [endRun]);
 
   const revive = useCallback(() => {
     const state = stateRef.current;
@@ -107,7 +171,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
 
     const loop = () => {
       const state = stateRef.current;
-      if (!state || state.phase !== 'playing') return;
+      if (!state || state.phase !== 'playing') return; // also stops when paused
 
       const nowMs = Date.now();
       const deltaMs = nowMs - lastTimeRef.current;
@@ -125,14 +189,16 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
         addCoinsThisRun(result.coinsCollected);
         const currentShield = useGameStore.getState().shieldMeter;
         setShieldMeter(currentShield + result.coinsCollected * COIN_TO_SHIELD);
+        triggerHaptic('coin');
       }
 
       if (result.obstaclePassedWithoutNearMiss) {
         state.nearMissStreak = 0;
       }
       if (result.nearMissIds.length > 0) {
+        triggerHaptic('nearMiss');
         setNearMissFlash(true);
-        setTimeout(() => setNearMissFlash(false), 150);
+        setTimeout(() => setNearMissFlash(false), 900);
         if (nowMs >= state.coinMultiplierActiveUntil) {
           state.nearMissStreak += result.nearMissIds.length;
           if (state.nearMissStreak >= 5) {
@@ -157,6 +223,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
           setCanRevive(
             useGameStore.getState().revivesUsedThisRun < MAX_REVIVES_PER_RUN
           );
+          triggerHaptic('gameOver');
           setPhase('game_over');
           return;
         }
@@ -166,6 +233,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
         setCanRevive(
           useGameStore.getState().revivesUsedThisRun < MAX_REVIVES_PER_RUN
         );
+        triggerHaptic('gameOver');
         setPhase('game_over');
         return;
       }
@@ -190,8 +258,13 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
     nearMissFlash,
     coinMultiplierActive,
     highScore,
+    laneSwapTick,
+    resetForCountdown,
     startGame,
     swapLane,
+    pause,
+    resume,
+    quitFromPause,
     revive,
   };
 }

@@ -1,10 +1,20 @@
 /**
- * HUD — score, best, coins, shield meter, near-miss. Phase 2.
+ * HUD — score, best, coins, shield meter, near-miss. Phase 4: Reanimated + score bounce + theme.
  */
 
-import React from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing } from '../../theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
+import { useTheme } from '../../hooks/useTheme';
+import { spacing } from '../../theme';
 
 interface HUDProps {
   score: number;
@@ -23,9 +33,60 @@ export function HUD({
   nearMissFlash,
   coinMultiplierActive = false,
 }: HUDProps) {
+  const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const scoreScale = useSharedValue(1);
+  const prevScoreRef = useRef(score);
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          position: 'absolute',
+          top: insets.top + spacing.xl,
+          left: 0,
+          right: 0,
+          alignItems: 'center',
+          zIndex: 10,
+        },
+        score: { fontSize: 36, fontWeight: '700', color: colors.text },
+        best: { fontSize: 14, color: colors.textMuted, marginTop: spacing.xs },
+        coinMultiplierBadge: { marginTop: spacing.xs, backgroundColor: colors.success, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 8 },
+        coinMultiplierText: { fontSize: 14, fontWeight: '700', color: colors.background },
+        row: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm, gap: spacing.sm },
+        coins: { fontSize: 14, color: colors.text },
+        shieldWrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+        shieldBar: { width: 80, height: 8, backgroundColor: colors.backgroundLight, borderRadius: 4, overflow: 'hidden', borderWidth: 1, borderColor: 'transparent' },
+        shieldBarReady: { borderColor: colors.success, borderWidth: 1.5 },
+        shieldFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 4 },
+        shieldFillReady: { backgroundColor: colors.success },
+        shieldLabel: { fontSize: 12, color: colors.textMuted, minWidth: 52 },
+        shieldLabelReady: { color: colors.success, fontWeight: '700' },
+        nearMissBadge: { position: 'absolute', top: 80, backgroundColor: colors.primary, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 8 },
+        nearMissText: { fontSize: 16, fontWeight: '700', color: colors.background },
+      }),
+    [colors, insets.top]
+  );
+
+  useEffect(() => {
+    if (score > prevScoreRef.current) {
+      scoreScale.value = withSequence(
+        withTiming(1.06, { duration: 80 }),
+        withTiming(1, { duration: 120 })
+      );
+    }
+    prevScoreRef.current = score;
+  }, [score, scoreScale]);
+
+  const scoreAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scoreScale.value }],
+  }));
+
   return (
     <View style={styles.container} pointerEvents="none">
-      <Text style={styles.score}>{score}</Text>
+      <Animated.View style={scoreAnimatedStyle}>
+        <Text style={styles.score}>{score}</Text>
+      </Animated.View>
       {best > 0 && (
         <Text style={styles.best}>Best: {best}</Text>
       )}
@@ -62,101 +123,14 @@ export function HUD({
         </View>
       </View>
       {nearMissFlash && (
-        <View style={styles.nearMissBadge}>
+        <Animated.View
+          style={styles.nearMissBadge}
+          entering={FadeIn.duration(180)}
+          exiting={FadeOut.duration(220)}
+        >
           <Text style={styles.nearMissText}>+50</Text>
-        </View>
+        </Animated.View>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: spacing.xl,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  score: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  best: {
-    fontSize: 14,
-    color: colors.textMuted,
-    marginTop: spacing.xs,
-  },
-  coinMultiplierBadge: {
-    marginTop: spacing.xs,
-    backgroundColor: colors.success,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: 8,
-  },
-  coinMultiplierText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.background,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.sm,
-    gap: spacing.sm,
-  },
-  coins: {
-    fontSize: 14,
-    color: colors.text,
-  },
-  shieldWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  shieldBar: {
-    width: 80,
-    height: 8,
-    backgroundColor: colors.backgroundLight,
-    borderRadius: 4,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  shieldBarReady: {
-    borderColor: colors.success,
-    borderWidth: 1.5,
-  },
-  shieldFill: {
-    height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 4,
-  },
-  shieldFillReady: {
-    backgroundColor: colors.success,
-  },
-  shieldLabel: {
-    fontSize: 12,
-    color: colors.textMuted,
-    minWidth: 52,
-  },
-  shieldLabelReady: {
-    color: colors.success,
-    fontWeight: '700',
-  },
-  nearMissBadge: {
-    position: 'absolute',
-    top: 80,
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: 8,
-  },
-  nearMissText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.background,
-  },
-});

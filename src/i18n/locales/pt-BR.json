@@ -1,0 +1,65 @@
+{
+  "common": {
+    "back": "← Voltar",
+    "play": "Jogar",
+    "home": "Início",
+    "settings": "Configurações",
+    "resume": "Continuar",
+    "quit": "Sair",
+    "equip": "Equipar",
+    "equipped": "Equipado",
+    "unlock": "Desbloquear",
+    "locked": "Bloqueado"
+  },
+  "home": {
+    "title": "One Tap Dodge",
+    "subtitle": "Toque para trocar de faixa. Desvie dos obstáculos.",
+    "howToPlay": "Como jogar",
+    "skins": "Aparências"
+  },
+  "game": {
+    "tapToStart": "Toque para começar",
+    "gameOver": "Fim de jogo",
+    "playAgain": "Jogar de novo",
+    "score": "Pontuação",
+    "paused": "Pausado",
+    "watchAdToContinue": "Assistir anúncio para continuar",
+    "loadingAd": "Carregando anúncio…",
+    "countdownGo": "JÁ!"
+  },
+  "settings": {
+    "title": "Configurações",
+    "soundEffects": "Efeitos sonoros",
+    "music": "Música",
+    "haptics": "Vibração",
+    "language": "Idioma",
+    "theme": "Tema",
+    "languageSystem": "Sistema",
+    "themeDark": "Escuro",
+    "themeLight": "Claro",
+    "themeSystem": "Sistema"
+  },
+  "skins": {
+    "title": "Personalização",
+    "classic": "Clássico",
+    "cyber_blue": "Cyber Azul",
+    "magma": "Magma",
+    "matrix": "Matrix",
+    "void": "Void",
+    "neon_striker": "Neon Striker",
+    "gold_ace": "Ás Dourado",
+    "phantom": "Fantasma",
+    "inferno": "Inferno"
+  },
+  "howToPlay": {
+    "title": "Como jogar",
+    "rule1": "Toque para trocar entre a faixa esquerda e direita.",
+    "rule2": "Evite os obstáculos vermelhos. Um choque = fim de jogo (ou use o escudo).",
+    "rule3": "Fique perto sem bater para ganhar +50 de near-miss.",
+    "rule4": "Colete moedas para encher o escudo. Escudo cheio = um choque grátis.",
+    "rule5": "Após 5 near-misses seguidos, ganhe 2x moedas por 10 segundos."
+  },
+  "splash": {
+    "loading": "Carregando..."
+  }
+}

@@ -19,6 +19,7 @@ import {
   COIN_FIRST_SPAWN_DELAY_MS,
   COIN_WIDTH,
   COIN_HEIGHT,
+  SPAWN_OTHER_LANE_TOP_ZONE_Y,
 } from './constants';
 
 export interface GameLoopState {
@@ -120,6 +121,14 @@ export function tick(
       lane = Math.random() < 0.5 ? LANE_LEFT : LANE_RIGHT;
     } else {
       lane = laneWithCoinInTop === LANE_LEFT ? LANE_RIGHT : LANE_LEFT;
+    }
+    // Avoid impossible dodge: if the other lane has an obstacle in the top zone, spawn in that lane instead so we don't block both lanes at the same level.
+    const otherLane = lane === LANE_LEFT ? LANE_RIGHT : LANE_LEFT;
+    const otherLaneHasObstacleInTop = state.obstacles.some(
+      (obs) => obs.lane === otherLane && obs.y < SPAWN_OTHER_LANE_TOP_ZONE_Y
+    );
+    if (otherLaneHasObstacleInTop) {
+      lane = otherLane;
     }
     const laneX = state.laneCenterX[lane];
     const halfW = 30;
@@ -254,10 +263,11 @@ export function setReviveGrace(
 }
 
 export function createInitialPlayer(
-  screenHeight: number
+  screenHeight: number,
+  lane?: Lane
 ): Player {
   return {
-    lane: LANE_LEFT,
+    lane: lane ?? (Math.random() < 0.5 ? LANE_LEFT : LANE_RIGHT),
     centerY: screenHeight * PLAYER_CENTER_Y_FRACTION,
     radius: PLAYER_RADIUS,
   };

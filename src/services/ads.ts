@@ -81,6 +81,10 @@ export async function initAds(): Promise<void> {
   createInterstitial();
 }
 
+/**
+ * Resolves only when the ad is closed. Resolve value is true if the user
+ * earned the reward (watched long enough); game must only resume after close.
+ */
 export function showRewarded(): Promise<boolean> {
   return new Promise((resolve) => {
     if (!rewardedAd?.loaded) {
@@ -97,10 +101,10 @@ export function showRewarded(): Promise<boolean> {
     };
     rewardedAd!.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
       earnedReward = true;
-      finish(true);
+      // Do NOT resolve here — wait for CLOSED so the game only resumes after the user closes the ad.
     });
     rewardedAd!.addAdEventListener(AdEventType.CLOSED, () => {
-      // Resolve after a short delay so EARNED_REWARD (if it fires after CLOSED on some devices) is captured
+      // Resolve only when ad is closed; value is whether they earned the reward.
       setTimeout(() => finish(earnedReward), 200);
     });
     rewardedAd!.show().catch(() => finish(false));

@@ -27,6 +27,8 @@ export const BASE_OBSTACLE_SPEED = 280;
 
 /** Spawn: min interval between spawns (ms) */
 export const SPAWN_INTERVAL_MS = 1200;
+/** Spawn: if the other lane has an obstacle with y < this (px from top), spawn in that lane instead to avoid both lanes blocked at same level. */
+export const SPAWN_OTHER_LANE_TOP_ZONE_Y = 140;
 
 /** Coins: size and spawn interval (ms) */
 export const COIN_WIDTH = 28;
@@ -48,4 +50,10 @@ export const MIN_SPAWN_INTERVAL_MS = 500;
 /** Monetization: show interstitial after this many game overs (less intrusive). */
 export const INTERSTITIAL_AFTER_GAME_OVERS = 5;
 /** Monetization: max rewarded revives per run (more chances to continue same run). */
-export const MAX_REVIVES_PER_RUN = 3;
+export const MAX_REVIVES_PER_RUN = 2;
+
+/** Game over: seconds before "Play again" can be tapped (avoid accidental restart). */
+export const GAME_OVER_PLAY_AGAIN_DELAY_MS = 2000;
+
+/** Countdown: ms per step (3, 2, 1, Go) before start/resume/after revive. */
+export const COUNTDOWN_STEP_MS = 800;

@@ -45,19 +45,33 @@ export interface ProgressSlice {
   setFromPersisted: (data: Partial<Pick<ProgressSlice, 'totalCoins' | 'unlockedSkins' | 'equippedSkinId' | 'gameOversSinceLastInterstitial'> & { highScore?: number }>) => void;
 }
 
+export type ThemeMode = 'dark' | 'light' | 'system';
+export type LocaleCode = 'pt-BR' | 'es' | 'en' | 'system';
+
 export interface SettingsSlice {
   soundOn: boolean;
   musicOn: boolean;
   hapticsOn: boolean;
-  removeAds: boolean;
-  setSetting: <K extends keyof Omit<SettingsSlice, 'setSetting' | 'setFromPersisted'>>(
+  themeMode: ThemeMode;
+  locale: LocaleCode;
+  setSetting: <K extends keyof Omit<SettingsSlice, 'setSetting' | 'setSettingsFromPersisted'>>(
     key: K,
     value: SettingsSlice[K]
   ) => void;
-  setSettingsFromPersisted: (data: Partial<Pick<SettingsSlice, 'soundOn' | 'musicOn' | 'hapticsOn' | 'removeAds'>>) => void;
+  setSettingsFromPersisted: (data: Partial<Pick<SettingsSlice, 'soundOn' | 'musicOn' | 'hapticsOn' | 'themeMode' | 'locale'>>) => void;
 }
 
-export const SKIN_IDS = ['classic', 'cyber_blue', 'magma', 'matrix', 'void', 'neon_striker'] as const;
+export const SKIN_IDS = [
+  'classic',
+  'cyber_blue',
+  'magma',
+  'matrix',
+  'void',
+  'neon_striker',
+  'gold_ace',
+  'phantom',
+  'inferno',
+] as const;
 export type SkinId = (typeof SKIN_IDS)[number];
 
 export const SKIN_COSTS: Record<string, number> = {
@@ -67,6 +81,22 @@ export const SKIN_COSTS: Record<string, number> = {
   matrix: 1000,
   void: 500,
   neon_striker: 1500,
+  gold_ace: 3000,
+  phantom: 5000,
+  inferno: 8000,
+};
+
+/** Player fill color per skin (game + SkinsScreen preview). */
+export const SKIN_COLORS: Record<string, string> = {
+  classic: '#38e8ff',
+  cyber_blue: '#2196f3',
+  magma: '#ff5722',
+  matrix: '#9c27b0',
+  void: '#673ab7',
+  neon_striker: '#00e676',
+  gold_ace: '#ffd700',
+  phantom: '#b0bec5',
+  inferno: '#ff1744',
 };
 
 export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((set, get) => ({
@@ -139,7 +169,8 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
   soundOn: true,
   musicOn: true,
   hapticsOn: true,
-  removeAds: false,
+  themeMode: 'system',
+  locale: 'system',
   setSetting: (key, value) => set({ [key]: value }),
   setSettingsFromPersisted: (data) => set(data),
 }));

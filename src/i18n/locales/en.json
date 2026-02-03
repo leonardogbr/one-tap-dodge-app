@@ -1,0 +1,65 @@
+{
+  "common": {
+    "back": "← Back",
+    "play": "Play",
+    "home": "Home",
+    "settings": "Settings",
+    "resume": "Resume",
+    "quit": "Quit",
+    "equip": "Equip",
+    "equipped": "Equipped",
+    "unlock": "Unlock",
+    "locked": "Locked"
+  },
+  "home": {
+    "title": "One Tap Dodge",
+    "subtitle": "Tap to swap lanes. Dodge obstacles.",
+    "howToPlay": "How to Play",
+    "skins": "Skins"
+  },
+  "game": {
+    "tapToStart": "Tap to start",
+    "gameOver": "Game Over",
+    "playAgain": "Play again",
+    "score": "Score",
+    "paused": "Paused",
+    "watchAdToContinue": "Watch Ad to Continue",
+    "loadingAd": "Loading ad…",
+    "countdownGo": "GO!"
+  },
+  "settings": {
+    "title": "Settings",
+    "soundEffects": "Sound effects",
+    "music": "Music",
+    "haptics": "Haptics",
+    "language": "Language",
+    "theme": "Theme",
+    "languageSystem": "System",
+    "themeDark": "Dark",
+    "themeLight": "Light",
+    "themeSystem": "System"
+  },
+  "skins": {
+    "title": "Customization",
+    "classic": "Classic",
+    "cyber_blue": "Cyber Blue",
+    "magma": "Magma",
+    "matrix": "Matrix",
+    "void": "Void",
+    "neon_striker": "Neon Striker",
+    "gold_ace": "Gold Ace",
+    "phantom": "Phantom",
+    "inferno": "Inferno"
+  },
+  "howToPlay": {
+    "title": "How to Play",
+    "rule1": "Tap to swap between left and right lanes.",
+    "rule2": "Avoid red obstacles. One hit = game over (or use shield).",
+    "rule3": "Get close without hitting for a +50 near-miss bonus.",
+    "rule4": "Collect coins to fill the shield meter. Full meter = one free hit.",
+    "rule5": "After 5 near-misses in a row, get 2x coins for 10 seconds."
+  },
+  "splash": {
+    "loading": "Loading..."
+  }
+}

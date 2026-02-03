@@ -4,6 +4,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useGameStore } from './store';
+import { changeLanguage } from '../i18n';
 
 const KEY_HIGH_SCORE = '@onetapdodge/highScore';
 const KEY_TOTAL_COINS = '@onetapdodge/totalCoins';
@@ -47,8 +48,11 @@ export async function hydrateStore(): Promise<void> {
           soundOn: settings.soundOn,
           musicOn: settings.musicOn,
           hapticsOn: settings.hapticsOn,
-          removeAds: settings.removeAds,
+          ...(settings.themeMode != null && { themeMode: settings.themeMode }),
+          ...(settings.locale != null && { locale: settings.locale }),
         });
+        const savedLocale = (settings as { locale?: string }).locale;
+        if (typeof savedLocale === 'string') changeLanguage(savedLocale as 'pt-BR' | 'es' | 'en' | 'system');
       } catch {
         // ignore
       }
@@ -78,7 +82,8 @@ export function persistSettings(settings: {
   soundOn: boolean;
   musicOn: boolean;
   hapticsOn: boolean;
-  removeAds: boolean;
+  themeMode: string;
+  locale: string;
 }): void {
   AsyncStorage.setItem(KEY_SETTINGS, JSON.stringify(settings));
 }
