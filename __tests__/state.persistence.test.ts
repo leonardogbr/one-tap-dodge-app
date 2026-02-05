@@ -121,6 +121,22 @@ describe('state/persistence', () => {
     expect(mockChangeLanguage).not.toHaveBeenCalled();
   });
 
+  it('handles missing totals and settings', async () => {
+    const storage: Record<string, string> = {
+      '@onetapdodge/highScore': '7',
+    };
+    AsyncStorage.getItem.mockImplementation((key: string) =>
+      Promise.resolve(storage[key] ?? null)
+    );
+
+    await persistence.hydrateStore();
+
+    expect(mockSetFromPersisted).toHaveBeenCalledWith({
+      highScore: 7,
+    });
+    expect(mockSetSettingsFromPersisted).not.toHaveBeenCalled();
+  });
+
   it('persists data using AsyncStorage', () => {
     persistence.persistHighScore(10);
     persistence.persistTotalCoins(20);

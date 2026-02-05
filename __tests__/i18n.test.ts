@@ -64,6 +64,18 @@ describe('i18n', () => {
     );
   });
 
+  it('defaults to English when device locales are missing', () => {
+    RNLocalize.getLocales.mockReturnValue([]);
+
+    initI18n('system');
+
+    expect(mockI18n.init).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lng: 'en',
+      })
+    );
+  });
+
   it('initializes using explicit locale and falls back on unsupported', () => {
     initI18n('es');
     expect(mockI18n.init).toHaveBeenCalledWith(

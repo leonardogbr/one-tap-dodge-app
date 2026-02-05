@@ -179,6 +179,24 @@ describe('services/ads', () => {
     jest.useRealTimers();
   });
 
+  it('ignores duplicate close events for rewarded ads', async () => {
+    jest.useFakeTimers();
+    const { ads, adsMock } = loadAds({ dev: false, platform: 'android' });
+    await ads.initAds();
+
+    const rewarded = adsMock.__getLastRewardedAd();
+    rewarded.loaded = true;
+
+    const promise = ads.showRewarded();
+    rewarded.__emit('CLOSED');
+    rewarded.__emit('CLOSED');
+    jest.runAllTimers();
+
+    await expect(promise).resolves.toBe(false);
+    expect(rewarded.show).toHaveBeenCalled();
+    jest.useRealTimers();
+  });
+
   it('resolves false when rewarded show fails', async () => {
     const { ads, adsMock } = loadAds({ dev: false, platform: 'android' });
     await ads.initAds();
