@@ -137,6 +137,21 @@ describe('state/persistence', () => {
     expect(mockSetSettingsFromPersisted).not.toHaveBeenCalled();
   });
 
+  it('defaults total coins when stored value is invalid', async () => {
+    const storage: Record<string, string> = {
+      '@onetapdodge/totalCoins': 'not-a-number',
+    };
+    AsyncStorage.getItem.mockImplementation((key: string) =>
+      Promise.resolve(storage[key] ?? null)
+    );
+
+    await persistence.hydrateStore();
+
+    expect(mockSetFromPersisted).toHaveBeenCalledWith({
+      totalCoins: 0,
+    });
+  });
+
   it('persists data using AsyncStorage', () => {
     persistence.persistHighScore(10);
     persistence.persistTotalCoins(20);

@@ -113,9 +113,8 @@ export function tick(
     shouldSpawn(state.lastSpawnTime, currentTimeMs, state.score)
   ) {
     const TOP_ZONE_Y = 120;
-    const laneWithCoinInTop = state.coins.some((c) => c.y < TOP_ZONE_Y)
-      ? (state.coins.find((c) => c.y < TOP_ZONE_Y)?.lane ?? null)
-      : null;
+    const coinInTop = state.coins.find((c) => c.y < TOP_ZONE_Y);
+    const laneWithCoinInTop = coinInTop ? coinInTop.lane : null;
     let lane: Lane;
     if (laneWithCoinInTop === null) {
       lane = Math.random() < 0.5 ? LANE_LEFT : LANE_RIGHT;
