@@ -12,13 +12,15 @@ jest.mock('react-native', () => ({
 const initialState = useGameStore.getState();
 
 const resetStore = () => {
-  useGameStore.setState(
-    {
-      ...initialState,
-      unlockedSkins: [...initialState.unlockedSkins],
-    },
-    true
-  );
+  act(() => {
+    useGameStore.setState(
+      {
+        ...initialState,
+        unlockedSkins: [...initialState.unlockedSkins],
+      },
+      true
+    );
+  });
 };
 
 const ThemeProbe = ({ onResult }: { onResult: (result: ReturnType<typeof useTheme>) => void }) => {
@@ -34,7 +36,9 @@ describe('hooks/useTheme', () => {
   });
 
   it('uses system theme when set to system', () => {
-    useGameStore.getState().setSetting('themeMode', 'system');
+    act(() => {
+      useGameStore.getState().setSetting('themeMode', 'system');
+    });
     (useColorScheme as jest.Mock).mockReturnValue('dark');
 
     const onResult = jest.fn();
@@ -49,7 +53,9 @@ describe('hooks/useTheme', () => {
   });
 
   it('forces light theme when configured', () => {
-    useGameStore.getState().setSetting('themeMode', 'light');
+    act(() => {
+      useGameStore.getState().setSetting('themeMode', 'light');
+    });
     (useColorScheme as jest.Mock).mockReturnValue('dark');
 
     const onResult = jest.fn();
@@ -64,7 +70,9 @@ describe('hooks/useTheme', () => {
   });
 
   it('forces dark theme when configured', () => {
-    useGameStore.getState().setSetting('themeMode', 'dark');
+    act(() => {
+      useGameStore.getState().setSetting('themeMode', 'dark');
+    });
     (useColorScheme as jest.Mock).mockReturnValue('light');
 
     const onResult = jest.fn();

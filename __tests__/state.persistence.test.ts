@@ -1,6 +1,6 @@
-const setFromPersisted = jest.fn();
-const setSettingsFromPersisted = jest.fn();
-const changeLanguage = jest.fn();
+const mockSetFromPersisted = jest.fn();
+const mockSetSettingsFromPersisted = jest.fn();
+const mockChangeLanguage = jest.fn();
 
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn(),
@@ -10,14 +10,14 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 jest.mock('../src/state/store', () => ({
   useGameStore: {
     getState: () => ({
-      setFromPersisted,
-      setSettingsFromPersisted,
+      setFromPersisted: mockSetFromPersisted,
+      setSettingsFromPersisted: mockSetSettingsFromPersisted,
     }),
   },
 }));
 
 jest.mock('../src/i18n', () => ({
-  changeLanguage,
+  changeLanguage: mockChangeLanguage,
 }));
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -52,21 +52,21 @@ describe('state/persistence', () => {
 
     await hydrateStore();
 
-    expect(setFromPersisted).toHaveBeenCalledWith({
+    expect(mockSetFromPersisted).toHaveBeenCalledWith({
       highScore: 100,
       totalCoins: 200,
       unlockedSkins: ['classic', 'magma'],
       equippedSkinId: 'magma',
       gameOversSinceLastInterstitial: 3,
     });
-    expect(setSettingsFromPersisted).toHaveBeenCalledWith({
+    expect(mockSetSettingsFromPersisted).toHaveBeenCalledWith({
       soundOn: false,
       musicOn: true,
       hapticsOn: false,
       themeMode: 'dark',
       locale: 'es',
     });
-    expect(changeLanguage).toHaveBeenCalledWith('es');
+    expect(mockChangeLanguage).toHaveBeenCalledWith('es');
   });
 
   it('ignores invalid JSON and partial settings', async () => {
@@ -83,13 +83,13 @@ describe('state/persistence', () => {
 
     await hydrateStore();
 
-    expect(setFromPersisted).toHaveBeenCalledWith({
+    expect(mockSetFromPersisted).toHaveBeenCalledWith({
       highScore: 0,
       totalCoins: 5,
       gameOversSinceLastInterstitial: 1,
     });
-    expect(setSettingsFromPersisted).not.toHaveBeenCalled();
-    expect(changeLanguage).not.toHaveBeenCalled();
+    expect(mockSetSettingsFromPersisted).not.toHaveBeenCalled();
+    expect(mockChangeLanguage).not.toHaveBeenCalled();
   });
 
   it('swallows storage errors during hydration', async () => {
@@ -98,7 +98,7 @@ describe('state/persistence', () => {
     );
 
     await expect(hydrateStore()).resolves.toBeUndefined();
-    expect(setFromPersisted).not.toHaveBeenCalled();
+    expect(mockSetFromPersisted).not.toHaveBeenCalled();
   });
 
   it('hydrates settings without optional fields', async () => {
@@ -111,12 +111,12 @@ describe('state/persistence', () => {
 
     await hydrateStore();
 
-    expect(setSettingsFromPersisted).toHaveBeenCalledWith({
+    expect(mockSetSettingsFromPersisted).toHaveBeenCalledWith({
       soundOn: true,
       musicOn: false,
       hapticsOn: true,
     });
-    expect(changeLanguage).not.toHaveBeenCalled();
+    expect(mockChangeLanguage).not.toHaveBeenCalled();
   });
 
   it('persists data using AsyncStorage', () => {

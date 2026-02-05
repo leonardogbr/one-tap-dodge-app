@@ -122,28 +122,32 @@ describe('engine/gameLoop', () => {
 
   it('spawns coins with random lane when no top obstacles', () => {
     jest.spyOn(Math, 'random').mockReturnValue(0.3);
+    const now = COIN_SPAWN_INTERVAL_MS + 100;
     const state = createState({
       gameTimeMs: COIN_FIRST_SPAWN_DELAY_MS + 1000,
       lastCoinSpawnTime: 0,
+      lastSpawnTime: now,
     });
 
-    tick(state, 0, COIN_SPAWN_INTERVAL_MS + 100);
+    tick(state, 0, now);
 
     expect(state.coins).toHaveLength(1);
     expect(state.coins[0].lane).toBe(LANE_LEFT);
   });
 
   it('spawns coins in empty lane and halves interval during multiplier', () => {
+    const now = COIN_SPAWN_INTERVAL_MS;
     const state = createState({
       gameTimeMs: COIN_FIRST_SPAWN_DELAY_MS + 1000,
       lastCoinSpawnTime: 0,
+      lastSpawnTime: now,
       coinMultiplierActiveUntil: 10_000,
       obstacles: [
         makeObstacle({ id: 'top-right', lane: LANE_RIGHT, y: 40 }),
       ],
     });
 
-    tick(state, 0, COIN_SPAWN_INTERVAL_MS);
+    tick(state, 0, now);
 
     expect(state.coins).toHaveLength(1);
     expect(state.coins[0].lane).toBe(LANE_LEFT);
@@ -161,9 +165,11 @@ describe('engine/gameLoop', () => {
   });
 
   it('spawns coins in lane with fewer top obstacles', () => {
+    const now = COIN_SPAWN_INTERVAL_MS + 1;
     const state = createState({
       gameTimeMs: COIN_FIRST_SPAWN_DELAY_MS + 1000,
       lastCoinSpawnTime: 0,
+      lastSpawnTime: now,
       obstacles: [
         makeObstacle({ id: 'l1', lane: LANE_LEFT, y: 20 }),
         makeObstacle({ id: 'l2', lane: LANE_LEFT, y: 30 }),
@@ -171,7 +177,7 @@ describe('engine/gameLoop', () => {
       ],
     });
 
-    tick(state, 0, COIN_SPAWN_INTERVAL_MS + 1);
+    tick(state, 0, now);
 
     expect(state.coins).toHaveLength(1);
     expect(state.coins[0].lane).toBe(LANE_RIGHT);

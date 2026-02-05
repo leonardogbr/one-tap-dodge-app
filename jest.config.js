@@ -4,6 +4,7 @@ module.exports = {
   collectCoverage: true,
   collectCoverageFrom: [
     '<rootDir>/src/engine/**/*.ts',
+    '!<rootDir>/src/engine/types.ts',
     '<rootDir>/src/state/**/*.ts',
     '<rootDir>/src/services/**/*.ts',
     '<rootDir>/src/hooks/usePersistedStore.ts',

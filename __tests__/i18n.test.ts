@@ -1,10 +1,10 @@
-const i18nMock = {
+const mockI18n = {
   use: jest.fn().mockReturnThis(),
   init: jest.fn(),
   changeLanguage: jest.fn(),
 };
 
-jest.mock('i18next', () => i18nMock);
+jest.mock('i18next', () => mockI18n);
 jest.mock('react-i18next', () => ({
   initReactI18next: {},
 }));
@@ -17,9 +17,9 @@ import * as RNLocalize from 'react-native-localize';
 
 describe('i18n', () => {
   beforeEach(() => {
-    i18nMock.use.mockClear();
-    i18nMock.init.mockClear();
-    i18nMock.changeLanguage.mockClear();
+    mockI18n.use.mockClear();
+    mockI18n.init.mockClear();
+    mockI18n.changeLanguage.mockClear();
   });
 
   it('initializes using system locale mapping', () => {
@@ -29,7 +29,7 @@ describe('i18n', () => {
 
     initI18n('system');
 
-    expect(i18nMock.init).toHaveBeenCalledWith(
+    expect(mockI18n.init).toHaveBeenCalledWith(
       expect.objectContaining({
         lng: 'pt-BR',
         fallbackLng: 'en',
@@ -44,7 +44,7 @@ describe('i18n', () => {
 
     initI18n('system');
 
-    expect(i18nMock.init).toHaveBeenCalledWith(
+    expect(mockI18n.init).toHaveBeenCalledWith(
       expect.objectContaining({
         lng: 'en',
       })
@@ -53,14 +53,14 @@ describe('i18n', () => {
 
   it('initializes using explicit locale and falls back on unsupported', () => {
     initI18n('es');
-    expect(i18nMock.init).toHaveBeenCalledWith(
+    expect(mockI18n.init).toHaveBeenCalledWith(
       expect.objectContaining({
         lng: 'es',
       })
     );
 
     initI18n('fr' as unknown as 'en');
-    expect(i18nMock.init).toHaveBeenCalledWith(
+    expect(mockI18n.init).toHaveBeenCalledWith(
       expect.objectContaining({
         lng: 'en',
       })
@@ -73,9 +73,9 @@ describe('i18n', () => {
     ]);
 
     changeLanguage('system');
-    expect(i18nMock.changeLanguage).toHaveBeenCalledWith('es');
+    expect(mockI18n.changeLanguage).toHaveBeenCalledWith('es');
 
     changeLanguage('fr' as unknown as 'en');
-    expect(i18nMock.changeLanguage).toHaveBeenCalledWith('en');
+    expect(mockI18n.changeLanguage).toHaveBeenCalledWith('en');
   });
 });
