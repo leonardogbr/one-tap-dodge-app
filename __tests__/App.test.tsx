@@ -13,6 +13,10 @@ jest.mock('../src/hooks/usePersistedStore', () => ({
   usePersistedStore: jest.fn(),
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  NavigationContainer: ({ children }: { children?: unknown }) => children ?? null,
+}));
+
 jest.mock('../src/services/ads', () => ({
   initAds: jest.fn(),
 }));

@@ -7,6 +7,7 @@ const mockI18n = {
 jest.mock('i18next', () => ({
   __esModule: true,
   default: mockI18n,
+  ...mockI18n,
 }));
 jest.mock('react-i18next', () => ({
   initReactI18next: {},
