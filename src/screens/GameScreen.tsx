@@ -18,6 +18,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSequence,
+  withRepeat,
   withTiming,
   withDelay,
   Easing,
@@ -27,7 +28,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useGameLoop, type GameLoopDimensions } from '../hooks/useGameLoop';
-import { useGameStore, SKIN_COLORS } from '../state/store';
+import { useGameStore, SKIN_VISUALS } from '../state/store';
 import { HUD } from '../components/overlays/HUD';
 import { PressableScale } from '../components/PressableScale';
 import { isRewardedLoaded, showRewarded, showInterstitial } from '../services/ads';
@@ -80,6 +81,8 @@ export function GameScreen() {
   } = useGameLoop(dimensions);
 
   const playerScale = useSharedValue(1);
+  const pulseScale = useSharedValue(1);
+  const pulseOpacity = useSharedValue(0);
   useEffect(() => {
     if (laneSwapTick > 0) {
       playerScale.value = withSequence(
@@ -90,6 +93,10 @@ export function GameScreen() {
   }, [laneSwapTick, playerScale]);
   const playerAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: playerScale.value }],
+  }));
+  const pulseAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulseScale.value }],
+    opacity: pulseOpacity.value,
   }));
 
   const [reviveLoading, setReviveLoading] = useState(false);
@@ -115,6 +122,31 @@ export function GameScreen() {
   );
   const equippedSkinId = useGameStore((s) => s.equippedSkinId);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Game'>>();
+  const skinVisual = SKIN_VISUALS[equippedSkinId] ?? SKIN_VISUALS.classic;
+
+  useEffect(() => {
+    if (skinVisual.pulse) {
+      pulseScale.value = withRepeat(
+        withSequence(
+          withTiming(1.55, { duration: 900, easing: Easing.out(Easing.quad) }),
+          withTiming(1, { duration: 900, easing: Easing.in(Easing.quad) })
+        ),
+        -1,
+        false
+      );
+      pulseOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.6, { duration: 350, easing: Easing.out(Easing.quad) }),
+          withTiming(0, { duration: 650, easing: Easing.in(Easing.quad) })
+        ),
+        -1,
+        false
+      );
+    } else {
+      pulseScale.value = withTiming(1, { duration: 150 });
+      pulseOpacity.value = withTiming(0, { duration: 150 });
+    }
+  }, [skinVisual.pulse, pulseScale, pulseOpacity]);
 
   const startCountdown = useCallback(
     (callback: () => void) => {
@@ -221,8 +253,6 @@ export function GameScreen() {
     }
   }, [canRevive, reviveLoading, revive, startCountdown]);
 
-  const playerColor = SKIN_COLORS[equippedSkinId] ?? SKIN_COLORS.classic;
-
   const styles = React.useMemo(
     () =>
       StyleSheet.create({
@@ -232,7 +262,49 @@ export function GameScreen() {
         lane: { flex: 1, backgroundColor: colors.backgroundLight, borderRightWidth: 1, borderRightColor: colors.primaryDim },
         obstacle: { position: 'absolute', backgroundColor: colors.obstacle, opacity: 0.95, borderRadius: 8 },
         coin: { position: 'absolute', backgroundColor: '#ffd700', borderWidth: 2, borderColor: '#b8860b' },
-        player: { position: 'absolute', backgroundColor: playerColor, borderWidth: 2, borderColor: colors.text },
+        playerWrap: {
+          position: 'absolute',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'visible',
+        },
+        playerBody: {
+          position: 'absolute',
+          borderWidth: 2,
+          overflow: 'hidden',
+        },
+        playerPulse: {
+          position: 'absolute',
+          opacity: 0,
+        },
+        playerHighlight: {
+          position: 'absolute',
+          top: -6,
+          left: -6,
+          width: '70%',
+          height: '70%',
+          borderRadius: 999,
+          opacity: 0.7,
+        },
+        playerShadow: {
+          position: 'absolute',
+          bottom: -6,
+          right: -6,
+          width: '80%',
+          height: '80%',
+          borderRadius: 999,
+          opacity: 0.5,
+        },
+        playerRing: {
+          position: 'absolute',
+          top: 2,
+          left: 2,
+          right: 2,
+          bottom: 2,
+          borderRadius: 999,
+          borderWidth: 1,
+          opacity: 0.9,
+        },
         pauseBtn: { position: 'absolute', top: insets.top + spacing.xl, right: spacing.lg, padding: spacing.sm, zIndex: 15 },
         pauseBtnText: { fontSize: 18, fontWeight: '700', color: colors.textMuted },
         overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center' },
@@ -254,7 +326,7 @@ export function GameScreen() {
         explosionWrap: { position: 'absolute', zIndex: 10, pointerEvents: 'none' },
         explosionCircle: { backgroundColor: colors.danger, borderRadius: 999, opacity: 0.8 },
       }),
-    [colors, insets.top, playerColor]
+    [colors, insets.top]
   );
 
   if (!dimensions) {
@@ -294,19 +366,57 @@ export function GameScreen() {
           ))}
 
           {player && (
-            <Animated.View
+            <View
               style={[
-                styles.player,
+                styles.playerWrap,
                 {
                   left: laneCenters[player.lane] - PLAYER_RADIUS,
                   top: player.centerY - PLAYER_RADIUS,
                   width: PLAYER_RADIUS * 2,
                   height: PLAYER_RADIUS * 2,
-                  borderRadius: PLAYER_RADIUS,
                 },
-                playerAnimatedStyle,
               ]}
-            />
+            >
+              {skinVisual.pulse && (
+                <Animated.View
+                  style={[
+                    styles.playerPulse,
+                    {
+                      width: PLAYER_RADIUS * 2,
+                      height: PLAYER_RADIUS * 2,
+                      borderRadius: PLAYER_RADIUS,
+                      backgroundColor: skinVisual.edge ?? skinVisual.base,
+                    },
+                    pulseAnimatedStyle,
+                  ]}
+                />
+              )}
+              <Animated.View
+                style={[
+                  styles.playerBody,
+                  {
+                    width: PLAYER_RADIUS * 2,
+                    height: PLAYER_RADIUS * 2,
+                    borderRadius: PLAYER_RADIUS,
+                    backgroundColor: skinVisual.base,
+                    borderColor: skinVisual.edge ?? colors.text,
+                  },
+                  playerAnimatedStyle,
+                ]}
+              >
+                {skinVisual.shadow && (
+                  <View style={[styles.playerShadow, { backgroundColor: skinVisual.shadow }]} />
+                )}
+                {skinVisual.highlight && (
+                  <View
+                    style={[styles.playerHighlight, { backgroundColor: skinVisual.highlight }]}
+                  />
+                )}
+                {skinVisual.edge && (
+                  <View style={[styles.playerRing, { borderColor: skinVisual.edge }]} />
+                )}
+              </Animated.View>
+            </View>
           )}
         </View>
 

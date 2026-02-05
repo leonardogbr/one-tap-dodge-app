@@ -49,7 +49,16 @@
     "neon_striker": "Neon Striker",
     "gold_ace": "Ás Dourado",
     "phantom": "Fantasma",
-    "inferno": "Inferno"
+    "inferno": "Inferno",
+    "sunset_fade": "Degradê Pôr do Sol",
+    "ocean_fade": "Degradê Oceano",
+    "aurora_shift": "Aurora Boreal",
+    "rose_gold": "Ouro Rosé",
+    "platinum_edge": "Platina",
+    "sapphire": "Safira",
+    "emerald": "Esmeralda",
+    "amethyst": "Ametista",
+    "celestial_pulse": "Pulso Celestial"
   },
   "howToPlay": {
     "title": "Como jogar",

@@ -49,7 +49,16 @@
     "neon_striker": "Neon Striker",
     "gold_ace": "Gold Ace",
     "phantom": "Phantom",
-    "inferno": "Inferno"
+    "inferno": "Inferno",
+    "sunset_fade": "Sunset Fade",
+    "ocean_fade": "Ocean Fade",
+    "aurora_shift": "Aurora Shift",
+    "rose_gold": "Rose Gold",
+    "platinum_edge": "Platinum Edge",
+    "sapphire": "Sapphire",
+    "emerald": "Emerald",
+    "amethyst": "Amethyst",
+    "celestial_pulse": "Celestial Pulse"
   },
   "howToPlay": {
     "title": "How to Play",
