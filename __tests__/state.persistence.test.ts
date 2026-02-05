@@ -20,19 +20,21 @@ jest.mock('../src/i18n', () => ({
   changeLanguage: mockChangeLanguage,
 }));
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  hydrateStore,
-  persistEquippedSkin,
-  persistGameOversSinceLastInterstitial,
-  persistHighScore,
-  persistSettings,
-  persistTotalCoins,
-  persistUnlockedSkins,
-} from '../src/state/persistence';
+let AsyncStorage: {
+  getItem: jest.Mock;
+  setItem: jest.Mock;
+};
+let persistence: typeof import('../src/state/persistence');
+
+const loadModules = () => {
+  jest.resetModules();
+  AsyncStorage = require('@react-native-async-storage/async-storage');
+  persistence = require('../src/state/persistence');
+};
 
 describe('state/persistence', () => {
   beforeEach(() => {
+    loadModules();
     jest.clearAllMocks();
   });
 
@@ -50,7 +52,7 @@ describe('state/persistence', () => {
       Promise.resolve(storage[key] ?? null)
     );
 
-    await hydrateStore();
+    await persistence.hydrateStore();
 
     expect(mockSetFromPersisted).toHaveBeenCalledWith({
       highScore: 100,
@@ -81,7 +83,7 @@ describe('state/persistence', () => {
       Promise.resolve(storage[key] ?? null)
     );
 
-    await hydrateStore();
+    await persistence.hydrateStore();
 
     expect(mockSetFromPersisted).toHaveBeenCalledWith({
       highScore: 0,
@@ -97,7 +99,7 @@ describe('state/persistence', () => {
       Promise.reject(new Error('boom'))
     );
 
-    await expect(hydrateStore()).resolves.toBeUndefined();
+    await expect(persistence.hydrateStore()).resolves.toBeUndefined();
     expect(mockSetFromPersisted).not.toHaveBeenCalled();
   });
 
@@ -109,7 +111,7 @@ describe('state/persistence', () => {
       Promise.resolve(storage[key] ?? null)
     );
 
-    await hydrateStore();
+    await persistence.hydrateStore();
 
     expect(mockSetSettingsFromPersisted).toHaveBeenCalledWith({
       soundOn: true,
@@ -120,18 +122,18 @@ describe('state/persistence', () => {
   });
 
   it('persists data using AsyncStorage', () => {
-    persistHighScore(10);
-    persistTotalCoins(20);
-    persistUnlockedSkins(['classic', 'magma']);
-    persistEquippedSkin('magma');
-    persistSettings({
+    persistence.persistHighScore(10);
+    persistence.persistTotalCoins(20);
+    persistence.persistUnlockedSkins(['classic', 'magma']);
+    persistence.persistEquippedSkin('magma');
+    persistence.persistSettings({
       soundOn: true,
       musicOn: false,
       hapticsOn: true,
       themeMode: 'system',
       locale: 'pt-BR',
     });
-    persistGameOversSinceLastInterstitial(2);
+    persistence.persistGameOversSinceLastInterstitial(2);
 
     const setItem = AsyncStorage.setItem as jest.Mock;
     expect(setItem).toHaveBeenCalledWith('@onetapdodge/highScore', '10');

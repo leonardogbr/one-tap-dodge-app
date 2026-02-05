@@ -1,8 +1,8 @@
-const mobileAdsInitialize = jest.fn(() => Promise.resolve());
-const rewardedInstances: any[] = [];
-const interstitialInstances: any[] = [];
+const mockMobileAdsInitialize = jest.fn(() => Promise.resolve());
+const mockRewardedInstances: any[] = [];
+const mockInterstitialInstances: any[] = [];
 
-const createMockAd = () => {
+const mockCreateAd = () => {
   const listeners = new Map<string, Set<() => void>>();
   const ad = {
     loaded: false,
@@ -25,18 +25,18 @@ const createMockAd = () => {
 };
 
 jest.mock('react-native-google-mobile-ads', () => ({
-  MobileAds: () => ({ initialize: mobileAdsInitialize }),
+  MobileAds: () => ({ initialize: mockMobileAdsInitialize }),
   RewardedAd: {
     createForAdRequest: jest.fn(() => {
-      const ad = createMockAd();
-      rewardedInstances.push(ad);
+      const ad = mockCreateAd();
+      mockRewardedInstances.push(ad);
       return ad;
     }),
   },
   InterstitialAd: {
     createForAdRequest: jest.fn(() => {
-      const ad = createMockAd();
-      interstitialInstances.push(ad);
+      const ad = mockCreateAd();
+      mockInterstitialInstances.push(ad);
       return ad;
     }),
   },
@@ -53,13 +53,14 @@ jest.mock('react-native-google-mobile-ads', () => ({
     CLOSED: 'CLOSED',
     ERROR: 'ERROR',
   },
-  __getLastRewardedAd: () => rewardedInstances[rewardedInstances.length - 1],
+  __getLastRewardedAd: () =>
+    mockRewardedInstances[mockRewardedInstances.length - 1],
   __getLastInterstitialAd: () =>
-    interstitialInstances[interstitialInstances.length - 1],
+    mockInterstitialInstances[mockInterstitialInstances.length - 1],
   __reset: () => {
-    rewardedInstances.length = 0;
-    interstitialInstances.length = 0;
-    mobileAdsInitialize.mockClear();
+    mockRewardedInstances.length = 0;
+    mockInterstitialInstances.length = 0;
+    mockMobileAdsInitialize.mockClear();
   },
 }));
 
@@ -131,7 +132,7 @@ describe('services/ads', () => {
   it('initializes ads and tracks loaded state', async () => {
     const { ads, adsMock } = loadAds({ dev: false, platform: 'android' });
     await ads.initAds();
-    expect(mobileAdsInitialize).toHaveBeenCalled();
+    expect(mockMobileAdsInitialize).toHaveBeenCalled();
 
     const rewarded = adsMock.__getLastRewardedAd();
     const interstitial = adsMock.__getLastInterstitialAd();

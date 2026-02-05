@@ -4,7 +4,10 @@ const mockI18n = {
   changeLanguage: jest.fn(),
 };
 
-jest.mock('i18next', () => mockI18n);
+jest.mock('i18next', () => ({
+  __esModule: true,
+  default: mockI18n,
+}));
 jest.mock('react-i18next', () => ({
   initReactI18next: {},
 }));
