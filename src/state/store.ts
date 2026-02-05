@@ -71,32 +71,171 @@ export const SKIN_IDS = [
   'gold_ace',
   'phantom',
   'inferno',
+  'sunset_fade',
+  'ocean_fade',
+  'aurora_shift',
+  'rose_gold',
+  'platinum_edge',
+  'sapphire',
+  'emerald',
+  'amethyst',
+  'ruby',
+  'topaz',
+  'diamond',
+  'celestial_pulse',
 ] as const;
 export type SkinId = (typeof SKIN_IDS)[number];
 
 export const SKIN_COSTS: Record<string, number> = {
   classic: 0,
-  cyber_blue: 0,
-  magma: 500,
-  matrix: 1000,
-  void: 500,
-  neon_striker: 1500,
-  gold_ace: 3000,
-  phantom: 5000,
-  inferno: 8000,
+  cyber_blue: 500,
+  magma: 1200,
+  matrix: 2500,
+  void: 4000,
+  neon_striker: 6500,
+  gold_ace: 9500,
+  phantom: 14000,
+  inferno: 20000,
+  sunset_fade: 27000,
+  ocean_fade: 35000,
+  aurora_shift: 44000,
+  rose_gold: 50000,
+  platinum_edge: 57000,
+  sapphire: 64000,
+  emerald: 71000,
+  amethyst: 78000,
+  ruby: 85000,
+  topaz: 92000,
+  diamond: 97000,
+  celestial_pulse: 100000,
 };
 
-/** Player fill color per skin (game + SkinsScreen preview). */
-export const SKIN_COLORS: Record<string, string> = {
-  classic: '#38e8ff',
-  cyber_blue: '#2196f3',
-  magma: '#ff5722',
-  matrix: '#9c27b0',
-  void: '#673ab7',
-  neon_striker: '#00e676',
-  gold_ace: '#ffd700',
-  phantom: '#b0bec5',
-  inferno: '#ff1744',
+export type SkinVisual = {
+  base: string;
+  highlight?: string;
+  shadow?: string;
+  edge?: string;
+  pulse?: boolean;
+};
+
+/** Skin visuals for preview and in-game player (gradients, metals, gems, pulse). */
+export const SKIN_VISUALS: Record<string, SkinVisual> = {
+  classic: {
+    base: '#38e8ff',
+    highlight: '#a7f4ff',
+    shadow: '#0bbcd4',
+  },
+  cyber_blue: {
+    base: '#2196f3',
+    highlight: '#90caf9',
+    shadow: '#0d47a1',
+  },
+  magma: {
+    base: '#ff5722',
+    highlight: '#ff8a50',
+    shadow: '#d84315',
+  },
+  matrix: {
+    base: '#9c27b0',
+    highlight: '#d05ce3',
+    shadow: '#6a0080',
+  },
+  void: {
+    base: '#673ab7',
+    highlight: '#9a67ea',
+    shadow: '#311b92',
+  },
+  neon_striker: {
+    base: '#00e676',
+    highlight: '#69f0ae',
+    shadow: '#00a152',
+  },
+  gold_ace: {
+    base: '#ffd700',
+    highlight: '#fff3b0',
+    shadow: '#c8a400',
+    edge: '#fff5cc',
+  },
+  phantom: {
+    base: '#b0bec5',
+    highlight: '#e2f1f8',
+    shadow: '#78909c',
+  },
+  inferno: {
+    base: '#ff1744',
+    highlight: '#ff8a80',
+    shadow: '#c51162',
+  },
+  sunset_fade: {
+    base: '#ff6f61',
+    highlight: '#ffd1b3',
+    shadow: '#c62828',
+  },
+  ocean_fade: {
+    base: '#00bcd4',
+    highlight: '#b2ebf2',
+    shadow: '#006064',
+  },
+  aurora_shift: {
+    base: '#7c4dff',
+    highlight: '#69f0ae',
+    shadow: '#311b92',
+  },
+  rose_gold: {
+    base: '#e6a8a1',
+    highlight: '#f9dcd6',
+    shadow: '#b76e79',
+    edge: '#ffe7e2',
+  },
+  platinum_edge: {
+    base: '#cfd8dc',
+    highlight: '#ffffff',
+    shadow: '#90a4ae',
+    edge: '#eceff1',
+  },
+  sapphire: {
+    base: '#1e88e5',
+    highlight: '#90caf9',
+    shadow: '#0d47a1',
+    edge: '#b3e5fc',
+  },
+  emerald: {
+    base: '#00c853',
+    highlight: '#69f0ae',
+    shadow: '#007e33',
+    edge: '#b9f6ca',
+  },
+  amethyst: {
+    base: '#8e24aa',
+    highlight: '#ce93d8',
+    shadow: '#4a148c',
+    edge: '#e1bee7',
+  },
+  ruby: {
+    base: '#d32f2f',
+    highlight: '#ff8a80',
+    shadow: '#8e0000',
+    edge: '#ffcdd2',
+  },
+  topaz: {
+    base: '#ffb300',
+    highlight: '#ffe082',
+    shadow: '#ef6c00',
+    edge: '#fff3b0',
+  },
+  diamond: {
+    base: '#e0f7fa',
+    highlight: '#ffffff',
+    shadow: '#4dd0e1',
+    edge: '#b2ebf2',
+  },
+  celestial_pulse: {
+    base: '#00e5ff',
+    highlight: '#b3f5ff',
+    shadow: '#2962ff',
+    edge: '#e0f7ff',
+    pulse: true,
+  },
 };
 
 export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((set, get) => ({

@@ -2,7 +2,7 @@
  * Skins screen — unlock/equip by ID, different colors per skin. Phase 4: theme, i18n, safe area.
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,20 @@ import {
   ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { useGameStore, SKIN_IDS, SKIN_COSTS, SKIN_COLORS } from '../state/store';
+import { useGameStore, SKIN_IDS, SKIN_COSTS, SKIN_VISUALS, type SkinVisual } from '../state/store';
 import { useTheme } from '../hooks/useTheme';
 import { spacing } from '../theme';
 
@@ -46,6 +54,69 @@ export function SkinsScreen() {
       useGameStore.getState().addTotalCoins(-cost);
       equipSkin(skinId);
     }
+  };
+
+  const SkinPreviewCircle = ({ skin, equipped }: { skin: SkinVisual; equipped: boolean }) => {
+    const pulseScale = useSharedValue(1);
+    const pulseOpacity = useSharedValue(0);
+
+    useEffect(() => {
+      if (skin.pulse) {
+        pulseScale.value = withRepeat(
+          withSequence(
+            withTiming(1.5, { duration: 850, easing: Easing.out(Easing.quad) }),
+            withTiming(1, { duration: 850, easing: Easing.in(Easing.quad) })
+          ),
+          -1,
+          false
+        );
+        pulseOpacity.value = withRepeat(
+          withSequence(
+            withTiming(0.55, { duration: 320, easing: Easing.out(Easing.quad) }),
+            withTiming(0, { duration: 650, easing: Easing.in(Easing.quad) })
+          ),
+          -1,
+          false
+        );
+      } else {
+        pulseScale.value = withTiming(1, { duration: 150 });
+        pulseOpacity.value = withTiming(0, { duration: 150 });
+      }
+    }, [skin.pulse, pulseScale, pulseOpacity]);
+
+    const pulseStyle = useAnimatedStyle(() => ({
+      transform: [{ scale: pulseScale.value }],
+      opacity: pulseOpacity.value,
+    }));
+
+    return (
+      <View style={styles.skinCircleWrap}>
+        {skin.pulse && (
+          <Animated.View
+            style={[
+              styles.skinPulse,
+              { backgroundColor: skin.edge ?? skin.base },
+              pulseStyle,
+            ]}
+          />
+        )}
+        <View
+          style={[
+            styles.skinCircle,
+            { backgroundColor: skin.base },
+            equipped && styles.skinCircleEquipped,
+          ]}
+        >
+          {skin.shadow && (
+            <View style={[styles.skinShadow, { backgroundColor: skin.shadow }]} />
+          )}
+          {skin.highlight && (
+            <View style={[styles.skinHighlight, { backgroundColor: skin.highlight }]} />
+          )}
+          {skin.edge && <View style={[styles.skinRing, { borderColor: skin.edge }]} />}
+        </View>
+      </View>
+    );
   };
 
   const styles = useMemo(
@@ -83,10 +154,41 @@ export function SkinsScreen() {
           backgroundColor: colors.primaryDim,
           alignItems: 'center',
           justifyContent: 'center',
+          overflow: 'visible',
           marginRight: spacing.md,
         },
-        skinCircle: { width: 32, height: 32, borderRadius: 16 },
+        skinCircleWrap: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+        skinCircle: { width: 32, height: 32, borderRadius: 16, overflow: 'hidden' },
         skinCircleEquipped: { borderWidth: 2, borderColor: colors.success },
+        skinPulse: { position: 'absolute', width: 32, height: 32, borderRadius: 16, opacity: 0 },
+        skinHighlight: {
+          position: 'absolute',
+          top: -4,
+          left: -4,
+          width: '70%',
+          height: '70%',
+          borderRadius: 999,
+          opacity: 0.75,
+        },
+        skinShadow: {
+          position: 'absolute',
+          bottom: -4,
+          right: -4,
+          width: '80%',
+          height: '80%',
+          borderRadius: 999,
+          opacity: 0.5,
+        },
+        skinRing: {
+          position: 'absolute',
+          top: 2,
+          left: 2,
+          right: 2,
+          bottom: 2,
+          borderRadius: 999,
+          borderWidth: 1,
+          opacity: 0.9,
+        },
         skinInfo: { flex: 1 },
         skinName: { fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: spacing.xs },
         equipped: { fontSize: 14, color: colors.success },
@@ -116,18 +218,12 @@ export function SkinsScreen() {
           const equipped = equippedSkinId === skinId;
           const cost = SKIN_COSTS[skinId] ?? 0;
           const canUnlock = !unlocked && totalCoins >= cost;
-          const skinColor = SKIN_COLORS[skinId] ?? colors.primary;
+          const skinVisual = SKIN_VISUALS[skinId] ?? SKIN_VISUALS.classic;
 
           return (
             <View key={skinId} style={styles.skinRow}>
               <View style={styles.skinPreview}>
-                <View
-                  style={[
-                    styles.skinCircle,
-                    { backgroundColor: skinColor },
-                    equipped && styles.skinCircleEquipped,
-                  ]}
-                />
+                <SkinPreviewCircle skin={skinVisual} equipped={equipped} />
               </View>
               <View style={styles.skinInfo}>
                 <Text style={styles.skinName}>{t(`skins.${skinId}`)}</Text>
