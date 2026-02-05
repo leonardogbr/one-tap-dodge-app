@@ -1,33 +1,42 @@
-const mockI18n = {
-  use: jest.fn().mockReturnThis(),
-  init: jest.fn(),
-  changeLanguage: jest.fn(),
+let initI18n: typeof import('../src/i18n').initI18n;
+let changeLanguage: typeof import('../src/i18n').changeLanguage;
+let RNLocalize: { getLocales: jest.Mock };
+let mockI18n: {
+  use: jest.Mock;
+  init: jest.Mock;
+  changeLanguage: jest.Mock;
 };
 
-jest.mock('i18next', () => ({
-  __esModule: true,
-  default: mockI18n,
-  ...mockI18n,
-}));
-jest.mock('react-i18next', () => ({
-  initReactI18next: {},
-}));
-jest.mock('react-native-localize', () => ({
-  getLocales: jest.fn(),
-}));
-
-import { initI18n, changeLanguage } from '../src/i18n';
-import * as RNLocalize from 'react-native-localize';
+const loadModules = () => {
+  jest.resetModules();
+  jest.doMock('i18next', () => {
+    mockI18n = {
+      use: jest.fn().mockReturnThis(),
+      init: jest.fn(),
+      changeLanguage: jest.fn(),
+    };
+    return { __esModule: true, default: mockI18n, ...mockI18n };
+  });
+  jest.doMock('react-i18next', () => ({
+    initReactI18next: {},
+  }));
+  jest.doMock('react-native-localize', () => ({
+    getLocales: jest.fn(),
+  }));
+  const i18nModule = require('../src/i18n');
+  initI18n = i18nModule.initI18n;
+  changeLanguage = i18nModule.changeLanguage;
+  RNLocalize = require('react-native-localize');
+};
 
 describe('i18n', () => {
   beforeEach(() => {
-    mockI18n.use.mockClear();
-    mockI18n.init.mockClear();
-    mockI18n.changeLanguage.mockClear();
+    loadModules();
+    jest.clearAllMocks();
   });
 
   it('initializes using system locale mapping', () => {
-    (RNLocalize.getLocales as jest.Mock).mockReturnValue([
+    RNLocalize.getLocales.mockReturnValue([
       { languageTag: 'pt-PT' },
     ]);
 
@@ -42,7 +51,7 @@ describe('i18n', () => {
   });
 
   it('falls back to English for unsupported system locales', () => {
-    (RNLocalize.getLocales as jest.Mock).mockReturnValue([
+    RNLocalize.getLocales.mockReturnValue([
       { languageTag: 'fr-FR' },
     ]);
 
@@ -72,7 +81,7 @@ describe('i18n', () => {
   });
 
   it('changes language based on system or explicit locale', () => {
-    (RNLocalize.getLocales as jest.Mock).mockReturnValue([
+    RNLocalize.getLocales.mockReturnValue([
       { languageTag: 'es-MX' },
     ]);
 
