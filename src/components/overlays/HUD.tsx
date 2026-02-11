@@ -43,7 +43,7 @@ export function HUD({
       StyleSheet.create({
         container: {
           position: 'absolute',
-          top: insets.top + spacing.xl,
+          top: insets.top,
           left: 0,
           right: 0,
           alignItems: 'center',
@@ -62,7 +62,7 @@ export function HUD({
         shieldFillReady: { backgroundColor: colors.success },
         shieldLabel: { fontSize: 12, color: colors.textMuted, minWidth: 52 },
         shieldLabelReady: { color: colors.success, fontWeight: '700' },
-        nearMissBadge: { position: 'absolute', top: 80, backgroundColor: colors.primary, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 8 },
+        nearMissBadge: { marginTop: spacing.sm, alignSelf: 'center', backgroundColor: colors.primary, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 8 },
         nearMissText: { fontSize: 16, fontWeight: '700', color: colors.background },
       }),
     [colors, insets.top]

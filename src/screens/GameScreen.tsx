@@ -305,7 +305,7 @@ export function GameScreen() {
           borderWidth: 1,
           opacity: 0.9,
         },
-        pauseBtn: { position: 'absolute', top: insets.top + spacing.xl, right: spacing.lg, padding: spacing.sm, zIndex: 15 },
+        pauseBtn: { position: 'absolute', top: spacing.sm, right: spacing.lg, padding: spacing.sm, zIndex: 15 },
         pauseBtnText: { fontSize: 18, fontWeight: '700', color: colors.textMuted },
         overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center' },
         overlayTitle: { fontSize: 28, fontWeight: '700', color: colors.text, marginBottom: spacing.md },
