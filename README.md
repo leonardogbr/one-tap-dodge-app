@@ -12,6 +12,16 @@ npm run android    # Android (with emulator or device)
 npm run ios        # iOS (after `cd ios && pod install`)
 ```
 
+## Tests and coverage
+
+```sh
+npm test
+```
+
+Coverage is enforced at 100% for core logic modules (engine, state,
+services, i18n, theme, and persistence hooks). UI/screens are excluded
+to keep tests focused on regression-prone logic.
+
 Tap anywhere to **start** or **play again**. During play, tap to **swap lanes** (left/right). Avoid obstacles; get close without hitting for a +50 near-miss bonus.
 
 ---
