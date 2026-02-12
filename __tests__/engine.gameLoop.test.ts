@@ -55,6 +55,8 @@ const createState = (overrides: Partial<GameLoopState> = {}): GameLoopState => (
   score: 0,
   accumulatedScoreMs: 0,
   lastSpawnTime: 0,
+  lastSpawnLane: null,
+  consecutiveSpawnsInSameLane: 0,
   lastCoinSpawnTime: 0,
   obstacleSpeed: 280,
   gameTimeMs: 0,

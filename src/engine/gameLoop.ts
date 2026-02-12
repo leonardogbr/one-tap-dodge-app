@@ -20,6 +20,7 @@ import {
   COIN_WIDTH,
   COIN_HEIGHT,
   SPAWN_OTHER_LANE_TOP_ZONE_Y,
+  MAX_CONSECUTIVE_OBSTACLES_SAME_LANE,
 } from './constants';
 
 export interface GameLoopState {
@@ -31,6 +32,10 @@ export interface GameLoopState {
   /** Accumulated ms for survival score (1 point per 100ms) */
   accumulatedScoreMs: number;
   lastSpawnTime: number;
+  /** Lane of the last spawned obstacle; used to limit consecutive same-lane spawns. */
+  lastSpawnLane: Lane | null;
+  /** How many obstacles in a row were spawned in lastSpawnLane. */
+  consecutiveSpawnsInSameLane: number;
   lastCoinSpawnTime: number;
   obstacleSpeed: number;
   gameTimeMs: number;
@@ -115,20 +120,30 @@ export function tick(
     const TOP_ZONE_Y = 120;
     const coinInTop = state.coins.find((c) => c.y < TOP_ZONE_Y);
     const laneWithCoinInTop = coinInTop ? coinInTop.lane : null;
+
+    // 1) Cap consecutive same-lane spawns so we don't get 5+ in one lane.
+    const mustSwitchLane =
+      state.lastSpawnLane !== null &&
+      state.consecutiveSpawnsInSameLane >= MAX_CONSECUTIVE_OBSTACLES_SAME_LANE;
     let lane: Lane;
-    if (laneWithCoinInTop === null) {
-      lane = Math.random() < 0.5 ? LANE_LEFT : LANE_RIGHT;
+    if (mustSwitchLane) {
+      lane = state.lastSpawnLane === LANE_LEFT ? LANE_RIGHT : LANE_LEFT;
     } else {
-      lane = laneWithCoinInTop === LANE_LEFT ? LANE_RIGHT : LANE_LEFT;
+      if (laneWithCoinInTop === null) {
+        lane = Math.random() < 0.5 ? LANE_LEFT : LANE_RIGHT;
+      } else {
+        lane = laneWithCoinInTop === LANE_LEFT ? LANE_RIGHT : LANE_LEFT;
+      }
+      // Avoid impossible dodge: if the other lane has an obstacle in the top zone, spawn in that lane instead so we don't block both lanes at the same level.
+      const otherLane = lane === LANE_LEFT ? LANE_RIGHT : LANE_LEFT;
+      const otherLaneHasObstacleInTop = state.obstacles.some(
+        (obs) => obs.lane === otherLane && obs.y < SPAWN_OTHER_LANE_TOP_ZONE_Y
+      );
+      if (otherLaneHasObstacleInTop) {
+        lane = otherLane;
+      }
     }
-    // Avoid impossible dodge: if the other lane has an obstacle in the top zone, spawn in that lane instead so we don't block both lanes at the same level.
-    const otherLane = lane === LANE_LEFT ? LANE_RIGHT : LANE_LEFT;
-    const otherLaneHasObstacleInTop = state.obstacles.some(
-      (obs) => obs.lane === otherLane && obs.y < SPAWN_OTHER_LANE_TOP_ZONE_Y
-    );
-    if (otherLaneHasObstacleInTop) {
-      lane = otherLane;
-    }
+
     const laneX = state.laneCenterX[lane];
     const halfW = 30;
     const newObs = createObstacle(
@@ -138,6 +153,10 @@ export function tick(
     );
     state.obstacles.push(newObs);
     state.lastSpawnTime = currentTimeMs;
+    const prevLane = state.lastSpawnLane;
+    state.lastSpawnLane = lane;
+    state.consecutiveSpawnsInSameLane =
+      prevLane === lane ? state.consecutiveSpawnsInSameLane + 1 : 1;
   }
 
   // 4. Spawn coins — during 2x bonus, interval is half (spawn 2x more often, one coin per spawn)
