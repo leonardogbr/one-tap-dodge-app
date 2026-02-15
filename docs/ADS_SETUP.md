@@ -45,6 +45,10 @@ Em `__DEV__` ou quando alguma variável não está definida, o app usa os Test I
 - Se `ADMOB_APP_ID_ANDROID` não estiver definido, o build usa o App ID de teste do Google (`ca-app-pub-3940256099942544~3347511713`).
 - Nenhuma alteração manual no `AndroidManifest.xml` é necessária para o App ID; ele já usa o placeholder `${ADMOB_APP_ID}`.
 
+### app.json e o warning do Google Mobile Ads SDK
+
+O **react-native-google-mobile-ads** espera as chaves `android_app_id` e `ios_app_id` em `app.json` (dentro de `react-native-google-mobile-ads`). Sem isso, o build exibe um warning e o SDK pode crashar ao abrir o app. Por isso o projeto já tem em `app.json` os **IDs de teste** do Google nessa chave. Os IDs de **produção** continuam vindo do `.env` (e do AndroidManifest/Config gerados a partir dele). Não é necessário configurar nada extra no Android além do `.env` para release.
+
 ---
 
 ## 4. iOS
