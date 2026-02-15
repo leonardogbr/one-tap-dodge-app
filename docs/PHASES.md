@@ -28,6 +28,7 @@
 - How to Play: regras e controles.
 - Botão Home no overlay do Game (idle/game over).
 - **Haptics:** troca de faixa, near-miss, moeda, game over (respeita hapticsOn; sem haptic em botões).
+- **Delay do interstitial:** refinamento do delay após fechar interstitial concluído.
 
 ### Em escopo (Fase 4 expandida)
 | Item | Descrição |
@@ -41,14 +42,12 @@
 | **Safe area** | Garantir que nada fica sob notch/status bar. |
 | **Skins distintas** | Skins visuais diferentes; mais opções e opções mais caras (top de linha). |
 | **Som e música** | Ligar áudio real a soundOn/musicOn (lib + assets). |
-| **Delay do interstitial** (opcional) | Refinar delay após fechar interstitial. |
 
 ---
 
 ## Próximas fases (planejadas)
 
 ### Fase 5 — Polish final & preparação para release
-- Ajuste fino do delay do interstitial (se ainda necessário).
 - Revisão geral de UX/UI e performance.
 - Testes em dispositivos reais (vários tamanhos, Android/iOS).
 - Preparar store listing (ícones, screenshots, descrições).

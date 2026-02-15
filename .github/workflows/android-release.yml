@@ -1,0 +1,59 @@
+name: Android Release (Internal)
+
+on:
+  workflow_dispatch:
+  push:
+    tags: [ 'v[0-9]+.[0-9]+.[0-9]+' ]
+
+jobs:
+  build-upload:
+    runs-on: ubuntu-latest
+    environment: android-prod
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+
+      - name: Decode Android keystore
+        working-directory: android
+        run: |
+          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/grex_members.keystore.jks
+          echo "$KEY_PROPS_FILE" | base64 --decode > key.properties
+        env:
+          PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
+          KEY_PROPS_FILE: ${{ secrets.KEY_PROPS_FILE }}
+
+      - name: Create environment file
+        working-directory: .env
+        run: |
+          cat > prod.env <<EOF
+          BASE_URL=$HOST_URL
+          SENTRY_DSN=$SENTRY_DSN
+          EOF
+        env:
+          HOST_URL: ${{ vars.HOST_URL }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+
+      - name: Install Ruby & Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Fastlane Android internal
+        working-directory: android
+        run: |
+          bundle install
+          bundle exec fastlane android internal
+        env:
+          SUPPLY_JSON_KEY_DATA: ${{ secrets.SUPPLY_JSON_KEY_DATA }}

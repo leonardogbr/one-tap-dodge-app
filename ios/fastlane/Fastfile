@@ -1,0 +1,85 @@
+require "base64"
+
+default_platform(:ios)
+
+platform :ios do
+  def asc_api_key()
+    app_store_connect_api_key(
+      key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
+      key_content: (ENV["APP_STORE_CONNECT_API_KEY_BASE64"] ? Base64.decode64(ENV["APP_STORE_CONNECT_API_KEY_BASE64"]) : ENV["APP_STORE_CONNECT_API_KEY_CONTENT"]),
+      is_key_content_base64: false
+    )
+  end
+
+  def delete_temp_keychain(name)
+    delete_keychain(
+      name: name
+    ) if File.exist? File.expand_path("~/Library/Keychains/#{name}-db")
+  end
+  
+  def create_temp_keychain(name, password)
+    create_keychain(
+      name: name,
+      password: password,
+      unlock: false,
+      timeout: 0
+    )
+  end
+  
+  def ensure_temp_keychain(name, password)
+    delete_temp_keychain(name)
+    create_temp_keychain(name, password)
+  end
+
+  def build_native_app(api_key)
+    if ENV["MATCH_KEYCHAIN_NAME"] && ENV["MATCH_KEYCHAIN_PASSWORD"]
+      ensure_temp_keychain(ENV["MATCH_KEYCHAIN_NAME"], ENV["MATCH_KEYCHAIN_PASSWORD"])
+    end
+
+    match(
+      type: "development",
+      api_key: api_key,
+      readonly: true,
+    )
+
+    match(
+      type: "appstore",
+      api_key: api_key,
+      readonly: true,
+    )
+
+    cocoapods(
+      repo_update: true,
+      clean_install: true,
+    )
+
+    build_app()
+  end
+
+  desc "Build e envia para o TestFlight"
+  lane :internal do
+    api_key = asc_api_key()
+
+    build_native_app(api_key)
+
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Envia metadata/capturas/release para App Store (produção)"
+  lane :release do
+    api_key = asc_api_key()
+
+    build_native_app(api_key)
+
+    # Entrega para a App Store (não só TestFlight)
+    deliver(
+      api_key: api_key,
+      submit_for_review: false, # mude para true quando quiser submeter
+      automatic_release: false
+    )
+  end
+end

@@ -10,6 +10,8 @@ import {
   TouchableWithoutFeedback,
   useWindowDimensions,
   ActivityIndicator,
+  BackHandler,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -169,6 +171,22 @@ export function GameScreen() {
     const tId = setTimeout(() => setCountdownStep(next), COUNTDOWN_STEP_MS);
     return () => clearTimeout(tId);
   }, [countdownStep]);
+
+  // Android: prevent back button from leaving the game while playing or paused; allow back when idle/game_over.
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (phase === 'playing') {
+        pause();
+        return true;
+      }
+      if (phase === 'paused') {
+        return true;
+      }
+      return false;
+    });
+    return () => sub.remove();
+  }, [phase, pause]);
 
   // useLayoutEffect so playAgainEnabled is false before any tap in the same frame can be processed (avoids tap-at-collision restart).
   useLayoutEffect(() => {

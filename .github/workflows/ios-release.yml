@@ -1,0 +1,73 @@
+# Build React Native iOS app and upload to TestFlight via Fastlane.
+# Requires: environment "ios-prod" with secrets (App Store Connect API, Match) and vars (optional).
+# Trigger: manual (workflow_dispatch) or on push of version tags (e.g. v1.0.0).
+
+name: iOS Release (TestFlight)
+
+on:
+  workflow_dispatch:
+  push:
+    tags: [ 'v[0-9]+.[0-9]+.[0-9]+' ]
+
+jobs:
+  build-upload:
+    runs-on: macos-latest
+    environment: ios-prod
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Ruby & Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      # react-native-config: .env at repo root is read by the Scheme Pre-Action (BuildXCConfig.rb)
+      # when Xcode builds; it generates ios/tmp.xcconfig included by ios/Config.xcconfig.
+      - name: Create .env for release build
+        run: |
+          cat > .env << ENVFILE
+          ADMOB_APP_ID_ANDROID=${ADMOB_APP_ID_ANDROID}
+          ADMOB_APP_ID_IOS=${ADMOB_APP_ID_IOS}
+          ADMOB_REWARDED_UNIT_ID_ANDROID=${ADMOB_REWARDED_UNIT_ID_ANDROID}
+          ADMOB_REWARDED_UNIT_ID_IOS=${ADMOB_REWARDED_UNIT_ID_IOS}
+          ADMOB_INTERSTITIAL_UNIT_ID_ANDROID=${ADMOB_INTERSTITIAL_UNIT_ID_ANDROID}
+          ADMOB_INTERSTITIAL_UNIT_ID_IOS=${ADMOB_INTERSTITIAL_UNIT_ID_IOS}
+          ENVFILE
+        env:
+          ADMOB_APP_ID_ANDROID: ${{ secrets.ADMOB_APP_ID_ANDROID }}
+          ADMOB_APP_ID_IOS: ${{ secrets.ADMOB_APP_ID_IOS }}
+          ADMOB_REWARDED_UNIT_ID_ANDROID: ${{ secrets.ADMOB_REWARDED_UNIT_ID_ANDROID }}
+          ADMOB_REWARDED_UNIT_ID_IOS: ${{ secrets.ADMOB_REWARDED_UNIT_ID_IOS }}
+          ADMOB_INTERSTITIAL_UNIT_ID_ANDROID: ${{ secrets.ADMOB_INTERSTITIAL_UNIT_ID_ANDROID }}
+          ADMOB_INTERSTITIAL_UNIT_ID_IOS: ${{ secrets.ADMOB_INTERSTITIAL_UNIT_ID_IOS }}
+
+      - name: Verify .env for react-native-config
+        run: |
+          test -f .env && echo ".env exists at repo root (read by BuildXCConfig.rb during Xcode build)"
+          grep -q 'ADMOB_APP_ID_IOS=' .env && echo "ADMOB_APP_ID_IOS is set"
+
+      - name: Fastlane iOS internal (TestFlight)
+        working-directory: ios
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_KEYCHAIN_NAME: ${{ vars.MATCH_KEYCHAIN_NAME }}
+          MATCH_KEYCHAIN_PASSWORD: ${{ secrets.MATCH_KEYCHAIN_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+        run: |
+          bundle install
+          bundle exec fastlane internal

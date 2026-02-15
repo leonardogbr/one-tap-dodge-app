@@ -25,7 +25,11 @@ export function RootNavigator() {
     >
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="Game" component={GameScreen} />
+      <Stack.Screen
+        name="Game"
+        component={GameScreen}
+        options={{ gestureEnabled: false }}
+      />
       <Stack.Screen name="Skins" component={SkinsScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="HowToPlay" component={HowToPlayScreen} />

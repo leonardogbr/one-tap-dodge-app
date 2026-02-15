@@ -84,7 +84,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0"
+        versionName "0.1.0"
         manifestPlaceholders = [
             ADMOB_APP_ID: project.env.get("ADMOB_APP_ID_ANDROID") ?: "ca-app-pub-3940256099942544~3347511713"
         ]
