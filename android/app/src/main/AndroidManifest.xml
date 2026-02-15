@@ -1,4 +1,6 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest 
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -12,7 +14,8 @@
       android:usesCleartextTraffic="${usesCleartextTraffic}"
       android:supportsRtl="true">
       <meta-data
-        android:name="com.google.android.gms.ads.APPLICATION_ID"
+	tools:replace="android:value"
+	android:name="com.google.android.gms.ads.APPLICATION_ID"
         android:value="${ADMOB_APP_ID}"/>
       <activity
         android:name=".MainActivity"
