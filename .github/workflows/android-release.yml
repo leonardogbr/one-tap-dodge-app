@@ -1,3 +1,11 @@
+# Build React Native Android app (AAB) and upload to Play internal track via Fastlane.
+# Requires: environment "android-prod" with secrets:
+#   - ANDROID_KEYSTORE_BASE64: base64 of android/app/one-tap-dodge.keystore
+#   - ANDROID_GRADLE_PROPERTIES_BASE64: base64 of ~/.gradle/gradle.properties content (ONETAPDODGE_UPLOAD_*)
+#   - GOOGLE_PLAY_JSON_KEY_BASE64: base64 of Play Console service account JSON (for supply)
+#   - ADMOB_* (same as iOS)
+# Trigger: manual (workflow_dispatch) or on push of version tags (e.g. v0.1.0).
+
 name: Android Release (Internal)
 
 on:
@@ -6,43 +14,60 @@ on:
     tags: [ 'v[0-9]+.[0-9]+.[0-9]+' ]
 
 jobs:
-  build-upload:
+  build:
     runs-on: ubuntu-latest
     environment: android-prod
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
-          distribution: temurin
+          distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.x'
+      # react-native-config reads .env from repo root at build time (dotenv.gradle).
+      - name: Create .env for release build
+        run: |
+          cat > .env << ENVFILE
+          ADMOB_APP_ID_ANDROID=${ADMOB_APP_ID_ANDROID}
+          ADMOB_APP_ID_IOS=${ADMOB_APP_ID_IOS}
+          ADMOB_REWARDED_UNIT_ID_ANDROID=${ADMOB_REWARDED_UNIT_ID_ANDROID}
+          ADMOB_REWARDED_UNIT_ID_IOS=${ADMOB_REWARDED_UNIT_ID_IOS}
+          ADMOB_INTERSTITIAL_UNIT_ID_ANDROID=${ADMOB_INTERSTITIAL_UNIT_ID_ANDROID}
+          ADMOB_INTERSTITIAL_UNIT_ID_IOS=${ADMOB_INTERSTITIAL_UNIT_ID_IOS}
+          ENVFILE
+        env:
+          ADMOB_APP_ID_ANDROID: ${{ secrets.ADMOB_APP_ID_ANDROID }}
+          ADMOB_APP_ID_IOS: ${{ secrets.ADMOB_APP_ID_IOS }}
+          ADMOB_REWARDED_UNIT_ID_ANDROID: ${{ secrets.ADMOB_REWARDED_UNIT_ID_ANDROID }}
+          ADMOB_REWARDED_UNIT_ID_IOS: ${{ secrets.ADMOB_REWARDED_UNIT_ID_IOS }}
+          ADMOB_INTERSTITIAL_UNIT_ID_ANDROID: ${{ secrets.ADMOB_INTERSTITIAL_UNIT_ID_ANDROID }}
+          ADMOB_INTERSTITIAL_UNIT_ID_IOS: ${{ secrets.ADMOB_INTERSTITIAL_UNIT_ID_IOS }}
 
       - name: Decode Android keystore
         working-directory: android
-        run: |
-          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/grex_members.keystore.jks
-          echo "$KEY_PROPS_FILE" | base64 --decode > key.properties
+        run: echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > app/one-tap-dodge.keystore
         env:
-          PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
-          KEY_PROPS_FILE: ${{ secrets.KEY_PROPS_FILE }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
 
-      - name: Create environment file
-        working-directory: .env
+      - name: Create ~/.gradle/gradle.properties for release signing
         run: |
-          cat > prod.env <<EOF
-          BASE_URL=$HOST_URL
-          SENTRY_DSN=$SENTRY_DSN
-          EOF
+          mkdir -p ~/.gradle
+          echo "$ANDROID_GRADLE_PROPERTIES_BASE64" | base64 -d > ~/.gradle/gradle.properties
         env:
-          HOST_URL: ${{ vars.HOST_URL }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          ANDROID_GRADLE_PROPERTIES_BASE64: ${{ secrets.ANDROID_GRADLE_PROPERTIES_BASE64 }}
 
       - name: Install Ruby & Bundler
         uses: ruby/setup-ruby@v1
@@ -50,10 +75,10 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: true
 
-      - name: Fastlane Android internal
+      - name: Fastlane Android internal (build + upload to Play)
         working-directory: android
         run: |
           bundle install
-          bundle exec fastlane android internal
+          bundle exec fastlane internal
         env:
           SUPPLY_JSON_KEY_DATA: ${{ secrets.SUPPLY_JSON_KEY_DATA }}
