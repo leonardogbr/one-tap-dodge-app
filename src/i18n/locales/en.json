@@ -71,6 +71,18 @@
     "rule4": "Collect coins to fill the shield meter. Full meter = one free hit.",
     "rule5": "After 5 near-misses in a row, get 2x coins for 10 seconds."
   },
+  "challenges": {
+    "title": "Challenges",
+    "currentMultiplier": "Score multiplier",
+    "nextMultiplier": "Complete both → {{value}}x",
+    "near_miss_run": "Get {{count}} near-misses in one run",
+    "coins_run": "Collect {{count}} coins in one run",
+    "score_run": "Score {{count}} points in one run",
+    "coins_total": "Accumulate {{count}} coins total",
+    "score_total": "Accumulate {{count}} points total",
+    "games_played": "Play {{count}} games",
+    "near_miss_total": "Accumulate {{count}} near-misses total"
+  },
   "splash": {
     "loading": "Loading..."
   }

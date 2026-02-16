@@ -11,8 +11,13 @@ import {
   persistEquippedSkin,
   persistSettings,
   persistGameOversSinceLastInterstitial,
+  persistScoreMultiplier,
+  persistChallengeGroupIndex,
+  persistCurrentGroupProgress,
+  persistLifetimeStats,
 } from '../state/persistence';
 import { useGameStore } from '../state/store';
+import type { CurrentGroupProgress, LifetimeStats } from '../state/store';
 
 export function usePersistedStore() {
   const hydrated = useRef(false);
@@ -27,6 +32,15 @@ export function usePersistedStore() {
     hapticsOn: true,
     themeMode: 'system',
     locale: 'system',
+    scoreMultiplier: 1,
+    challengeGroupIndex: 0,
+    currentGroupProgress: {} as CurrentGroupProgress,
+    lifetimeStats: {
+      totalCoins: 0,
+      totalScore: 0,
+      gamesPlayed: 0,
+      totalNearMisses: 0,
+    } as LifetimeStats,
   });
 
   useEffect(() => {
@@ -83,6 +97,30 @@ export function usePersistedStore() {
           themeMode: state.themeMode,
           locale: state.locale,
         });
+      }
+      if (state.scoreMultiplier !== last.current.scoreMultiplier) {
+        last.current.scoreMultiplier = state.scoreMultiplier;
+        persistScoreMultiplier(state.scoreMultiplier);
+      }
+      if (state.challengeGroupIndex !== last.current.challengeGroupIndex) {
+        last.current.challengeGroupIndex = state.challengeGroupIndex;
+        persistChallengeGroupIndex(state.challengeGroupIndex);
+      }
+      const progStr = JSON.stringify(state.currentGroupProgress);
+      if (progStr !== JSON.stringify(last.current.currentGroupProgress)) {
+        last.current.currentGroupProgress = { ...state.currentGroupProgress };
+        persistCurrentGroupProgress(state.currentGroupProgress);
+      }
+      const stats = state.lifetimeStats;
+      const lastStats = last.current.lifetimeStats;
+      if (
+        stats.totalCoins !== lastStats.totalCoins ||
+        stats.totalScore !== lastStats.totalScore ||
+        stats.gamesPlayed !== lastStats.gamesPlayed ||
+        stats.totalNearMisses !== lastStats.totalNearMisses
+      ) {
+        last.current.lifetimeStats = { ...stats };
+        persistLifetimeStats(stats);
       }
     });
   }, []);

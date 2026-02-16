@@ -9,4 +9,5 @@ export type RootStackParamList = {
   Skins: undefined;
   Settings: undefined;
   HowToPlay: undefined;
+  Challenges: undefined;
 };

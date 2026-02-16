@@ -14,6 +14,12 @@ import {
   type GameLoopState,
 } from '../engine/gameLoop';
 import { COIN_TO_SHIELD, MAX_REVIVES_PER_RUN } from '../engine/constants';
+import {
+  getChallengesForGroup,
+  getInitialProgressForGroup,
+  getLifetimeValue,
+  CHALLENGE_SCOPE,
+} from '../engine/challenges';
 import { useGameStore } from '../state/store';
 import { triggerHaptic } from '../services/haptics';
 
@@ -43,6 +49,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
   const {
     setScore: setStoreScore,
     addCoinsThisRun,
+    addNearMissesThisRun,
     setShieldMeter,
     consumeShield,
     endRun,
@@ -50,6 +57,9 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
     setCanRevive,
     incrementRevivesUsedThisRun,
     highScore,
+    addRunToLifetimeStats,
+    updateChallengeProgress,
+    completeChallengeGroup,
   } = useGameStore();
 
   /**
@@ -176,6 +186,37 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
   useEffect(() => {
     if (!dimensions || phase !== 'playing' || !stateRef.current) return;
 
+    const finishRunAndCheckChallenges = () => {
+      const store = useGameStore.getState();
+      const { coinsThisRun, score: runScore, nearMissesThisRun, challengeGroupIndex: groupIdx } = store;
+      addRunToLifetimeStats({ coins: coinsThisRun, score: runScore, nearMisses: nearMissesThisRun });
+      let stateAfter = useGameStore.getState();
+      const challenges = getChallengesForGroup(groupIdx);
+      for (const ch of challenges) {
+        if (CHALLENGE_SCOPE[ch.type] === 'cumulative') {
+          updateChallengeProgress(ch.id, getLifetimeValue(ch.type, stateAfter.lifetimeStats));
+        }
+      }
+      stateAfter = useGameStore.getState();
+      const progress = stateAfter.currentGroupProgress;
+      const getProgress = (ch: (typeof challenges)[0]): number => {
+        if (CHALLENGE_SCOPE[ch.type] === 'run') {
+          if (ch.type === 'coins_run') return stateAfter.coinsThisRun;
+          if (ch.type === 'score_run') return stateAfter.score;
+          if (ch.type === 'near_miss_run') return stateAfter.nearMissesThisRun;
+          return 0;
+        }
+        return progress[ch.id] ?? 0;
+      };
+      const bothComplete = challenges.every((ch) => getProgress(ch) >= ch.target);
+      if (bothComplete && groupIdx < 17) {
+        completeChallengeGroup(getInitialProgressForGroup(groupIdx + 1));
+      } else if (bothComplete && groupIdx >= 17) {
+        completeChallengeGroup({});
+      }
+      endRun();
+    };
+
     const loop = () => {
       const state = stateRef.current;
       if (!state || state.phase !== 'playing') return; // also stops when paused
@@ -203,6 +244,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
         state.nearMissStreak = 0;
       }
       if (result.nearMissIds.length > 0) {
+        addNearMissesThisRun(result.nearMissIds.length);
         triggerHaptic('nearMiss');
         setNearMissFlash(true);
         setTimeout(() => setNearMissFlash(false), 900);
@@ -226,7 +268,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
           setObstacles([...state.obstacles]);
         } else {
           lastCollidedObstacleIdRef.current = result.collidedObstacleId;
-          endRun();
+          finishRunAndCheckChallenges();
           setCanRevive(
             useGameStore.getState().revivesUsedThisRun < MAX_REVIVES_PER_RUN
           );
@@ -236,7 +278,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
         }
       } else if (result.phase === 'game_over') {
         lastCollidedObstacleIdRef.current = result.collidedObstacleId;
-        endRun();
+        finishRunAndCheckChallenges();
         setCanRevive(
           useGameStore.getState().revivesUsedThisRun < MAX_REVIVES_PER_RUN
         );
@@ -254,6 +296,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
         cancelAnimationFrame(rafIdRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- loop uses store.getState() and refs; deps intentionally minimal to avoid restarting loop
   }, [dimensions, phase]);
 
   return {

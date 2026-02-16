@@ -115,6 +115,7 @@ export function GameScreen() {
 
   const coinsThisRun = useGameStore((s) => s.coinsThisRun);
   const shieldMeter = useGameStore((s) => s.shieldMeter);
+  const scoreMultiplier = useGameStore((s) => s.scoreMultiplier);
   const canRevive = useGameStore((s) => s.canRevive);
   const gameOversSinceLastInterstitial = useGameStore(
     (s) => s.gameOversSinceLastInterstitial
@@ -445,6 +446,7 @@ export function GameScreen() {
           shieldMeter={shieldMeter}
           nearMissFlash={nearMissFlash}
           coinMultiplierActive={coinMultiplierActive}
+          scoreMultiplier={scoreMultiplier}
         />
 
         {phase === 'playing' && (

@@ -11,6 +11,7 @@ import { GameScreen } from '../screens/GameScreen';
 import { SkinsScreen } from '../screens/SkinsScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { HowToPlayScreen } from '../screens/HowToPlayScreen';
+import { ChallengesScreen } from '../screens/ChallengesScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -33,6 +34,7 @@ export function RootNavigator() {
       <Stack.Screen name="Skins" component={SkinsScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="HowToPlay" component={HowToPlayScreen} />
+      <Stack.Screen name="Challenges" component={ChallengesScreen} />
     </Stack.Navigator>
   );
 }

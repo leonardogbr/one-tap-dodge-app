@@ -23,6 +23,8 @@ interface HUDProps {
   shieldMeter?: number; // 0–1
   nearMissFlash?: boolean;
   coinMultiplierActive?: boolean;
+  /** Score multiplier (1–10); shown when > 1 */
+  scoreMultiplier?: number;
 }
 
 export function HUD({
@@ -32,6 +34,7 @@ export function HUD({
   shieldMeter = 0,
   nearMissFlash,
   coinMultiplierActive = false,
+  scoreMultiplier = 1,
 }: HUDProps) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -64,6 +67,8 @@ export function HUD({
         shieldLabelReady: { color: colors.success, fontWeight: '700' },
         nearMissBadge: { marginTop: spacing.sm, alignSelf: 'center', backgroundColor: colors.primary, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 8 },
         nearMissText: { fontSize: 16, fontWeight: '700', color: colors.background },
+        scoreMultiplierBadge: { marginTop: spacing.xs, backgroundColor: colors.primary, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 8 },
+        scoreMultiplierText: { fontSize: 14, fontWeight: '700', color: colors.background },
       }),
     [colors, insets.top]
   );
@@ -89,6 +94,11 @@ export function HUD({
       </Animated.View>
       {best > 0 && (
         <Text style={styles.best}>Best: {best}</Text>
+      )}
+      {scoreMultiplier > 1 && (
+        <View style={styles.scoreMultiplierBadge}>
+          <Text style={styles.scoreMultiplierText}>{scoreMultiplier}x</Text>
+        </View>
       )}
       {coinMultiplierActive && (
         <View style={styles.coinMultiplierBadge}>

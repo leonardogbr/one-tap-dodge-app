@@ -71,6 +71,18 @@
     "rule4": "Colete moedas para encher o escudo. Escudo cheio = um choque grátis.",
     "rule5": "Após 5 near-misses seguidos, ganhe 2x moedas por 10 segundos."
   },
+  "challenges": {
+    "title": "Desafios",
+    "currentMultiplier": "Multiplicador de pontuação",
+    "nextMultiplier": "Complete os dois → {{value}}x",
+    "near_miss_run": "Faça {{count}} near-misses em uma partida",
+    "coins_run": "Colete {{count}} moedas em uma partida",
+    "score_run": "Atinja {{count}} pontos em uma partida",
+    "coins_total": "Acumule {{count}} moedas no total",
+    "score_total": "Acumule {{count}} pontos no total",
+    "games_played": "Jogue {{count}} partidas",
+    "near_miss_total": "Acumule {{count}} near-misses no total"
+  },
   "splash": {
     "loading": "Carregando..."
   }

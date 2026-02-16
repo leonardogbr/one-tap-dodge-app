@@ -51,6 +51,10 @@ export function HomeScreen() {
         <Text style={styles.mainBtnText}>{t('common.play')}</Text>
       </PressableScale>
 
+      <PressableScale style={styles.menuBtn} onPress={() => navigation.navigate('Challenges')}>
+        <Text style={styles.menuBtnText}>{t('challenges.title')}</Text>
+      </PressableScale>
+
       <PressableScale style={styles.menuBtn} onPress={() => navigation.navigate('HowToPlay')}>
         <Text style={styles.menuBtnText}>{t('home.howToPlay')}</Text>
       </PressableScale>

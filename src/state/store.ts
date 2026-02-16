@@ -7,20 +7,42 @@ import { create } from 'zustand';
 
 export type GamePhase = 'idle' | 'playing' | 'paused' | 'game_over';
 
+/** Progress per challenge id (for the current group's 2 challenges). */
+export type CurrentGroupProgress = Record<string, number>;
+
+/** Lifetime stats for cumulative challenges. */
+export interface LifetimeStats {
+  totalCoins: number;
+  totalScore: number;
+  gamesPlayed: number;
+  totalNearMisses: number;
+}
+
 export interface GameSlice {
   phase: GamePhase;
   score: number;
   coinsThisRun: number;
+  nearMissesThisRun: number;
   highScore: number;
   canRevive: boolean;
   /** How many revives (rewarded ads) used this run; reset on startRun. */
   revivesUsedThisRun: number;
   shieldMeter: number; // 0–1, fills from coins
+  /** Score multiplier 1.0–10.0, persistent; applied to raw score. */
+  scoreMultiplier: number;
+  /** Current challenge group index (0–17). */
+  challengeGroupIndex: number;
+  /** Progress for the 2 challenges of the current group (challengeId -> value). */
+  currentGroupProgress: CurrentGroupProgress;
+  /** Lifetime stats for cumulative challenges. */
+  lifetimeStats: LifetimeStats;
   /** Actions */
   setPhase: (phase: GamePhase) => void;
-  setScore: (score: number) => void;
+  /** rawScore: game loop sends unmultiplied score; store applies scoreMultiplier for display and high score. */
+  setScore: (rawScore: number) => void;
   setCoinsThisRun: (n: number) => void;
   addCoinsThisRun: (n: number) => void;
+  addNearMissesThisRun: (n: number) => void;
   setHighScore: (n: number) => void;
   setCanRevive: (v: boolean) => void;
   incrementRevivesUsedThisRun: () => void;
@@ -28,6 +50,13 @@ export interface GameSlice {
   consumeShield: () => boolean;
   startRun: () => void;
   endRun: () => void;
+  setScoreMultiplier: (v: number) => void;
+  setChallengeGroupIndex: (v: number) => void;
+  setCurrentGroupProgress: (v: CurrentGroupProgress) => void;
+  updateChallengeProgress: (challengeId: string, value: number) => void;
+  /** Add run stats to lifetime and update progress for cumulative challenges. */
+  addRunToLifetimeStats: (run: { coins: number; score: number; nearMisses: number }) => void;
+  completeChallengeGroup: (nextGroupProgress: CurrentGroupProgress) => void;
 }
 
 export interface ProgressSlice {
@@ -42,7 +71,7 @@ export interface ProgressSlice {
   incrementGamesPlayed: () => void;
   incrementGameOversSinceLastInterstitial: () => void;
   resetGameOversSinceLastInterstitial: () => void;
-  setFromPersisted: (data: Partial<Pick<ProgressSlice, 'totalCoins' | 'unlockedSkins' | 'equippedSkinId' | 'gameOversSinceLastInterstitial'> & { highScore?: number }>) => void;
+  setFromPersisted: (data: Partial<Pick<ProgressSlice, 'totalCoins' | 'unlockedSkins' | 'equippedSkinId' | 'gameOversSinceLastInterstitial'> & { highScore?: number; scoreMultiplier?: number; challengeGroupIndex?: number; currentGroupProgress?: CurrentGroupProgress; lifetimeStats?: LifetimeStats }>) => void;
 }
 
 export type ThemeMode = 'dark' | 'light' | 'system';
@@ -238,22 +267,39 @@ export const SKIN_VISUALS: Record<string, SkinVisual> = {
   },
 };
 
+const MAX_SCORE_MULTIPLIER = 10;
+
+const defaultLifetimeStats: LifetimeStats = {
+  totalCoins: 0,
+  totalScore: 0,
+  gamesPlayed: 0,
+  totalNearMisses: 0,
+};
+
 export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((set, get) => ({
   // Game
   phase: 'idle',
   score: 0,
   coinsThisRun: 0,
+  nearMissesThisRun: 0,
   highScore: 0,
   canRevive: true,
   revivesUsedThisRun: 0,
   shieldMeter: 0,
+  scoreMultiplier: 1,
+  challengeGroupIndex: 0,
+  currentGroupProgress: {},
+  lifetimeStats: defaultLifetimeStats,
   setPhase: (phase) => set({ phase }),
-  setScore: (score) => {
-    const { highScore } = get();
-    set({ score, highScore: Math.max(highScore, score) });
+  setScore: (rawScore) => {
+    const { highScore, scoreMultiplier } = get();
+    const effectiveScore = Math.floor(rawScore * scoreMultiplier);
+    set({ score: effectiveScore, highScore: Math.max(highScore, effectiveScore) });
   },
   setCoinsThisRun: (n) => set({ coinsThisRun: n }),
   addCoinsThisRun: (n) => set((s) => ({ coinsThisRun: s.coinsThisRun + n })),
+  addNearMissesThisRun: (n) =>
+    set((s) => ({ nearMissesThisRun: s.nearMissesThisRun + n })),
   setHighScore: (n) => set({ highScore: n }),
   setCanRevive: (v) => set({ canRevive: v }),
   incrementRevivesUsedThisRun: () =>
@@ -272,6 +318,7 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
       phase: 'playing',
       score: 0,
       coinsThisRun: 0,
+      nearMissesThisRun: 0,
       canRevive: true,
       revivesUsedThisRun: 0,
       shieldMeter: 0,
@@ -284,6 +331,30 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
       gameOversSinceLastInterstitial: get().gameOversSinceLastInterstitial + 1,
     });
   },
+  setScoreMultiplier: (v) =>
+    set({ scoreMultiplier: Math.min(MAX_SCORE_MULTIPLIER, Math.max(1, v)) }),
+  setChallengeGroupIndex: (v) =>
+    set({ challengeGroupIndex: Math.max(0, Math.min(17, v)) }),
+  setCurrentGroupProgress: (v) => set({ currentGroupProgress: v }),
+  updateChallengeProgress: (challengeId, value) =>
+    set((s) => ({
+      currentGroupProgress: { ...s.currentGroupProgress, [challengeId]: value },
+    })),
+  addRunToLifetimeStats: (run) =>
+    set((s) => ({
+      lifetimeStats: {
+        totalCoins: s.totalCoins,
+        totalScore: s.lifetimeStats.totalScore + run.score,
+        gamesPlayed: s.lifetimeStats.gamesPlayed + 1,
+        totalNearMisses: s.lifetimeStats.totalNearMisses + run.nearMisses,
+      },
+    })),
+  completeChallengeGroup: (nextGroupProgress) =>
+    set((s) => ({
+      scoreMultiplier: Math.min(MAX_SCORE_MULTIPLIER, s.scoreMultiplier + 0.5),
+      challengeGroupIndex: Math.min(17, s.challengeGroupIndex + 1),
+      currentGroupProgress: nextGroupProgress,
+    })),
 
   // Progress
   totalCoins: 0,

@@ -71,6 +71,18 @@
     "rule4": "Recoge monedas para llenar el escudo. Escudo lleno = un golpe gratis.",
     "rule5": "Tras 5 near-misses seguidos, obtén 2x monedas durante 10 segundos."
   },
+  "challenges": {
+    "title": "Desafíos",
+    "currentMultiplier": "Multiplicador de puntuación",
+    "nextMultiplier": "Completa ambos → {{value}}x",
+    "near_miss_run": "Haz {{count}} near-misses en una partida",
+    "coins_run": "Recoge {{count}} monedas en una partida",
+    "score_run": "Consigue {{count}} puntos en una partida",
+    "coins_total": "Acumula {{count}} monedas en total",
+    "score_total": "Acumula {{count}} puntos en total",
+    "games_played": "Juega {{count}} partidas",
+    "near_miss_total": "Acumula {{count}} near-misses en total"
+  },
   "splash": {
     "loading": "Cargando..."
   }
