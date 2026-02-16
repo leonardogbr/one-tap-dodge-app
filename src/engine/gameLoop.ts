@@ -194,11 +194,32 @@ export function tick(
         : LANE_RIGHT;
     };
 
-    const lane = pickLane();
-    const laneX = state.laneCenterX[lane];
-    state.coins.push(
-      createCoin(lane, laneX - COIN_WIDTH / 2, -COIN_HEIGHT)
-    );
+    const coinSpawnY = -COIN_HEIGHT;
+    const coinSpawnYEnd = coinSpawnY + COIN_HEIGHT;
+    const laneHasObstacleInCoinBand = (l: Lane): boolean =>
+      state.obstacles.some(
+        (obs) =>
+          obs.lane === l &&
+          obs.y + obs.height > coinSpawnY &&
+          obs.y < coinSpawnYEnd
+      );
+
+    let lane: Lane | null = pickLane();
+    if (laneHasObstacleInCoinBand(lane)) {
+      const otherLane = lane === LANE_LEFT ? LANE_RIGHT : LANE_LEFT;
+      if (!laneHasObstacleInCoinBand(otherLane)) {
+        lane = otherLane;
+      } else {
+        lane = null;
+      }
+    }
+
+    if (lane !== null) {
+      const laneX = state.laneCenterX[lane];
+      state.coins.push(
+        createCoin(lane, laneX - COIN_WIDTH / 2, coinSpawnY)
+      );
+    }
     state.lastCoinSpawnTime = currentTimeMs;
   }
 

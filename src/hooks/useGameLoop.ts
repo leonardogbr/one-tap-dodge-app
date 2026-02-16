@@ -140,9 +140,12 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
   const resume = useCallback(() => {
     const state = stateRef.current;
     if (!state || state.phase !== 'paused') return;
+    const now = Date.now();
     state.phase = 'playing';
+    state.lastSpawnTime = now;
+    state.lastCoinSpawnTime = now;
     setPhase('playing');
-    lastTimeRef.current = Date.now();
+    lastTimeRef.current = now;
   }, []);
 
   const quitFromPause = useCallback(() => {
