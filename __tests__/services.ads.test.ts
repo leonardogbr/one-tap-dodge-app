@@ -24,8 +24,19 @@ const mockCreateAd = () => {
   return ad;
 };
 
+const mockSetRequestConfiguration = jest.fn(() => Promise.resolve());
+
 jest.mock('react-native-google-mobile-ads', () => ({
-  MobileAds: () => ({ initialize: mockMobileAdsInitialize }),
+  MobileAds: () => ({
+    initialize: mockMobileAdsInitialize,
+    setRequestConfiguration: mockSetRequestConfiguration,
+  }),
+  MaxAdContentRating: {
+    G: 'G',
+    PG: 'PG',
+    T: 'T',
+    MA: 'MA',
+  },
   RewardedAd: {
     createForAdRequest: jest.fn(() => {
       const ad = mockCreateAd();
@@ -61,6 +72,7 @@ jest.mock('react-native-google-mobile-ads', () => ({
     mockRewardedInstances.length = 0;
     mockInterstitialInstances.length = 0;
     mockMobileAdsInitialize.mockClear();
+    mockSetRequestConfiguration.mockClear();
   },
 }));
 
