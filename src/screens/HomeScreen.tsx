@@ -142,7 +142,7 @@ export function HomeScreen() {
           borderWidth: 1,
           opacity: 0.9,
         },
-        playBtnWrapper: { width: '100%', marginBottom: spacing.xl },
+        playBtnWrapper: { width: '100%', marginBottom: spacing.md },
         playBtn: {
           width: '100%',
           flexDirection: 'row',
@@ -160,6 +160,21 @@ export function HomeScreen() {
           elevation: 8,
         },
         playBtnText: { fontSize: 20, fontWeight: '700', color: colors.background },
+        challengesBtnWrapper: { width: '100%', marginBottom: spacing.xl },
+        challengesBtn: {
+          width: '100%',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: spacing.sm,
+          backgroundColor: 'transparent',
+          paddingVertical: spacing.md,
+          paddingHorizontal: spacing.xl * 2,
+          borderRadius: 999,
+          borderWidth: 1,
+          borderColor: colors.primaryDim,
+        },
+        challengesBtnText: { fontSize: 18, fontWeight: '600', color: colors.primary },
         navRow: {
           flexDirection: 'row',
           justifyContent: 'center',
@@ -246,6 +261,15 @@ export function HomeScreen() {
           <PressableScale style={styles.playBtn} onPress={() => navigation.navigate('Game')}>
             <Text style={styles.playBtnText}>{t('common.play')}</Text>
             <Text style={styles.playBtnText}>▶</Text>
+          </PressableScale>
+        </View>
+        <View style={styles.challengesBtnWrapper}>
+          <PressableScale
+            style={styles.challengesBtn}
+            onPress={() => navigation.navigate('Challenges')}
+          >
+            <Text style={styles.challengesBtnText}>🎯</Text>
+            <Text style={styles.challengesBtnText}>{t('challenges.title')}</Text>
           </PressableScale>
         </View>
       </View>
