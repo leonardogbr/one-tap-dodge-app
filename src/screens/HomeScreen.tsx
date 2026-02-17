@@ -2,7 +2,7 @@
  * Home / Main menu — title (two lines), score cards, player skin preview, Play, Skins / Guide / Settings.
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -25,8 +25,19 @@ export function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Home'>>();
   const highScore = useGameStore((s) => s.highScore);
   const lastScore = useGameStore((s) => s.lastScore);
+  const rewardAvailable = useGameStore((s) => s.rewardAvailable);
   const skinVisual = SKIN_VISUALS[PRIME_SKIN_ID] ?? SKIN_VISUALS.classic;
   const pulseAnimatedStyle = usePulseAnimation(!!skinVisual.pulse);
+  const isNavigatingRef = useRef(false);
+
+  const handlePlay = () => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    navigation.navigate('Game');
+    setTimeout(() => {
+      isNavigatingRef.current = false;
+    }, 1000);
+  };
 
   const styles = useMemo(
     () =>
@@ -82,7 +93,7 @@ export function HomeScreen() {
           marginBottom: spacing.xs,
           textShadowColor: colors.primary,
           textShadowOffset: { width: 0, height: 0 },
-          textShadowRadius: 4,
+          textShadowRadius: 2,
         },
         scoreValueLast: {
           fontSize: 28,
@@ -159,7 +170,7 @@ export function HomeScreen() {
           shadowRadius: 12,
           elevation: 8,
         },
-        playBtnText: { fontSize: 20, fontWeight: '700', color: colors.background },
+        playBtnText: { fontSize: 20, fontWeight: '700', color: colors.onPrimary },
         challengesBtnWrapper: { width: '100%', marginBottom: spacing.xl },
         challengesBtn: {
           width: '100%',
@@ -177,12 +188,13 @@ export function HomeScreen() {
         challengesBtnText: { fontSize: 18, fontWeight: '600', color: colors.primary },
         navRow: {
           flexDirection: 'row',
-          justifyContent: 'center',
-          gap: spacing.lg / 2,
+          justifyContent: 'space-between',
+          alignSelf: 'stretch',
+          gap: spacing.sm,
           marginBottom: spacing.xl,
         },
         navBtn: {
-          width: 100,
+          minWidth: 80,
           backgroundColor: colors.backgroundLight,
           borderRadius: 16,
           paddingVertical: spacing.md,
@@ -192,6 +204,20 @@ export function HomeScreen() {
         },
         navIcon: { fontSize: 28, marginBottom: spacing.xs },
         navLabel: { fontSize: 14, fontWeight: '600', color: colors.primary },
+        rewardBanner: {
+          backgroundColor: colors.primary,
+          borderRadius: 12,
+          padding: spacing.md,
+          marginBottom: spacing.md,
+          width: '100%',
+          alignItems: 'center',
+        },
+        rewardBannerText: {
+          fontSize: 14,
+          fontWeight: '600',
+          color: colors.onPrimary,
+          textAlign: 'center',
+        },
       }),
     [colors, insets.top, insets.bottom]
   );
@@ -213,13 +239,22 @@ export function HomeScreen() {
             </View>
           </View>
           <View style={styles.scoreCard}>
-            <Text style={styles.scoreValueLast}>{lastScore}</Text>
+            <Text style={styles.scoreValueLast}>{lastScore > 0 ? lastScore : '-'}</Text>
             <View style={styles.scoreLabel}>
               <Text style={styles.scoreLabelText}>↻</Text>
               <Text style={styles.scoreLabelText}>{t('home.lastScore')}</Text>
             </View>
           </View>
         </View>
+
+        {rewardAvailable && (
+          <PressableScale
+            style={styles.rewardBanner}
+            onPress={() => navigation.navigate('Challenges')}
+          >
+            <Text style={styles.rewardBannerText}>{t('home.rewardBanner')}</Text>
+          </PressableScale>
+        )}
 
         <View style={styles.playerPreviewWrap}>
           {skinVisual.pulse && (
@@ -258,7 +293,7 @@ export function HomeScreen() {
         </View>
 
         <View style={styles.playBtnWrapper}>
-          <PressableScale style={styles.playBtn} onPress={() => navigation.navigate('Game')}>
+          <PressableScale style={styles.playBtn} onPress={handlePlay}>
             <Text style={styles.playBtnText}>{t('common.play')}</Text>
             <Text style={styles.playBtnText}>▶</Text>
           </PressableScale>
@@ -277,15 +312,12 @@ export function HomeScreen() {
       <View style={styles.navRow}>
         <PressableScale style={styles.navBtn} onPress={() => navigation.navigate('Skins')}>
           <Text style={styles.navIcon}>👤</Text>
-          <Text style={styles.navLabel}>{t('home.skins')}</Text>
         </PressableScale>
         <PressableScale style={styles.navBtn} onPress={() => navigation.navigate('HowToPlay')}>
           <Text style={styles.navIcon}>🎮</Text>
-          <Text style={styles.navLabel}>{t('home.guide')}</Text>
         </PressableScale>
         <PressableScale style={styles.navBtn} onPress={() => navigation.navigate('Settings')}>
           <Text style={styles.navIcon}>⚙</Text>
-          <Text style={styles.navLabel}>{t('common.settings')}</Text>
         </PressableScale>
       </View>
     </Animated.View>

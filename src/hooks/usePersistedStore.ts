@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 import { hydrateStore } from '../state/persistence';
 import {
   persistHighScore,
+  persistLastScore,
   persistTotalCoins,
   persistUnlockedSkins,
   persistEquippedSkin,
@@ -14,7 +15,9 @@ import {
   persistScoreMultiplier,
   persistChallengeGroupIndex,
   persistCurrentGroupProgress,
+  persistChallengeGroupBaseline,
   persistLifetimeStats,
+  persistRewardAvailable,
 } from '../state/persistence';
 import { useGameStore } from '../state/store';
 import type { CurrentGroupProgress, LifetimeStats } from '../state/store';
@@ -23,6 +26,7 @@ export function usePersistedStore() {
   const hydrated = useRef(false);
   const last = useRef({
     highScore: 0,
+    lastScore: 0,
     totalCoins: 0,
     unlockedSkins: [] as string[],
     equippedSkinId: 'classic',
@@ -35,12 +39,19 @@ export function usePersistedStore() {
     scoreMultiplier: 1,
     challengeGroupIndex: 0,
     currentGroupProgress: {} as CurrentGroupProgress,
+    challengeGroupBaseline: {
+      totalCoins: 0,
+      totalScore: 0,
+      gamesPlayed: 0,
+      totalNearMisses: 0,
+    } as LifetimeStats,
     lifetimeStats: {
       totalCoins: 0,
       totalScore: 0,
       gamesPlayed: 0,
       totalNearMisses: 0,
     } as LifetimeStats,
+    rewardAvailable: false,
   });
 
   useEffect(() => {
@@ -54,6 +65,10 @@ export function usePersistedStore() {
       if (state.highScore !== last.current.highScore) {
         last.current.highScore = state.highScore;
         persistHighScore(state.highScore);
+      }
+      if (state.lastScore !== last.current.lastScore) {
+        last.current.lastScore = state.lastScore;
+        persistLastScore(state.lastScore);
       }
       if (state.totalCoins !== last.current.totalCoins) {
         last.current.totalCoins = state.totalCoins;
@@ -111,6 +126,12 @@ export function usePersistedStore() {
         last.current.currentGroupProgress = { ...state.currentGroupProgress };
         persistCurrentGroupProgress(state.currentGroupProgress);
       }
+      const baselineStr = JSON.stringify(state.challengeGroupBaseline);
+      const lastBaselineStr = JSON.stringify(last.current.challengeGroupBaseline);
+      if (baselineStr !== lastBaselineStr) {
+        last.current.challengeGroupBaseline = { ...state.challengeGroupBaseline };
+        persistChallengeGroupBaseline(state.challengeGroupBaseline);
+      }
       const stats = state.lifetimeStats;
       const lastStats = last.current.lifetimeStats;
       if (
@@ -121,6 +142,10 @@ export function usePersistedStore() {
       ) {
         last.current.lifetimeStats = { ...stats };
         persistLifetimeStats(stats);
+      }
+      if (state.rewardAvailable !== last.current.rewardAvailable) {
+        last.current.rewardAvailable = state.rewardAvailable;
+        persistRewardAvailable(state.rewardAvailable);
       }
     });
   }, []);

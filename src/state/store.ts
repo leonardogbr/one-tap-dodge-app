@@ -36,6 +36,10 @@ export interface GameSlice {
   challengeGroupIndex: number;
   /** Progress for the 2 challenges of the current group (challengeId -> value). */
   currentGroupProgress: CurrentGroupProgress;
+  /** Lifetime stats baseline when current group started (for cumulative challenges to start from 0). */
+  challengeGroupBaseline: LifetimeStats;
+  /** True after startRun(), false after claimReward(). Run challenges only count when true. */
+  runStartedAfterClaim: boolean;
   /** Lifetime stats for cumulative challenges. */
   lifetimeStats: LifetimeStats;
   /** Actions */
@@ -55,6 +59,7 @@ export interface GameSlice {
   setScoreMultiplier: (v: number) => void;
   setChallengeGroupIndex: (v: number) => void;
   setCurrentGroupProgress: (v: CurrentGroupProgress) => void;
+  setChallengeGroupBaseline: (v: LifetimeStats) => void;
   updateChallengeProgress: (challengeId: string, value: number) => void;
   /** Add run stats to lifetime and update progress for cumulative challenges. */
   addRunToLifetimeStats: (run: { coins: number; score: number; nearMisses: number }) => void;
@@ -62,6 +67,11 @@ export interface GameSlice {
   /** Set by GameOverScreen when user earns revive from ad; GameScreen reads and triggers revive then clears. */
   reviveEarnedFromAd: boolean;
   setReviveEarnedFromAd: (v: boolean) => void;
+  /** True when both challenges in current group are complete and reward can be claimed. */
+  rewardAvailable: boolean;
+  setRewardAvailable: (v: boolean) => void;
+  /** Claim reward: apply multiplier increase and advance to next group. */
+  claimReward: () => void;
 }
 
 export interface ProgressSlice {
@@ -76,7 +86,7 @@ export interface ProgressSlice {
   incrementGamesPlayed: () => void;
   incrementGameOversSinceLastInterstitial: () => void;
   resetGameOversSinceLastInterstitial: () => void;
-  setFromPersisted: (data: Partial<Pick<ProgressSlice, 'totalCoins' | 'unlockedSkins' | 'equippedSkinId' | 'gameOversSinceLastInterstitial'> & { highScore?: number; scoreMultiplier?: number; challengeGroupIndex?: number; currentGroupProgress?: CurrentGroupProgress; lifetimeStats?: LifetimeStats }>) => void;
+  setFromPersisted: (data: Partial<Pick<ProgressSlice, 'totalCoins' | 'unlockedSkins' | 'equippedSkinId' | 'gameOversSinceLastInterstitial'> & { highScore?: number; lastScore?: number; scoreMultiplier?: number; challengeGroupIndex?: number; currentGroupProgress?: CurrentGroupProgress; challengeGroupBaseline?: LifetimeStats; lifetimeStats?: LifetimeStats; rewardAvailable?: boolean }>) => void;
 }
 
 export type ThemeMode = 'dark' | 'light' | 'system';
@@ -298,12 +308,16 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
   scoreMultiplier: 1,
   challengeGroupIndex: 0,
   currentGroupProgress: {},
+  challengeGroupBaseline: defaultLifetimeStats,
+  runStartedAfterClaim: false,
   lifetimeStats: defaultLifetimeStats,
+  reviveEarnedFromAd: false,
+  rewardAvailable: false,
   setPhase: (phase) => set({ phase }),
-  setScore: (rawScore) => {
-    const { highScore, scoreMultiplier } = get();
-    const effectiveScore = Math.floor(rawScore * scoreMultiplier);
-    set({ score: effectiveScore, highScore: Math.max(highScore, effectiveScore) });
+  setScore: (score) => {
+    // Score already has multiplier applied in game loop
+    const { highScore } = get();
+    set({ score, highScore: Math.max(highScore, score) });
   },
   setCoinsThisRun: (n) => set({ coinsThisRun: n }),
   addCoinsThisRun: (n) => set((s) => ({ coinsThisRun: s.coinsThisRun + n })),
@@ -331,9 +345,11 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
       canRevive: true,
       revivesUsedThisRun: 0,
       shieldMeter: 0,
+      runStartedAfterClaim: true,
     }),
   endRun: () => {
     const { coinsThisRun, totalCoins, score } = get();
+    // Score already has multiplier applied
     set({
       phase: 'game_over',
       totalCoins: totalCoins + coinsThisRun,
@@ -346,6 +362,7 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
   setChallengeGroupIndex: (v) =>
     set({ challengeGroupIndex: Math.max(0, Math.min(17, v)) }),
   setCurrentGroupProgress: (v) => set({ currentGroupProgress: v }),
+  setChallengeGroupBaseline: (v) => set({ challengeGroupBaseline: v }),
   updateChallengeProgress: (challengeId, value) =>
     set((s) => ({
       currentGroupProgress: { ...s.currentGroupProgress, [challengeId]: value },
@@ -359,8 +376,28 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
         totalNearMisses: s.lifetimeStats.totalNearMisses + run.nearMisses,
       },
     })),
-  reviveEarnedFromAd: false,
   setReviveEarnedFromAd: (v) => set({ reviveEarnedFromAd: v }),
+  setRewardAvailable: (v) => set({ rewardAvailable: v }),
+  claimReward: () =>
+    set((s) => {
+      const nextGroupIdx = Math.min(17, s.challengeGroupIndex + 1);
+      const { getInitialProgressForGroup } = require('../engine/challenges');
+      
+      // Get initial progress for new group (all zeros - both run and cumulative start from 0)
+      const nextProgress = nextGroupIdx <= 17 ? getInitialProgressForGroup(nextGroupIdx) : {};
+      
+      // Set baseline to current lifetime stats so cumulative challenges count from this point forward
+      const newBaseline = { ...s.lifetimeStats };
+      
+      return {
+        scoreMultiplier: Math.min(MAX_SCORE_MULTIPLIER, s.scoreMultiplier + 0.5),
+        challengeGroupIndex: nextGroupIdx,
+        currentGroupProgress: nextProgress, // All challenges start from 0
+        challengeGroupBaseline: newBaseline, // Save baseline for cumulative challenges
+        runStartedAfterClaim: false, // Run challenges only count from the next game
+        rewardAvailable: false,
+      };
+    }),
   completeChallengeGroup: (nextGroupProgress) =>
     set((s) => ({
       scoreMultiplier: Math.min(MAX_SCORE_MULTIPLIER, s.scoreMultiplier + 0.5),

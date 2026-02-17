@@ -25,7 +25,7 @@
     "noInternetNeeded": "No necesita internet"
   },
   "game": {
-    "tapToStart": "Toca para empezar",
+    "tapToStart": "Empezar",
     "gameOver": "Fin del juego",
     "playAgain": "Jugar de nuevo",
     "score": "Puntuación",
@@ -90,6 +90,9 @@
     "title": "Desafíos",
     "currentMultiplier": "Multiplicador de puntuación",
     "nextMultiplier": "Completa ambos → {{value}}x",
+    "rewardAvailable": "¡Recompensa disponible!",
+    "claimReward": "Reclamar recompensa",
+    "rewardClaimed": "¡Recompensa reclamada!",
     "near_miss_run": "Haz {{count}} near-misses en una partida",
     "coins_run": "Recoge {{count}} monedas en una partida",
     "score_run": "Consigue {{count}} puntos en una partida",
@@ -97,6 +100,19 @@
     "score_total": "Acumula {{count}} puntos en total",
     "games_played": "Juega {{count}} partidas",
     "near_miss_total": "Acumula {{count}} near-misses en total"
+  },
+  "home": {
+    "title": "One Tap Dodge",
+    "titleOneTap": "One Tap",
+    "titleDodge": "Dodge",
+    "subtitle": "Toca para cambiar de carril. Esquiva los obstáculos.",
+    "bestScore": "Mejor puntuación",
+    "lastScore": "Última puntuación",
+    "howToPlay": "Cómo jugar",
+    "guide": "Guía",
+    "skins": "Apariencias",
+    "noInternetNeeded": "No necesita internet",
+    "rewardBanner": "🎉 ¡Recompensa disponible en Desafíos!"
   },
   "splash": {
     "loading": "Cargando..."

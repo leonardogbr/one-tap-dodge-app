@@ -46,12 +46,19 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
   const lastCollidedObstacleIdRef = useRef<string | null>(null);
   /** Lane chosen in resetForCountdown; startGame reuses it so the player does not jump after countdown. */
   const pendingInitialLaneRef = useRef<0 | 1 | null>(null);
+  /** Protection against double-click: track if critical actions are in progress */
+  const isStartingGameRef = useRef(false);
+  const isResettingRef = useRef(false);
+  const isResumingRef = useRef(false);
+  const isQuittingRef = useRef(false);
+  const isRevivingRef = useRef(false);
 
   const {
     setScore: setStoreScore,
     addCoinsThisRun,
     addNearMissesThisRun,
     setShieldMeter,
+    setCoinsThisRun,
     consumeShield,
     endRun,
     startRun: storeStartRun,
@@ -60,7 +67,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
     highScore,
     addRunToLifetimeStats,
     updateChallengeProgress,
-    completeChallengeGroup,
+    setRewardAvailable,
   } = useGameStore();
 
   /**
@@ -68,68 +75,86 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
    * Call when starting countdown for a new game so the old game is not visible underneath.
    */
   const resetForCountdown = useCallback(() => {
-    if (!dimensions) return;
-    const initialPlayer = createInitialPlayer(dimensions.height);
-    pendingInitialLaneRef.current = initialPlayer.lane;
-    const state: GameLoopState = {
-      phase: 'paused',
-      player: initialPlayer,
-      obstacles: [],
-      coins: [],
-      score: 0,
-      accumulatedScoreMs: 0,
-      lastSpawnTime: 0,
-      lastSpawnLane: null,
-      consecutiveSpawnsInSameLane: 0,
-      lastCoinSpawnTime: 0,
-      obstacleSpeed: 280,
-      gameTimeMs: 0,
-      laneCenterX: dimensions.laneCenterX,
-      screenHeight: dimensions.height,
-      nearMissStreak: 0,
-      coinMultiplierActiveUntil: 0,
-      reviveGraceUntil: 0,
-    };
-    stateRef.current = state;
-    setPhase('paused');
-    setScore(0);
-    setObstacles([]);
-    setCoins([]);
-    setPlayer({ ...initialPlayer });
-  }, [dimensions]);
+    if (!dimensions || isResettingRef.current) return;
+    isResettingRef.current = true;
+    try {
+      const initialPlayer = createInitialPlayer(dimensions.height);
+      pendingInitialLaneRef.current = initialPlayer.lane;
+      const state: GameLoopState = {
+        phase: 'paused',
+        player: initialPlayer,
+        obstacles: [],
+        coins: [],
+        score: 0,
+        accumulatedScoreMs: 0,
+        lastSpawnTime: 0,
+        lastSpawnLane: null,
+        consecutiveSpawnsInSameLane: 0,
+        lastCoinSpawnTime: 0,
+        obstacleSpeed: 280,
+        gameTimeMs: 0,
+        laneCenterX: dimensions.laneCenterX,
+        screenHeight: dimensions.height,
+        nearMissStreak: 0,
+        coinMultiplierActiveUntil: 0,
+        reviveGraceUntil: 0,
+      };
+      stateRef.current = state;
+      setPhase('paused');
+      setScore(0);
+      setObstacles([]);
+      setCoins([]);
+      setPlayer({ ...initialPlayer });
+      // Reset coins and shield meter in store when resetting for countdown
+      // This ensures they are zeroed when coming back from GameOver screen
+      setCoinsThisRun(0);
+      setShieldMeter(0);
+    } finally {
+      setTimeout(() => {
+        isResettingRef.current = false;
+      }, 500);
+    }
+  }, [dimensions, setCoinsThisRun, setShieldMeter]);
 
   const startGame = useCallback(() => {
-    if (!dimensions) return;
-    storeStartRun();
-    const lane = pendingInitialLaneRef.current;
-    if (lane !== null) pendingInitialLaneRef.current = null;
-    const state: GameLoopState = {
-      phase: 'playing',
-      player: createInitialPlayer(dimensions.height, lane ?? undefined),
-      obstacles: [],
-      coins: [],
-      score: 0,
-      accumulatedScoreMs: 0,
-      lastSpawnTime: 0,
-      lastSpawnLane: null,
-      consecutiveSpawnsInSameLane: 0,
-      lastCoinSpawnTime: 0,
-      obstacleSpeed: 280,
-      gameTimeMs: 0,
-      laneCenterX: dimensions.laneCenterX,
-      screenHeight: dimensions.height,
-      nearMissStreak: 0,
-      coinMultiplierActiveUntil: 0,
-      reviveGraceUntil: 0,
-    };
-    stateRef.current = state;
-    state.lastCoinSpawnTime = Date.now();
-    setPhase('playing');
-    setScore(0);
-    setPlayer({ ...state.player });
-    setObstacles([]);
-    setCoins([]);
-    lastTimeRef.current = Date.now();
+    if (!dimensions || isStartingGameRef.current) return;
+    isStartingGameRef.current = true;
+    try {
+      storeStartRun();
+      const lane = pendingInitialLaneRef.current;
+      if (lane !== null) pendingInitialLaneRef.current = null;
+      const state: GameLoopState = {
+        phase: 'playing',
+        player: createInitialPlayer(dimensions.height, lane ?? undefined),
+        obstacles: [],
+        coins: [],
+        score: 0,
+        accumulatedScoreMs: 0,
+        lastSpawnTime: 0,
+        lastSpawnLane: null,
+        consecutiveSpawnsInSameLane: 0,
+        lastCoinSpawnTime: 0,
+        obstacleSpeed: 280,
+        gameTimeMs: 0,
+        laneCenterX: dimensions.laneCenterX,
+        screenHeight: dimensions.height,
+        nearMissStreak: 0,
+        coinMultiplierActiveUntil: 0,
+        reviveGraceUntil: 0,
+      };
+      stateRef.current = state;
+      state.lastCoinSpawnTime = Date.now();
+      setPhase('playing');
+      setScore(0);
+      setPlayer({ ...state.player });
+      setObstacles([]);
+      setCoins([]);
+      lastTimeRef.current = Date.now();
+    } finally {
+      setTimeout(() => {
+        isStartingGameRef.current = false;
+      }, 500);
+    }
   }, [dimensions, storeStartRun]);
 
   const swapLane = useCallback(() => {
@@ -149,22 +174,38 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
   }, []);
 
   const resume = useCallback(() => {
+    if (isResumingRef.current) return;
     const state = stateRef.current;
     if (!state || state.phase !== 'paused') return;
-    const now = Date.now();
-    state.phase = 'playing';
-    state.lastSpawnTime = now;
-    state.lastCoinSpawnTime = now;
-    setPhase('playing');
-    lastTimeRef.current = now;
+    isResumingRef.current = true;
+    try {
+      const now = Date.now();
+      state.phase = 'playing';
+      state.lastSpawnTime = now;
+      state.lastCoinSpawnTime = now;
+      setPhase('playing');
+      lastTimeRef.current = now;
+    } finally {
+      setTimeout(() => {
+        isResumingRef.current = false;
+      }, 300);
+    }
   }, []);
 
   const quitFromPause = useCallback(() => {
+    if (isQuittingRef.current) return;
     const state = stateRef.current;
     if (!state || state.phase !== 'paused') return;
-    endRun();
-    state.phase = 'game_over';
-    setPhase('game_over');
+    isQuittingRef.current = true;
+    try {
+      endRun();
+      state.phase = 'game_over';
+      setPhase('game_over');
+    } finally {
+      setTimeout(() => {
+        isQuittingRef.current = false;
+      }, 500);
+    }
   }, [endRun]);
 
   /** End current run and reset board so a new countdown can start (e.g. Restart from pause). */
@@ -176,20 +217,28 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
   }, [endRun, resetForCountdown]);
 
   const revive = useCallback(() => {
+    if (isRevivingRef.current) return;
     const state = stateRef.current;
     const id = lastCollidedObstacleIdRef.current;
     if (!state || state.phase !== 'game_over' || !id) return;
-    lastCollidedObstacleIdRef.current = null;
-    removeObstacleById(state, id);
-    // Clear all obstacles and pause spawn for 2s so the user can reorient after the ad
-    setReviveGrace(state, Date.now() + 2000);
-    state.phase = 'playing';
-    incrementRevivesUsedThisRun();
-    setPhase('playing');
-    setObstacles([...state.obstacles]);
-    setCoins([...state.coins]);
-    setPlayer({ ...state.player });
-    lastTimeRef.current = Date.now();
+    isRevivingRef.current = true;
+    try {
+      lastCollidedObstacleIdRef.current = null;
+      removeObstacleById(state, id);
+      // Clear all obstacles and pause spawn for 2s so the user can reorient after the ad
+      setReviveGrace(state, Date.now() + 2000);
+      state.phase = 'playing';
+      incrementRevivesUsedThisRun();
+      setPhase('playing');
+      setObstacles([...state.obstacles]);
+      setCoins([...state.coins]);
+      setPlayer({ ...state.player });
+      lastTimeRef.current = Date.now();
+    } finally {
+      setTimeout(() => {
+        isRevivingRef.current = false;
+      }, 500);
+    }
   }, [incrementRevivesUsedThisRun]);
 
   useEffect(() => {
@@ -197,17 +246,25 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
 
     const finishRunAndCheckChallenges = () => {
       const store = useGameStore.getState();
-      const { coinsThisRun, score: runScore, nearMissesThisRun, challengeGroupIndex: groupIdx } = store;
+      const { coinsThisRun, score: runScore, nearMissesThisRun, challengeGroupIndex: groupIdx, challengeGroupBaseline } = store;
       addRunToLifetimeStats({ coins: coinsThisRun, score: runScore, nearMisses: nearMissesThisRun });
       let stateAfter = useGameStore.getState();
       const challenges = getChallengesForGroup(groupIdx);
+      
+      // Update cumulative challenges progress (calculate as difference from baseline)
       for (const ch of challenges) {
         if (CHALLENGE_SCOPE[ch.type] === 'cumulative') {
-          updateChallengeProgress(ch.id, getLifetimeValue(ch.type, stateAfter.lifetimeStats));
+          const currentValue = getLifetimeValue(ch.type, stateAfter.lifetimeStats);
+          const baselineValue = getLifetimeValue(ch.type, challengeGroupBaseline);
+          const progress = Math.max(0, currentValue - baselineValue);
+          updateChallengeProgress(ch.id, progress);
         }
       }
+      
       stateAfter = useGameStore.getState();
       const progress = stateAfter.currentGroupProgress;
+      
+      // Helper to get current progress (for run challenges, use run values; for cumulative, use persisted progress)
       const getProgress = (ch: (typeof challenges)[0]): number => {
         if (CHALLENGE_SCOPE[ch.type] === 'run') {
           if (ch.type === 'coins_run') return stateAfter.coinsThisRun;
@@ -215,14 +272,42 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
           if (ch.type === 'near_miss_run') return stateAfter.nearMissesThisRun;
           return 0;
         }
+        // For cumulative, use persisted progress (already calculated as difference from baseline)
         return progress[ch.id] ?? 0;
       };
-      const bothComplete = challenges.every((ch) => getProgress(ch) >= ch.target);
-      if (bothComplete && groupIdx < 17) {
-        completeChallengeGroup(getInitialProgressForGroup(groupIdx + 1));
-      } else if (bothComplete && groupIdx >= 17) {
-        completeChallengeGroup({});
+      
+      // Persist run challenge progress when completed (so it doesn't reset on app restart)
+      for (const ch of challenges) {
+        if (CHALLENGE_SCOPE[ch.type] === 'run') {
+          const currentProgress = getProgress(ch);
+          if (currentProgress >= ch.target) {
+            // Mark as completed by persisting the target value
+            updateChallengeProgress(ch.id, ch.target);
+          }
+        }
       }
+      
+      stateAfter = useGameStore.getState();
+      const finalProgress = stateAfter.currentGroupProgress;
+      const getFinalProgress = (ch: (typeof challenges)[0]): number => {
+        if (CHALLENGE_SCOPE[ch.type] === 'run') {
+          // After persisting, use persisted value if available, otherwise use run value
+          const persisted = finalProgress[ch.id];
+          if (persisted !== undefined && persisted >= ch.target) {
+            return persisted;
+          }
+          return getProgress(ch);
+        }
+        return finalProgress[ch.id] ?? 0;
+      };
+      
+      const bothComplete = challenges.every((ch) => getFinalProgress(ch) >= ch.target);
+      
+      // Instead of automatically completing, mark reward as available
+      if (bothComplete) {
+        setRewardAvailable(true);
+      }
+      
       endRun();
     };
 
@@ -236,8 +321,11 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
 
       const result = tick(state, deltaMs, nowMs);
 
-      setStoreScore(state.score);
-      setScore(state.score);
+      // Apply multiplier to score before storing (multiplier is part of the game logic)
+      const currentMultiplier = useGameStore.getState().scoreMultiplier;
+      const scoreWithMultiplier = Math.floor(result.score * currentMultiplier);
+      setStoreScore(scoreWithMultiplier);
+      setScore(scoreWithMultiplier);
       setPlayer({ ...state.player });
       setObstacles([...state.obstacles]);
       setCoins([...state.coins]);

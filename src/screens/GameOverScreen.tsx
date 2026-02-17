@@ -3,7 +3,7 @@
  * Replaces overlay; back/Home goes to Home. Play Again replaces with Game.
  */
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  withSequence,
+  withDelay,
+  cancelAnimation,
+  Easing,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated';
 import { PressableScale } from '../components/PressableScale';
 import { useTheme } from '../hooks/useTheme';
 import { useTranslation } from 'react-i18next';
@@ -43,29 +55,126 @@ export function GameOverScreen() {
   const setReviveEarnedFromAd = useGameStore((s) => s.setReviveEarnedFromAd);
   const [reviveLoading, setReviveLoading] = useState(false);
   const contentWidth = screenWidth - spacing.xl * 2;
+  const isNavigatingRef = useRef(false);
+
+  // Floating animation for NEW BEST badge
+  // Always initialize hooks to maintain consistent order
+  const floatPhase = useSharedValue(0);
+  const scalePhase = useSharedValue(0);
+  const opacityPhase = useSharedValue(0);
+  
+  useEffect(() => {
+    if (isNewBest) {
+      // Initial entrance animation: fade in + scale bounce
+      opacityPhase.value = withTiming(1, { duration: 200 });
+      scalePhase.value = withSequence(
+        withTiming(1.3, { duration: 300, easing: Easing.out(Easing.cubic) }),
+        withTiming(1, { duration: 200, easing: Easing.in(Easing.cubic) })
+      );
+      
+      // Start floating animation after initial bounce
+      floatPhase.value = withDelay(
+        500,
+        withRepeat(
+          withTiming(1, {
+            duration: 3000,
+            easing: Easing.inOut(Easing.sin),
+          }),
+          -1,
+          false
+        )
+      );
+    } else {
+      // Cancel animations and reset when not showing
+      cancelAnimation(floatPhase);
+      cancelAnimation(scalePhase);
+      cancelAnimation(opacityPhase);
+      opacityPhase.value = 0;
+      scalePhase.value = 0;
+      floatPhase.value = 0;
+    }
+    
+    // Cleanup: cancel animations when component unmounts
+    return () => {
+      cancelAnimation(floatPhase);
+      cancelAnimation(scalePhase);
+      cancelAnimation(opacityPhase);
+    };
+  }, [isNewBest, floatPhase, scalePhase, opacityPhase]);
+
+  const floatAnimatedStyle = useAnimatedStyle(() => {
+    'worklet';
+    const translateY = interpolate(
+      floatPhase.value,
+      [0, 0.5, 1],
+      [0, -8, 0],
+      Extrapolation.CLAMP
+    );
+    const rotate = interpolate(
+      floatPhase.value,
+      [0, 0.5, 1],
+      [0, 2, 0],
+      Extrapolation.CLAMP
+    );
+    return {
+      opacity: opacityPhase.value,
+      transform: [
+        { translateY },
+        { rotate: `${rotate}deg` },
+        { scale: scalePhase.value },
+      ],
+    };
+  });
 
   const handlePlayAgain = () => {
-    navigation.replace('Game');
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    // Reset navigation stack: remove both Game and GameOver, then navigate to new Game
+    // This ensures we start with a clean stack: Home -> Game (new)
+    navigation.reset({
+      index: 1,
+      routes: [
+        { name: 'Home' },
+        { name: 'Game' },
+      ],
+    });
+    setTimeout(() => {
+      isNavigatingRef.current = false;
+    }, 1000);
   };
 
   const handleHome = () => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    // Pop both GameOver and Game screens to go back to Home
     navigation.pop(2);
+    setTimeout(() => {
+      isNavigatingRef.current = false;
+    }, 1000);
   };
 
   const handleRevive = async () => {
-    if (!canRevive || !isRewardedLoaded() || reviveLoading) return;
+    if (!canRevive || !isRewardedLoaded() || reviveLoading || isNavigatingRef.current) return;
     setReviveLoading(true);
-    const earned = await showRewarded();
-    setReviveLoading(false);
-    if (earned) {
-      setReviveEarnedFromAd(true);
-      navigation.goBack();
+    isNavigatingRef.current = true;
+    try {
+      const earned = await showRewarded();
+      if (earned) {
+        setReviveEarnedFromAd(true);
+        navigation.goBack();
+      }
+    } finally {
+      setReviveLoading(false);
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 1000);
     }
   };
 
   useEffect(() => {
     if (Platform.OS !== 'android') return;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      // Pop both GameOver and Game screens to go back to Home
       navigation.pop(2);
       return true;
     });
@@ -104,7 +213,16 @@ export function GameOverScreen() {
           backgroundColor: colors.danger,
           marginBottom: spacing.xl,
         },
-        scoreWrap: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', marginBottom: spacing.xs },
+        scoreContainer: {
+          position: 'relative',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: spacing.xs,
+          minHeight: 60,
+          width: '100%',
+          paddingHorizontal: spacing.md, // Add padding to ensure badge doesn't go off screen
+        },
+        scoreWrap: { alignItems: 'center', justifyContent: 'center' },
         score: {
           fontSize: 48,
           fontWeight: '800',
@@ -112,14 +230,23 @@ export function GameOverScreen() {
           textAlign: 'center',
         },
         newBestBadge: {
+          position: 'absolute',
+          top: -10,
+          left: '50%',
+          marginLeft: Math.min(screenWidth * 0.15, 70), // Position to the right of score center, but limit to stay on screen
           backgroundColor: colors.success,
           paddingHorizontal: spacing.sm,
           paddingVertical: spacing.xs,
           borderRadius: 12,
-          marginLeft: spacing.sm,
           flexDirection: 'row',
           alignItems: 'center',
           gap: spacing.xs,
+          shadowColor: colors.success,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.5,
+          shadowRadius: 8,
+          elevation: 8,
+          maxWidth: screenWidth * 0.35, // Ensure badge doesn't exceed screen width
         },
         newBestText: { fontSize: 12, fontWeight: '700', color: colors.background },
         finalScoreLabel: { fontSize: 14, color: colors.textMuted, marginBottom: spacing.lg, textAlign: 'center' },
@@ -139,8 +266,14 @@ export function GameOverScreen() {
           marginHorizontal: spacing.xs,
         },
         statIcon: { fontSize: 24, marginBottom: spacing.xs },
-        statLabel: { fontSize: 11, color: colors.textMuted, textTransform: 'uppercase', marginBottom: spacing.xs },
-        statValue: { fontSize: 20, fontWeight: '700', color: colors.text },
+        statLabel: {
+          fontSize: 11,
+          color: colors.textMuted,
+          textTransform: 'uppercase',
+          marginBottom: spacing.xs,
+          textAlign: 'center',
+        },
+        statValue: { fontSize: 20, fontWeight: '700', color: colors.text, textAlign: 'center' },
         reviveCard: {
           width: '100%',
           maxWidth: 340,
@@ -161,7 +294,7 @@ export function GameOverScreen() {
           paddingVertical: spacing.md,
           borderRadius: 999,
         },
-        reviveBtnText: { fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
+        reviveBtnText: { fontSize: 16, fontWeight: '700', color: colors.onPrimary, textAlign: 'center' },
         buttonsWrap: {
           width: contentWidth,
           alignSelf: 'center',
@@ -177,7 +310,7 @@ export function GameOverScreen() {
           borderRadius: 999,
           marginBottom: spacing.md,
         },
-        playAgainBtnText: { fontSize: 18, fontWeight: '700', color: '#fff', textAlign: 'center' },
+        playAgainBtnText: { fontSize: 18, fontWeight: '700', color: colors.onPrimary, textAlign: 'center' },
         homeBtn: {
           width: '100%',
           flexDirection: 'row',
@@ -192,7 +325,7 @@ export function GameOverScreen() {
         },
         homeBtnText: { fontSize: 17, fontWeight: '700', color: colors.text, textAlign: 'center' },
       }),
-    [colors, insets.top, insets.bottom, contentWidth]
+    [colors, insets.top, insets.bottom, contentWidth, screenWidth]
   );
 
   return (
@@ -204,13 +337,15 @@ export function GameOverScreen() {
       >
         <Text style={styles.title}>{t('game.gameOver')}</Text>
         <View style={styles.titleUnderline} />
-        <View style={styles.scoreWrap}>
-          <Text style={styles.score}>{score.toLocaleString()}</Text>
+        <View style={styles.scoreContainer}>
+          <View style={styles.scoreWrap}>
+            <Text style={styles.score}>{score.toLocaleString()}</Text>
+          </View>
           {isNewBest && (
-            <View style={styles.newBestBadge}>
+            <Animated.View style={[styles.newBestBadge, floatAnimatedStyle]}>
               <Text style={styles.newBestText}>🏆</Text>
               <Text style={styles.newBestText}>{t('game.newBest')}</Text>
-            </View>
+            </Animated.View>
           )}
         </View>
         <Text style={styles.finalScoreLabel}>{t('game.finalScore')}</Text>
@@ -243,7 +378,7 @@ export function GameOverScreen() {
               disabled={!isRewardedLoaded() || reviveLoading}
             >
               {reviveLoading ? (
-                <ActivityIndicator color="#fff" size="small" />
+                <ActivityIndicator color={colors.onPrimary} size="small" />
               ) : (
                 <>
                   <Text style={styles.reviveBtnText}>▶</Text>

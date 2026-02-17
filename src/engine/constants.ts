@@ -38,8 +38,8 @@ export const COIN_HEIGHT = 28;
 export const COIN_SPAWN_INTERVAL_MS = 4000;
 /** Coins start spawning only after this many ms of gameplay (e.g. 5s). */
 export const COIN_FIRST_SPAWN_DELAY_MS = 5000;
-/** Shield: each coin adds this much to meter (0–1). */
-export const COIN_TO_SHIELD = 0.08;
+/** Shield: each coin adds this much to meter (0–1). 15 coins = full shield. */
+export const COIN_TO_SHIELD = 1 / 15;
 
 /** Difficulty: speed increase per 1000 score (px/s) */
 export const SPEED_INCREASE_PER_1000 = 15;

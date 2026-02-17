@@ -25,7 +25,7 @@
     "noInternetNeeded": "No internet needed"
   },
   "game": {
-    "tapToStart": "Tap to start",
+    "tapToStart": "Start",
     "gameOver": "Game Over",
     "playAgain": "Play again",
     "score": "Score",
@@ -90,6 +90,9 @@
     "title": "Challenges",
     "currentMultiplier": "Score multiplier",
     "nextMultiplier": "Complete both → {{value}}x",
+    "rewardAvailable": "Reward available!",
+    "claimReward": "Claim reward",
+    "rewardClaimed": "Reward claimed!",
     "near_miss_run": "Get {{count}} near-misses in one run",
     "coins_run": "Collect {{count}} coins in one run",
     "score_run": "Score {{count}} points in one run",
@@ -97,6 +100,19 @@
     "score_total": "Accumulate {{count}} points total",
     "games_played": "Play {{count}} games",
     "near_miss_total": "Accumulate {{count}} near-misses total"
+  },
+  "home": {
+    "title": "One Tap Dodge",
+    "titleOneTap": "One Tap",
+    "titleDodge": "Dodge",
+    "subtitle": "Tap to swap lanes. Dodge obstacles.",
+    "bestScore": "Best score",
+    "lastScore": "Last score",
+    "howToPlay": "How to Play",
+    "guide": "Guide",
+    "skins": "Skins",
+    "noInternetNeeded": "No internet needed",
+    "rewardBanner": "🎉 Reward available in Challenges!"
   },
   "splash": {
     "loading": "Loading..."

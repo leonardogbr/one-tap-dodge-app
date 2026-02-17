@@ -189,7 +189,7 @@ export function HowToPlayScreen() {
           shadowRadius: 12,
           elevation: 8,
         },
-        gotItText: { fontSize: 18, fontWeight: '700', color: '#fff' },
+        gotItText: { fontSize: 18, fontWeight: '700', color: colors.onPrimary },
       }),
     [colors, insets.top, insets.bottom]
   );

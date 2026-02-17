@@ -95,11 +95,13 @@ export function GameScreen() {
   }));
 
   const [countdownStep, setCountdownStep] = useState<CountdownStep>(null);
-  const countdownCallbackRef = useRef<() => void>(() => {});
+  const countdownCallbackRef = useRef<() => void>(() => { });
 
   const coinsThisRun = useGameStore((s) => s.coinsThisRun);
   const nearMissesThisRun = useGameStore((s) => s.nearMissesThisRun);
   const shieldMeter = useGameStore((s) => s.shieldMeter);
+  const setCoinsThisRun = useGameStore((s) => s.setCoinsThisRun);
+  const setShieldMeter = useGameStore((s) => s.setShieldMeter);
   const scoreMultiplier = useGameStore((s) => s.scoreMultiplier);
   const canRevive = useGameStore((s) => s.canRevive);
   const reviveEarnedFromAd = useGameStore((s) => s.reviveEarnedFromAd);
@@ -148,12 +150,17 @@ export function GameScreen() {
   }, [phase, pause]);
 
   // When game over, after a short delay (explosion visible), navigate to GameOver screen.
+  // Use push() to keep Game in stack, so revive can goBack() to Game
   useEffect(() => {
     if (phase !== 'game_over') return;
     const tId = setTimeout(() => {
+      // Score already has multiplier applied in game loop
+      const currentHighScore = useGameStore.getState().highScore;
+      const isNewBest = score > 0 && score === currentHighScore;
+
       navigation.push('GameOver', {
         score,
-        isNewBest: score >= highScore,
+        isNewBest,
         runTimeMs,
         nearMisses: nearMissesThisRun,
         coins: coinsThisRun,
@@ -163,13 +170,56 @@ export function GameScreen() {
     return () => clearTimeout(tId);
   }, [phase, score, highScore, runTimeMs, nearMissesThisRun, coinsThisRun, canRevive, navigation]);
 
+  // Track if we navigated away to GameOver screen
+  const hasNavigatedAwayRef = useRef(false);
+
+  // Track when we navigate to GameOver
+  useEffect(() => {
+    if (phase === 'game_over') {
+      // Set flag after navigation delay to indicate we navigated away
+      const tId = setTimeout(() => {
+        hasNavigatedAwayRef.current = true;
+      }, 1500); // After navigation completes (1200ms delay + buffer)
+      return () => clearTimeout(tId);
+    } else {
+      hasNavigatedAwayRef.current = false;
+    }
+  }, [phase]);
+
   // When returning from GameOver after earning revive from ad, trigger revive.
+  // Also reset state when coming back from GameOver screen (e.g., "Play Again")
   useFocusEffect(
     useCallback(() => {
-      if (!reviveEarnedFromAd) return;
-      setReviveEarnedFromAd(false);
-      revive();
-    }, [reviveEarnedFromAd, setReviveEarnedFromAd, revive])
+      // Handle revive from ad
+      if (reviveEarnedFromAd) {
+        hasNavigatedAwayRef.current = false;
+        setReviveEarnedFromAd(false);
+        revive();
+        return;
+      }
+
+      // Only reset if we had navigated away (hasNavigatedAwayRef is true)
+      // and phase is still 'game_over' when screen receives focus
+      // This means we came back from GameOver screen
+      if (hasNavigatedAwayRef.current && phase === 'game_over') {
+        hasNavigatedAwayRef.current = false;
+        resetForCountdown();
+        // Reset coins and shield meter when coming back from GameOver
+        setCoinsThisRun(0);
+        setShieldMeter(0);
+      }
+    }, [phase, resetForCountdown, reviveEarnedFromAd, setReviveEarnedFromAd, revive, setCoinsThisRun, setShieldMeter])
+  );
+
+  // Reset coins and shield meter when screen receives focus and phase is 'idle' or 'paused'
+  // This ensures they are zeroed when entering the screen for a new game
+  useFocusEffect(
+    useCallback(() => {
+      if (phase === 'idle' || phase === 'paused') {
+        setCoinsThisRun(0);
+        setShieldMeter(0);
+      }
+    }, [phase, setCoinsThisRun, setShieldMeter])
   );
 
   const handleSkins = useCallback(() => {
@@ -238,29 +288,52 @@ export function GameScreen() {
           borderWidth: 1,
           opacity: 0.9,
         },
-        pauseBtn: { position: 'absolute', top: spacing.sm, right: spacing.lg, padding: spacing.sm, zIndex: 15 },
+        topBarRow: {
+          position: 'absolute',
+          top: insets.top + spacing.sm,
+          left: 0,
+          right: 0,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          minHeight: 44,
+          paddingHorizontal: spacing.lg,
+          zIndex: 15,
+        },
+        topBarLeft: { flexDirection: 'row', gap: spacing.xs, alignItems: 'center' },
+        topBarCenter: { flex: 1 },
+        pauseBtn: { padding: spacing.sm },
         pauseBtnText: { fontSize: 18, fontWeight: '700', color: colors.textMuted },
+        multiplierWrap: { flexDirection: 'row', gap: spacing.xs, alignItems: 'center' },
+        multiplierBadge: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 8 },
+        multiplierBadgePrimary: { backgroundColor: colors.primary },
+        multiplierBadgeSuccess: { backgroundColor: colors.success },
+        multiplierBadgeText: { fontSize: 14, fontWeight: '700', color: colors.onPrimary },
         overlay: {
           ...StyleSheet.absoluteFillObject,
           backgroundColor: 'rgba(0,0,0,0.7)',
           justifyContent: 'center',
           alignItems: 'center',
-          paddingHorizontal: spacing.xl,
+          paddingHorizontal: spacing.md,
         },
         overlayCard: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          alignSelf: 'stretch',
           backgroundColor: colors.backgroundLight,
           borderRadius: 24,
-          paddingVertical: spacing.xl,
-          paddingHorizontal: spacing.xl * 1.5,
+          paddingVertical: spacing.xl * 1.5,
+          paddingHorizontal: spacing.md,
           minWidth: 280,
-          maxWidth: 340,
+          maxWidth: 360,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 8 },
           shadowOpacity: 0.4,
           shadowRadius: 24,
           elevation: 12,
         },
-        overlayContent: { alignItems: 'center', width: '100%' },
+        overlayContent: { flex: 1, alignItems: 'center', },
+        btnRow: { alignItems: 'stretch', alignSelf: 'stretch' },
         overlayTitle: {
           fontSize: 28,
           fontWeight: '700',
@@ -288,7 +361,7 @@ export function GameScreen() {
           paddingVertical: spacing.md,
           paddingHorizontal: spacing.xl * 1.5,
           borderRadius: 999,
-          marginBottom: spacing.sm,
+          marginBottom: spacing.md,
         },
         overlayBtnPrimaryDisabled: { opacity: 0.5 },
         overlayBtnSecondary: {
@@ -298,11 +371,15 @@ export function GameScreen() {
           justifyContent: 'center',
           gap: spacing.sm,
           backgroundColor: colors.backgroundLight,
+          borderWidth: 1,
+          borderColor: colors.primaryDim,
           paddingVertical: spacing.md,
           paddingHorizontal: spacing.xl * 1.5,
           borderRadius: 999,
-          marginBottom: spacing.sm,
+          marginBottom: spacing.md,
         },
+        overlayBtnSecondaryIcon: { fontSize: 16, color: colors.text },
+        overlayBtnSecondaryText: { fontSize: 17, fontWeight: '700', color: colors.text, textAlign: 'center' },
         overlayBtnDanger: {
           alignSelf: 'stretch',
           flexDirection: 'row',
@@ -310,15 +387,16 @@ export function GameScreen() {
           justifyContent: 'center',
           gap: spacing.sm,
           backgroundColor: colors.backgroundLight,
+          borderWidth: 1,
+          borderColor: colors.danger,
           paddingVertical: spacing.md,
           paddingHorizontal: spacing.xl * 1.5,
           borderRadius: 999,
-          marginTop: spacing.xs,
         },
-        overlayBtnIcon: { fontSize: 16 },
-        overlayBtnText: { fontSize: 17, fontWeight: '700', color: '#fff', textAlign: 'center' },
+        overlayBtnIcon: { fontSize: 16, color: colors.onPrimary },
+        overlayBtnText: { fontSize: 17, fontWeight: '700', color: colors.onPrimary, textAlign: 'center' },
         overlayBtnDangerIcon: { fontSize: 16, color: colors.danger },
-        overlayBtnDangerText: { fontSize: 17, fontWeight: '700', color: colors.text, textAlign: 'center' },
+        overlayBtnDangerText: { fontSize: 17, fontWeight: '700', color: colors.danger, textAlign: 'center' },
         overlayReviveBtn: {
           alignSelf: 'stretch',
           flexDirection: 'row',
@@ -340,9 +418,22 @@ export function GameScreen() {
           marginTop: spacing.xl,
           marginBottom: spacing.lg,
         },
-        overlayBottomRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, flexWrap: 'wrap', justifyContent: 'center' },
-        overlaySecondaryLink: { paddingVertical: spacing.sm, paddingHorizontal: spacing.md, alignItems: 'center' },
-        overlaySecondaryLinkText: { fontSize: 15, fontWeight: '600', color: colors.textMuted, textAlign: 'center' },
+        overlayNavRow: {
+          alignSelf: 'stretch',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          gap: spacing.sm,
+          paddingHorizontal: spacing.md,
+        },
+        overlayNavBtn: {
+          borderRadius: 16,
+          paddingVertical: spacing.md,
+          paddingHorizontal: spacing.sm,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        overlayNavIcon: { fontSize: 28, marginBottom: spacing.xs },
+        overlayNavLabel: { fontSize: 14, fontWeight: '600', color: colors.primary },
         countdownOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', zIndex: 20 },
         countdownText: { fontSize: 72, fontWeight: '800', color: colors.primary },
         explosionWrap: { position: 'absolute', zIndex: 10, pointerEvents: 'none' },
@@ -450,14 +541,33 @@ export function GameScreen() {
           coinsThisRun={coinsThisRun}
           shieldMeter={shieldMeter}
           nearMissFlash={nearMissFlash}
-          coinMultiplierActive={coinMultiplierActive}
-          scoreMultiplier={scoreMultiplier}
         />
 
-        {phase === 'playing' && (
-          <PressableScale style={styles.pauseBtn} onPress={pause}>
-            <Text style={styles.pauseBtnText}>II</Text>
-          </PressableScale>
+        {(phase === 'playing' || (scoreMultiplier > 1 || coinMultiplierActive)) && (
+          <View style={styles.topBarRow} pointerEvents="box-none">
+            <View style={styles.topBarLeft} pointerEvents="none">
+              {(scoreMultiplier > 1 || coinMultiplierActive) && (
+                <View style={styles.multiplierWrap}>
+                  {scoreMultiplier > 1 && (
+                    <View style={[styles.multiplierBadge, styles.multiplierBadgePrimary]}>
+                      <Text style={styles.multiplierBadgeText}>{scoreMultiplier}x</Text>
+                    </View>
+                  )}
+                  {coinMultiplierActive && (
+                    <View style={[styles.multiplierBadge, styles.multiplierBadgeSuccess]}>
+                      <Text style={styles.multiplierBadgeText}>2x coins!</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+            <View style={styles.topBarCenter} pointerEvents="none" />
+            {phase === 'playing' && (
+              <PressableScale style={styles.pauseBtn} onPress={pause}>
+                <Text style={styles.pauseBtnText}>II</Text>
+              </PressableScale>
+            )}
+          </View>
         )}
 
         {/* Collision explosion (game over) */}
@@ -489,24 +599,26 @@ export function GameScreen() {
               <View style={styles.overlayContent}>
                 <Text style={styles.overlayTitle}>{t('game.paused')}</Text>
                 <View style={styles.overlayTitleUnderline} />
-                <PressableScale style={styles.overlayBtnPrimary} onPress={() => startCountdown(resume)}>
-                  <Text style={styles.overlayBtnIcon}>▶</Text>
-                  <Text style={styles.overlayBtnText}>{t('common.resume')}</Text>
-                </PressableScale>
-                <PressableScale
-                  style={styles.overlayBtnSecondary}
-                  onPress={() => {
-                    restartFromPause();
-                    startCountdown(startGame);
-                  }}
-                >
-                  <Text style={styles.overlayBtnIcon}>↻</Text>
-                  <Text style={styles.overlayBtnText}>{t('common.restart')}</Text>
-                </PressableScale>
+                <View style={styles.btnRow}>
+                  <PressableScale style={styles.overlayBtnPrimary} onPress={() => startCountdown(resume)}>
+                    <Text style={styles.overlayBtnIcon}>▶</Text>
+                    <Text style={styles.overlayBtnText}>{t('common.resume')}</Text>
+                  </PressableScale>
+                  <PressableScale
+                    style={styles.overlayBtnSecondary}
+                    onPress={() => {
+                      restartFromPause();
+                      startCountdown(startGame);
+                    }}
+                  >
+                    <Text style={styles.overlayBtnSecondaryIcon}>↻</Text>
+                    <Text style={styles.overlayBtnSecondaryText}>{t('common.restart')}</Text>
+                  </PressableScale>
                 <PressableScale style={styles.overlayBtnDanger} onPress={quitFromPause}>
-                  <Text style={styles.overlayBtnDangerIcon}>→</Text>
-                  <Text style={styles.overlayBtnDangerText}>{t('common.quit')}</Text>
-                </PressableScale>
+                    <Text style={styles.overlayBtnDangerIcon}>→</Text>
+                    <Text style={styles.overlayBtnDangerText}>{t('common.quit')}</Text>
+                  </PressableScale>
+                </View>
               </View>
             </View>
           </Animated.View>
@@ -523,24 +635,26 @@ export function GameScreen() {
               <View style={styles.overlayContent}>
                 <Text style={styles.overlayTitle}>{t('home.title')}</Text>
                 <View style={styles.overlayTitleUnderline} />
-                <PressableScale
-                  style={styles.overlayBtnPrimary}
-                  onPress={() => startCountdown(startGame)}
-                >
-                  <Text style={styles.overlayBtnIcon}>▶</Text>
-                  <Text style={styles.overlayBtnText}>{t('game.tapToStart')}</Text>
-                </PressableScale>
-                <View style={styles.overlayDivider} />
-                <View style={styles.overlayBottomRow}>
-                  <PressableScale style={styles.overlaySecondaryLink} onPress={handleHome}>
-                    <Text style={styles.overlaySecondaryLinkText}>{t('common.home')}</Text>
+                <View style={styles.btnRow}>
+                  <PressableScale
+                    style={styles.overlayBtnPrimary}
+                    onPress={() => startCountdown(startGame)}
+                  >
+                    <Text style={styles.overlayBtnIcon}>▶</Text>
+                    <Text style={styles.overlayBtnText}>{t('game.tapToStart')}</Text>
                   </PressableScale>
-                  <PressableScale style={styles.overlaySecondaryLink} onPress={handleSkins}>
-                    <Text style={styles.overlaySecondaryLinkText}>{t('home.skins')}</Text>
-                  </PressableScale>
-                  <PressableScale style={styles.overlaySecondaryLink} onPress={handleSettings}>
-                    <Text style={styles.overlaySecondaryLinkText}>{t('common.settings')}</Text>
-                  </PressableScale>
+                  <View style={styles.overlayDivider} />
+                  <View style={styles.overlayNavRow}>
+                    <PressableScale style={styles.overlayNavBtn} onPress={handleHome}>
+                      <Text style={styles.overlayNavIcon}>🏠</Text>
+                    </PressableScale>
+                    <PressableScale style={styles.overlayNavBtn} onPress={handleSkins}>
+                      <Text style={styles.overlayNavIcon}>👤</Text>
+                    </PressableScale>
+                    <PressableScale style={styles.overlayNavBtn} onPress={handleSettings}>
+                      <Text style={styles.overlayNavIcon}>⚙</Text>
+                    </PressableScale>
+                  </View>
                 </View>
               </View>
             </View>

@@ -22,10 +22,11 @@
     "howToPlay": "Como jogar",
     "guide": "Guia",
     "skins": "Aparências",
-    "noInternetNeeded": "Não precisa de internet"
+    "noInternetNeeded": "Não precisa de internet",
+    "rewardBanner": "🎉 Recompensa disponível nos Desafios!"
   },
   "game": {
-    "tapToStart": "Toque para começar",
+    "tapToStart": "Começar",
     "gameOver": "Fim de jogo",
     "playAgain": "Jogar de novo",
     "score": "Pontuação",
@@ -90,6 +91,9 @@
     "title": "Desafios",
     "currentMultiplier": "Multiplicador de pontuação",
     "nextMultiplier": "Complete os dois → {{value}}x",
+    "rewardAvailable": "Recompensa disponível!",
+    "claimReward": "Resgatar recompensa",
+    "rewardClaimed": "Recompensa resgatada!",
     "near_miss_run": "Faça {{count}} near-misses em uma partida",
     "coins_run": "Colete {{count}} moedas em uma partida",
     "score_run": "Atinja {{count}} pontos em uma partida",

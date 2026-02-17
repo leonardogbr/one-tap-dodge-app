@@ -159,7 +159,7 @@ export function SkinsScreen() {
         skinName: { fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: spacing.xs },
         equipped: { fontSize: 14, color: colors.success },
         equipBtn: { alignSelf: 'flex-start', backgroundColor: colors.primary, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: 8 },
-        equipBtnText: { fontSize: 14, fontWeight: '600', color: colors.background },
+        equipBtnText: { fontSize: 14, fontWeight: '600', color: colors.onPrimary },
         lockedRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
         cost: { fontSize: 14, color: colors.textMuted },
         unlockBtn: { backgroundColor: colors.textMuted, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 8 },

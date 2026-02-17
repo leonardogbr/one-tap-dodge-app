@@ -22,9 +22,6 @@ interface HUDProps {
   coinsThisRun?: number;
   shieldMeter?: number; // 0–1
   nearMissFlash?: boolean;
-  coinMultiplierActive?: boolean;
-  /** Score multiplier (1–10); shown when > 1 */
-  scoreMultiplier?: number;
 }
 
 export function HUD({
@@ -33,8 +30,6 @@ export function HUD({
   coinsThisRun = 0,
   shieldMeter = 0,
   nearMissFlash,
-  coinMultiplierActive = false,
-  scoreMultiplier = 1,
 }: HUDProps) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -46,7 +41,7 @@ export function HUD({
       StyleSheet.create({
         container: {
           position: 'absolute',
-          top: insets.top,
+          top: insets.top + spacing.sm,
           left: 0,
           right: 0,
           alignItems: 'center',
@@ -54,8 +49,6 @@ export function HUD({
         },
         score: { fontSize: 36, fontWeight: '700', color: colors.text },
         best: { fontSize: 14, color: colors.textMuted, marginTop: spacing.xs },
-        coinMultiplierBadge: { marginTop: spacing.xs, backgroundColor: colors.success, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 8 },
-        coinMultiplierText: { fontSize: 14, fontWeight: '700', color: colors.background },
         row: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm, gap: spacing.sm },
         coins: { fontSize: 14, color: colors.text },
         shieldWrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
@@ -66,9 +59,7 @@ export function HUD({
         shieldLabel: { fontSize: 12, color: colors.textMuted, minWidth: 52 },
         shieldLabelReady: { color: colors.success, fontWeight: '700' },
         nearMissBadge: { marginTop: spacing.sm, alignSelf: 'center', backgroundColor: colors.primary, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 8 },
-        nearMissText: { fontSize: 16, fontWeight: '700', color: colors.background },
-        scoreMultiplierBadge: { marginTop: spacing.xs, backgroundColor: colors.primary, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 8 },
-        scoreMultiplierText: { fontSize: 14, fontWeight: '700', color: colors.background },
+        nearMissText: { fontSize: 16, fontWeight: '700', color: colors.onPrimary },
       }),
     [colors, insets.top]
   );
@@ -94,16 +85,6 @@ export function HUD({
       </Animated.View>
       {best > 0 && (
         <Text style={styles.best}>Best: {best}</Text>
-      )}
-      {scoreMultiplier > 1 && (
-        <View style={styles.scoreMultiplierBadge}>
-          <Text style={styles.scoreMultiplierText}>{scoreMultiplier}x</Text>
-        </View>
-      )}
-      {coinMultiplierActive && (
-        <View style={styles.coinMultiplierBadge}>
-          <Text style={styles.coinMultiplierText}>2x coins!</Text>
-        </View>
       )}
       <View style={styles.row}>
         <Text style={styles.coins}>🪙 {coinsThisRun}</Text>
