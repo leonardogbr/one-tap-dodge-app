@@ -43,7 +43,7 @@ export const COIN_TO_SHIELD = 0.08;
 
 /** Difficulty: speed increase per 1000 score (px/s) */
 export const SPEED_INCREASE_PER_1000 = 15;
-export const MAX_OBSTACLE_SPEED = 2500;
+export const MAX_OBSTACLE_SPEED = 3500;
 
 /** Difficulty: spawn interval decrease per 2000 score (ms) */
 export const SPAWN_INTERVAL_DECREASE = 50;

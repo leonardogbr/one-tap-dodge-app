@@ -13,6 +13,8 @@ export const spacing = {
 export type ColorPalette = {
   background: string;
   backgroundLight: string;
+  /** Fundo levemente mais claro para destaque (ex.: card Best score). */
+  backgroundCard: string;
   primary: string;
   primaryDim: string;
   text: string;
@@ -25,6 +27,7 @@ export type ColorPalette = {
 export const darkColors: ColorPalette = {
   background: '#0d1117',
   backgroundLight: '#161b22',
+  backgroundCard: '#21262d',
   primary: '#38e8ff',
   primaryDim: '#38e8ff40',
   text: '#e6edf3',
@@ -37,6 +40,7 @@ export const darkColors: ColorPalette = {
 export const lightColors: ColorPalette = {
   background: '#f0f4f8',
   backgroundLight: '#e2e8f0',
+  backgroundCard: '#ffffff',
   primary: '#0ea5e9',
   primaryDim: '#0ea5e940',
   text: '#1e293b',

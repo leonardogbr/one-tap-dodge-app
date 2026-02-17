@@ -42,7 +42,7 @@ export interface GameLoopState {
   /** Lane center X positions [left, right] */
   laneCenterX: [number, number];
   screenHeight: number;
-  /** Near-miss streak (0–5); when 5, activate 2x coins for 10s. Only counts outside bonus. */
+  /** Near-miss streak (0–5); when 5, activate 2x coins for 20s. Only counts outside bonus. */
   nearMissStreak: number;
   /** Timestamp (ms) until which 2x coins spawn is active; 0 = inactive */
   coinMultiplierActiveUntil: number;

@@ -24,6 +24,8 @@ export interface GameSlice {
   coinsThisRun: number;
   nearMissesThisRun: number;
   highScore: number;
+  /** Last run's score (set when run ends); shown on Home. */
+  lastScore: number;
   canRevive: boolean;
   /** How many revives (rewarded ads) used this run; reset on startRun. */
   revivesUsedThisRun: number;
@@ -57,6 +59,9 @@ export interface GameSlice {
   /** Add run stats to lifetime and update progress for cumulative challenges. */
   addRunToLifetimeStats: (run: { coins: number; score: number; nearMisses: number }) => void;
   completeChallengeGroup: (nextGroupProgress: CurrentGroupProgress) => void;
+  /** Set by GameOverScreen when user earns revive from ad; GameScreen reads and triggers revive then clears. */
+  reviveEarnedFromAd: boolean;
+  setReviveEarnedFromAd: (v: boolean) => void;
 }
 
 export interface ProgressSlice {
@@ -138,6 +143,9 @@ export const SKIN_COSTS: Record<string, number> = {
   diamond: 97000,
   celestial_pulse: 100000,
 };
+
+/** Skin used for Home preview (most premium). */
+export const PRIME_SKIN_ID = 'celestial_pulse';
 
 export type SkinVisual = {
   base: string;
@@ -283,6 +291,7 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
   coinsThisRun: 0,
   nearMissesThisRun: 0,
   highScore: 0,
+  lastScore: 0,
   canRevive: true,
   revivesUsedThisRun: 0,
   shieldMeter: 0,
@@ -324,11 +333,12 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
       shieldMeter: 0,
     }),
   endRun: () => {
-    const { coinsThisRun, totalCoins } = get();
+    const { coinsThisRun, totalCoins, score } = get();
     set({
       phase: 'game_over',
       totalCoins: totalCoins + coinsThisRun,
       gameOversSinceLastInterstitial: get().gameOversSinceLastInterstitial + 1,
+      lastScore: score,
     });
   },
   setScoreMultiplier: (v) =>
@@ -349,6 +359,8 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
         totalNearMisses: s.lifetimeStats.totalNearMisses + run.nearMisses,
       },
     })),
+  reviveEarnedFromAd: false,
+  setReviveEarnedFromAd: (v) => set({ reviveEarnedFromAd: v }),
   completeChallengeGroup: (nextGroupProgress) =>
     set((s) => ({
       scoreMultiplier: Math.min(MAX_SCORE_MULTIPLIER, s.scoreMultiplier + 0.5),

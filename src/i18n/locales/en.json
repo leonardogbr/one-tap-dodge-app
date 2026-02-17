@@ -5,6 +5,7 @@
     "home": "Home",
     "settings": "Settings",
     "resume": "Resume",
+    "restart": "Restart",
     "quit": "Quit",
     "equip": "Equip",
     "equipped": "Equipped",
@@ -13,15 +14,28 @@
   },
   "home": {
     "title": "One Tap Dodge",
+    "titleOneTap": "One Tap",
+    "titleDodge": "Dodge",
     "subtitle": "Tap to swap lanes. Dodge obstacles.",
+    "bestScore": "Best score",
+    "lastScore": "Last score",
     "howToPlay": "How to Play",
-    "skins": "Skins"
+    "guide": "Guide",
+    "skins": "Skins",
+    "noInternetNeeded": "No internet needed"
   },
   "game": {
     "tapToStart": "Tap to start",
     "gameOver": "Game Over",
     "playAgain": "Play again",
     "score": "Score",
+    "finalScore": "Final score",
+    "newBest": "NEW BEST!",
+    "time": "Time",
+    "nearMiss": "Near miss",
+    "coins": "Coins",
+    "oneLastChance": "One last chance?",
+    "watchAdReviveDescription": "Watch a short video to revive and keep your streak alive.",
     "paused": "Paused",
     "watchAdToContinue": "Watch Ad to Continue",
     "loadingAd": "Loading ad…",
@@ -65,11 +79,12 @@
   },
   "howToPlay": {
     "title": "How to Play",
-    "rule1": "Tap to swap between left and right lanes.",
-    "rule2": "Avoid red obstacles. One hit = game over (or use shield).",
-    "rule3": "Get close without hitting for a +50 near-miss bonus.",
-    "rule4": "Collect coins to fill the shield meter. Full meter = one free hit.",
-    "rule5": "After 5 near-misses in a row, get 2x coins for 10 seconds."
+    "subtitle": "Master the lanes to survive.",
+    "gotIt": "Got it",
+    "tapToSwap": "Tap to swap lanes",
+    "dodgeObstacles": "Dodge obstacles",
+    "nearMissBonus": "Near-miss for bonus",
+    "coinsChargeShield": "Coins charge shield"
   },
   "challenges": {
     "title": "Challenges",

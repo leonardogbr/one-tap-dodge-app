@@ -5,6 +5,7 @@
     "home": "Início",
     "settings": "Configurações",
     "resume": "Continuar",
+    "restart": "Reiniciar",
     "quit": "Sair",
     "equip": "Equipar",
     "equipped": "Equipado",
@@ -13,15 +14,28 @@
   },
   "home": {
     "title": "One Tap Dodge",
+    "titleOneTap": "One Tap",
+    "titleDodge": "Dodge",
     "subtitle": "Toque para trocar de faixa. Desvie dos obstáculos.",
+    "bestScore": "Melhor pontuação",
+    "lastScore": "Última pontuação",
     "howToPlay": "Como jogar",
-    "skins": "Aparências"
+    "guide": "Guia",
+    "skins": "Aparências",
+    "noInternetNeeded": "Não precisa de internet"
   },
   "game": {
     "tapToStart": "Toque para começar",
     "gameOver": "Fim de jogo",
     "playAgain": "Jogar de novo",
     "score": "Pontuação",
+    "finalScore": "Pontuação final",
+    "newBest": "NOVO RECORDE!",
+    "time": "Tempo",
+    "nearMiss": "Quase acerto",
+    "coins": "Moedas",
+    "oneLastChance": "Uma última chance?",
+    "watchAdReviveDescription": "Assista a um vídeo para reviver e manter sua sequência.",
     "paused": "Pausado",
     "watchAdToContinue": "Assistir anúncio para continuar",
     "loadingAd": "Carregando anúncio…",
@@ -65,11 +79,12 @@
   },
   "howToPlay": {
     "title": "Como jogar",
-    "rule1": "Toque para trocar entre a faixa esquerda e direita.",
-    "rule2": "Evite os obstáculos vermelhos. Um choque = fim de jogo (ou use o escudo).",
-    "rule3": "Fique perto sem bater para ganhar +50 de near-miss.",
-    "rule4": "Colete moedas para encher o escudo. Escudo cheio = um choque grátis.",
-    "rule5": "Após 5 near-misses seguidos, ganhe 2x moedas por 10 segundos."
+    "subtitle": "Domine as faixas para sobreviver.",
+    "gotIt": "Entendi",
+    "tapToSwap": "Toque para trocar de faixa",
+    "dodgeObstacles": "Desvie dos obstáculos",
+    "nearMissBonus": "Quase acertou = bônus",
+    "coinsChargeShield": "Moedas carregam o escudo"
   },
   "challenges": {
     "title": "Desafios",

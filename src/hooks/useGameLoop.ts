@@ -38,6 +38,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
   const [nearMissFlash, setNearMissFlash] = useState(false);
   const [coinMultiplierActive, setCoinMultiplierActive] = useState(false);
   const [laneSwapTick, setLaneSwapTick] = useState(0);
+  const [runTimeMs, setRunTimeMs] = useState(0);
 
   const stateRef = useRef<GameLoopState | null>(null);
   const rafIdRef = useRef<number | null>(null);
@@ -166,6 +167,14 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
     setPhase('game_over');
   }, [endRun]);
 
+  /** End current run and reset board so a new countdown can start (e.g. Restart from pause). */
+  const restartFromPause = useCallback(() => {
+    const state = stateRef.current;
+    if (!state || state.phase !== 'paused') return;
+    endRun();
+    resetForCountdown();
+  }, [endRun, resetForCountdown]);
+
   const revive = useCallback(() => {
     const state = stateRef.current;
     const id = lastCollidedObstacleIdRef.current;
@@ -251,7 +260,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
         if (nowMs >= state.coinMultiplierActiveUntil) {
           state.nearMissStreak += result.nearMissIds.length;
           if (state.nearMissStreak >= 5) {
-            state.coinMultiplierActiveUntil = nowMs + 10000;
+            state.coinMultiplierActiveUntil = nowMs + 20000;
             state.nearMissStreak = 0;
           }
         }
@@ -269,12 +278,13 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
         } else {
           lastCollidedObstacleIdRef.current = result.collidedObstacleId;
           finishRunAndCheckChallenges();
-          setCanRevive(
-            useGameStore.getState().revivesUsedThisRun < MAX_REVIVES_PER_RUN
-          );
-          triggerHaptic('gameOver');
-          setPhase('game_over');
-          return;
+        setCanRevive(
+          useGameStore.getState().revivesUsedThisRun < MAX_REVIVES_PER_RUN
+        );
+        triggerHaptic('gameOver');
+        setRunTimeMs(stateRef.current?.gameTimeMs ?? 0);
+        setPhase('game_over');
+        return;
         }
       } else if (result.phase === 'game_over') {
         lastCollidedObstacleIdRef.current = result.collidedObstacleId;
@@ -283,6 +293,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
           useGameStore.getState().revivesUsedThisRun < MAX_REVIVES_PER_RUN
         );
         triggerHaptic('gameOver');
+        setRunTimeMs(stateRef.current?.gameTimeMs ?? 0);
         setPhase('game_over');
         return;
       }
@@ -309,12 +320,14 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
     coinMultiplierActive,
     highScore,
     laneSwapTick,
+    runTimeMs,
     resetForCountdown,
     startGame,
     swapLane,
     pause,
     resume,
     quitFromPause,
+    restartFromPause,
     revive,
   };
 }

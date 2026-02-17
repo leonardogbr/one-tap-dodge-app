@@ -9,18 +9,17 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   useWindowDimensions,
-  ActivityIndicator,
   BackHandler,
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import Animated, {
   FadeIn,
   FadeOut,
   useSharedValue,
   useAnimatedStyle,
   withSequence,
-  withRepeat,
   withTiming,
   withDelay,
   Easing,
@@ -30,10 +29,10 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useGameLoop, type GameLoopDimensions } from '../hooks/useGameLoop';
+import { usePulseAnimation } from '../hooks/usePulseAnimation';
 import { useGameStore, SKIN_VISUALS } from '../state/store';
 import { HUD } from '../components/overlays/HUD';
 import { PressableScale } from '../components/PressableScale';
-import { isRewardedLoaded, showRewarded, showInterstitial } from '../services/ads';
 import { useTheme } from '../hooks/useTheme';
 import { spacing } from '../theme';
 import {
@@ -42,8 +41,6 @@ import {
   OBSTACLE_HEIGHT,
   COIN_WIDTH,
   COIN_HEIGHT,
-  INTERSTITIAL_AFTER_GAME_OVERS,
-  GAME_OVER_PLAY_AGAIN_DELAY_MS,
   COUNTDOWN_STEP_MS,
 } from '../engine/constants';
 
@@ -51,7 +48,7 @@ type CountdownStep = 3 | 2 | 1 | 'go' | null;
 
 export function GameScreen() {
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t } = useTranslation();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const laneCenterX: [number, number] = [
@@ -73,18 +70,18 @@ export function GameScreen() {
     coinMultiplierActive,
     highScore,
     laneSwapTick,
+    runTimeMs,
     resetForCountdown,
     startGame,
     swapLane,
     pause,
     resume,
     quitFromPause,
+    restartFromPause,
     revive,
   } = useGameLoop(dimensions);
 
   const playerScale = useSharedValue(1);
-  const pulseScale = useSharedValue(1);
-  const pulseOpacity = useSharedValue(0);
   useEffect(() => {
     if (laneSwapTick > 0) {
       playerScale.value = withSequence(
@@ -96,60 +93,21 @@ export function GameScreen() {
   const playerAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: playerScale.value }],
   }));
-  const pulseAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulseScale.value }],
-    opacity: pulseOpacity.value,
-  }));
 
-  const [reviveLoading, setReviveLoading] = useState(false);
   const [countdownStep, setCountdownStep] = useState<CountdownStep>(null);
-  const [waitingForAd, setWaitingForAd] = useState(false);
-  const [playAgainEnabled, setPlayAgainEnabled] = useState(false);
-  const [playAgainCountdown, setPlayAgainCountdown] = useState(0);
-  const gameOverAtRef = useRef<number>(0);
   const countdownCallbackRef = useRef<() => void>(() => {});
-  const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  /** Never show interstitial right after rewarded (avoid ad stacking). */
-  const lastRewardedClosedAtRef = useRef<number>(0);
-  const REWARDED_TO_INTERSTITIAL_COOLDOWN_MS = 3000;
 
   const coinsThisRun = useGameStore((s) => s.coinsThisRun);
+  const nearMissesThisRun = useGameStore((s) => s.nearMissesThisRun);
   const shieldMeter = useGameStore((s) => s.shieldMeter);
   const scoreMultiplier = useGameStore((s) => s.scoreMultiplier);
   const canRevive = useGameStore((s) => s.canRevive);
-  const gameOversSinceLastInterstitial = useGameStore(
-    (s) => s.gameOversSinceLastInterstitial
-  );
-  const resetGameOversSinceLastInterstitial = useGameStore(
-    (s) => s.resetGameOversSinceLastInterstitial
-  );
+  const reviveEarnedFromAd = useGameStore((s) => s.reviveEarnedFromAd);
+  const setReviveEarnedFromAd = useGameStore((s) => s.setReviveEarnedFromAd);
   const equippedSkinId = useGameStore((s) => s.equippedSkinId);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Game'>>();
   const skinVisual = SKIN_VISUALS[equippedSkinId] ?? SKIN_VISUALS.classic;
-
-  useEffect(() => {
-    if (skinVisual.pulse) {
-      pulseScale.value = withRepeat(
-        withSequence(
-          withTiming(1.55, { duration: 900, easing: Easing.out(Easing.quad) }),
-          withTiming(1, { duration: 900, easing: Easing.in(Easing.quad) })
-        ),
-        -1,
-        false
-      );
-      pulseOpacity.value = withRepeat(
-        withSequence(
-          withTiming(0.6, { duration: 350, easing: Easing.out(Easing.quad) }),
-          withTiming(0, { duration: 650, easing: Easing.in(Easing.quad) })
-        ),
-        -1,
-        false
-      );
-    } else {
-      pulseScale.value = withTiming(1, { duration: 150 });
-      pulseOpacity.value = withTiming(0, { duration: 150 });
-    }
-  }, [skinVisual.pulse, pulseScale, pulseOpacity]);
+  const pulseAnimatedStyle = usePulseAnimation(!!skinVisual.pulse);
 
   const startCountdown = useCallback(
     (callback: () => void) => {
@@ -189,88 +147,44 @@ export function GameScreen() {
     return () => sub.remove();
   }, [phase, pause]);
 
-  // useLayoutEffect so playAgainEnabled is false before any tap in the same frame can be processed (avoids tap-at-collision restart).
-  useLayoutEffect(() => {
-    if (phase === 'game_over') {
-      gameOverAtRef.current = Date.now();
-      setPlayAgainEnabled(false);
-      setPlayAgainCountdown(Math.ceil(GAME_OVER_PLAY_AGAIN_DELAY_MS / 1000));
-      const tId = setTimeout(
-        () => setPlayAgainEnabled(true),
-        GAME_OVER_PLAY_AGAIN_DELAY_MS
-      );
-      const interval = setInterval(() => {
-        setPlayAgainCountdown((prev) => Math.max(0, prev - 1));
-      }, 1000);
-      return () => {
-        clearTimeout(tId);
-        clearInterval(interval);
-      };
-    }
-  }, [phase]);
+  // When game over, after a short delay (explosion visible), navigate to GameOver screen.
+  useEffect(() => {
+    if (phase !== 'game_over') return;
+    const tId = setTimeout(() => {
+      navigation.push('GameOver', {
+        score,
+        isNewBest: score >= highScore,
+        runTimeMs,
+        nearMisses: nearMissesThisRun,
+        coins: coinsThisRun,
+        canRevive,
+      });
+    }, 1200);
+    return () => clearTimeout(tId);
+  }, [phase, score, highScore, runTimeMs, nearMissesThisRun, coinsThisRun, canRevive, navigation]);
 
-  /**
-   * Start a new game. Shows interstitial first if counter >= X (no bypass via Home -> Play).
-   * Never shows interstitial immediately after a rewarded ad (cooldown).
-   */
-  const handleStartNewGame = useCallback(async () => {
-    const justClosedRewarded =
-      Date.now() - lastRewardedClosedAtRef.current < REWARDED_TO_INTERSTITIAL_COOLDOWN_MS;
-    if (
-      !justClosedRewarded &&
-      gameOversSinceLastInterstitial >= INTERSTITIAL_AFTER_GAME_OVERS
-    ) {
-      resetForCountdown();
-      setWaitingForAd(true);
-      await showInterstitial();
-      setWaitingForAd(false);
-      resetGameOversSinceLastInterstitial();
-      startCountdown(startGame);
-      return;
-    }
-    resetForCountdown();
-    startCountdown(startGame);
-  }, [
-    startGame,
-    startCountdown,
-    resetForCountdown,
-    gameOversSinceLastInterstitial,
-    resetGameOversSinceLastInterstitial,
-  ]);
-
-  const handlePlayAgain = useCallback(async () => {
-    if (phase !== 'game_over' || !playAgainEnabled) return;
-    if (Date.now() - gameOverAtRef.current < GAME_OVER_PLAY_AGAIN_DELAY_MS) return;
-    await handleStartNewGame();
-  }, [phase, playAgainEnabled, handleStartNewGame]);
+  // When returning from GameOver after earning revive from ad, trigger revive.
+  useFocusEffect(
+    useCallback(() => {
+      if (!reviveEarnedFromAd) return;
+      setReviveEarnedFromAd(false);
+      revive();
+    }, [reviveEarnedFromAd, setReviveEarnedFromAd, revive])
+  );
 
   const handleSkins = useCallback(() => {
     navigation.navigate('Skins');
   }, [navigation]);
 
   const handleSettings = useCallback(() => navigation.navigate('Settings'), [navigation]);
-  const handleHome = useCallback(() => navigation.navigate('Home'), [navigation]);
+  const handleHome = useCallback(() => {
+    navigation.pop(1);
+  }, [navigation]);
 
   const handlePress = useCallback(() => {
     if (countdownStep !== null) return;
     if (phase === 'playing') swapLane();
-    else if (phase === 'idle') handleStartNewGame();
-    else if (phase === 'game_over') handlePlayAgain();
-    else if (phase === 'paused') startCountdown(resume);
-  }, [countdownStep, phase, swapLane, startCountdown, resume, handlePlayAgain, handleStartNewGame]);
-
-  const handleRevive = useCallback(async () => {
-    if (!canRevive || !isRewardedLoaded() || reviveLoading) return;
-    setWaitingForAd(true);
-    setReviveLoading(true);
-    const earned = await showRewarded();
-    setReviveLoading(false);
-    setWaitingForAd(false);
-    if (earned) {
-      lastRewardedClosedAtRef.current = Date.now();
-      startCountdown(revive);
-    }
-  }, [canRevive, reviveLoading, revive, startCountdown]);
+  }, [countdownStep, phase, swapLane]);
 
   const styles = React.useMemo(
     () =>
@@ -326,20 +240,109 @@ export function GameScreen() {
         },
         pauseBtn: { position: 'absolute', top: spacing.sm, right: spacing.lg, padding: spacing.sm, zIndex: 15 },
         pauseBtnText: { fontSize: 18, fontWeight: '700', color: colors.textMuted },
-        overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center' },
-        overlayTitle: { fontSize: 28, fontWeight: '700', color: colors.text, marginBottom: spacing.md },
-        overlayScore: { fontSize: 20, color: colors.primary, marginBottom: spacing.md },
-        overlayReviveBtn: { backgroundColor: colors.success, paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderRadius: 12, marginBottom: spacing.sm, minWidth: 200, alignItems: 'center' },
+        overlay: {
+          ...StyleSheet.absoluteFillObject,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingHorizontal: spacing.xl,
+        },
+        overlayCard: {
+          backgroundColor: colors.backgroundLight,
+          borderRadius: 24,
+          paddingVertical: spacing.xl,
+          paddingHorizontal: spacing.xl * 1.5,
+          minWidth: 280,
+          maxWidth: 340,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.4,
+          shadowRadius: 24,
+          elevation: 12,
+        },
+        overlayContent: { alignItems: 'center', width: '100%' },
+        overlayTitle: {
+          fontSize: 28,
+          fontWeight: '700',
+          color: colors.text,
+          textTransform: 'uppercase',
+          letterSpacing: 1,
+          marginBottom: spacing.xs,
+          textAlign: 'center',
+        },
+        overlayTitleUnderline: {
+          width: 56,
+          height: 3,
+          borderRadius: 2,
+          backgroundColor: colors.primary,
+          marginBottom: spacing.xl,
+        },
+        overlayScore: { fontSize: 20, color: colors.primary, marginBottom: spacing.md, textAlign: 'center' },
+        overlayBtnPrimary: {
+          alignSelf: 'stretch',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: spacing.sm,
+          backgroundColor: colors.primary,
+          paddingVertical: spacing.md,
+          paddingHorizontal: spacing.xl * 1.5,
+          borderRadius: 999,
+          marginBottom: spacing.sm,
+        },
+        overlayBtnPrimaryDisabled: { opacity: 0.5 },
+        overlayBtnSecondary: {
+          alignSelf: 'stretch',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: spacing.sm,
+          backgroundColor: colors.backgroundLight,
+          paddingVertical: spacing.md,
+          paddingHorizontal: spacing.xl * 1.5,
+          borderRadius: 999,
+          marginBottom: spacing.sm,
+        },
+        overlayBtnDanger: {
+          alignSelf: 'stretch',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: spacing.sm,
+          backgroundColor: colors.backgroundLight,
+          paddingVertical: spacing.md,
+          paddingHorizontal: spacing.xl * 1.5,
+          borderRadius: 999,
+          marginTop: spacing.xs,
+        },
+        overlayBtnIcon: { fontSize: 16 },
+        overlayBtnText: { fontSize: 17, fontWeight: '700', color: '#fff', textAlign: 'center' },
+        overlayBtnDangerIcon: { fontSize: 16, color: colors.danger },
+        overlayBtnDangerText: { fontSize: 17, fontWeight: '700', color: colors.text, textAlign: 'center' },
+        overlayReviveBtn: {
+          alignSelf: 'stretch',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: spacing.sm,
+          backgroundColor: colors.success,
+          paddingVertical: spacing.md,
+          paddingHorizontal: spacing.xl,
+          borderRadius: 999,
+          marginBottom: spacing.sm,
+        },
         overlayReviveBtnDisabled: { opacity: 0.7 },
-        overlayReviveBtnText: { fontSize: 16, fontWeight: '700', color: colors.background },
-        overlayMainBtn: { backgroundColor: colors.primary, paddingHorizontal: spacing.xl, paddingVertical: spacing.md, borderRadius: 12, marginBottom: spacing.sm },
-        overlayMainBtnDisabled: { opacity: 0.5 },
-        overlayMainBtnText: { fontSize: 18, fontWeight: '700', color: colors.background },
-        overlayBottomRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginTop: spacing.xs },
-        overlaySkinsBtn: { paddingVertical: spacing.sm },
-        overlaySettingsBtn: { paddingVertical: spacing.sm },
-        overlayQuitBtn: { paddingVertical: spacing.sm, marginTop: spacing.xs },
-        overlaySkinsBtnText: { fontSize: 16, color: colors.textMuted },
+        overlayReviveBtnText: { fontSize: 16, fontWeight: '700', color: colors.background, textAlign: 'center' },
+        overlayDivider: {
+          width: '100%',
+          height: 1,
+          backgroundColor: colors.primaryDim,
+          marginTop: spacing.xl,
+          marginBottom: spacing.lg,
+        },
+        overlayBottomRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, flexWrap: 'wrap', justifyContent: 'center' },
+        overlaySecondaryLink: { paddingVertical: spacing.sm, paddingHorizontal: spacing.md, alignItems: 'center' },
+        overlaySecondaryLinkText: { fontSize: 15, fontWeight: '600', color: colors.textMuted, textAlign: 'center' },
         countdownOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', zIndex: 20 },
         countdownText: { fontSize: 72, fontWeight: '800', color: colors.primary },
         explosionWrap: { position: 'absolute', zIndex: 10, pointerEvents: 'none' },
@@ -404,7 +407,9 @@ export function GameScreen() {
                       width: PLAYER_RADIUS * 2,
                       height: PLAYER_RADIUS * 2,
                       borderRadius: PLAYER_RADIUS,
-                      backgroundColor: skinVisual.edge ?? skinVisual.base,
+                      backgroundColor: isDark
+                        ? (skinVisual.edge ?? skinVisual.base)
+                        : colors.primary,
                     },
                     pulseAnimatedStyle,
                   ]}
@@ -474,76 +479,70 @@ export function GameScreen() {
         )}
 
         {/* Pause overlay — hidden during countdown so countdown is shown on game view */}
-        {phase === 'paused' && countdownStep === null && !waitingForAd && (
+        {phase === 'paused' && countdownStep === null && (
           <Animated.View
             style={styles.overlay}
             entering={FadeIn.duration(180)}
             exiting={FadeOut.duration(150)}
           >
-            <Text style={styles.overlayTitle}>{t('game.paused')}</Text>
-            <PressableScale style={styles.overlayMainBtn} onPress={() => startCountdown(resume)}>
-              <Text style={styles.overlayMainBtnText}>{t('common.resume')}</Text>
-            </PressableScale>
-            <PressableScale style={styles.overlayQuitBtn} onPress={quitFromPause}>
-              <Text style={styles.overlaySkinsBtnText}>{t('common.quit')}</Text>
-            </PressableScale>
+            <View style={styles.overlayCard}>
+              <View style={styles.overlayContent}>
+                <Text style={styles.overlayTitle}>{t('game.paused')}</Text>
+                <View style={styles.overlayTitleUnderline} />
+                <PressableScale style={styles.overlayBtnPrimary} onPress={() => startCountdown(resume)}>
+                  <Text style={styles.overlayBtnIcon}>▶</Text>
+                  <Text style={styles.overlayBtnText}>{t('common.resume')}</Text>
+                </PressableScale>
+                <PressableScale
+                  style={styles.overlayBtnSecondary}
+                  onPress={() => {
+                    restartFromPause();
+                    startCountdown(startGame);
+                  }}
+                >
+                  <Text style={styles.overlayBtnIcon}>↻</Text>
+                  <Text style={styles.overlayBtnText}>{t('common.restart')}</Text>
+                </PressableScale>
+                <PressableScale style={styles.overlayBtnDanger} onPress={quitFromPause}>
+                  <Text style={styles.overlayBtnDangerIcon}>→</Text>
+                  <Text style={styles.overlayBtnDangerText}>{t('common.quit')}</Text>
+                </PressableScale>
+              </View>
+            </View>
           </Animated.View>
         )}
 
-        {/* Idle / Game Over overlay — hidden during countdown so countdown is shown on game view */}
-        {(phase === 'idle' || phase === 'game_over') && countdownStep === null && !waitingForAd && (
+        {/* Idle overlay — tap to start, Home / Skins / Settings */}
+        {phase === 'idle' && countdownStep === null && (
           <Animated.View
             style={styles.overlay}
-            entering={phase === 'game_over' ? FadeIn.duration(400).delay(300) : FadeIn.duration(220)}
+            entering={FadeIn.duration(220)}
             exiting={FadeOut.duration(180)}
           >
-            <Text style={styles.overlayTitle}>
-              {phase === 'idle' ? t('home.title') : t('game.gameOver')}
-            </Text>
-            {phase === 'game_over' && (
-              <Text style={styles.overlayScore}>{t('game.score')}: {score}</Text>
-            )}
-            {phase === 'game_over' && canRevive && (
-              <PressableScale
-                style={[
-                  styles.overlayReviveBtn,
-                  (!isRewardedLoaded() || reviveLoading) && styles.overlayReviveBtnDisabled,
-                ]}
-                onPress={handleRevive}
-                disabled={!isRewardedLoaded() || reviveLoading}
-              >
-                {reviveLoading ? (
-                  <ActivityIndicator color={colors.background} size="small" />
-                ) : (
-                  <Text style={styles.overlayReviveBtnText}>
-                    {isRewardedLoaded() ? t('game.watchAdToContinue') : t('game.loadingAd')}
-                  </Text>
-                )}
-              </PressableScale>
-            )}
-            <PressableScale
-              style={[styles.overlayMainBtn, phase === 'game_over' && !playAgainEnabled && styles.overlayMainBtnDisabled]}
-              onPress={phase === 'idle' ? () => startCountdown(startGame) : handlePlayAgain}
-              disabled={phase === 'game_over' && !playAgainEnabled}
-            >
-              <Text style={styles.overlayMainBtnText}>
-                {phase === 'idle'
-                  ? t('game.tapToStart')
-                  : playAgainEnabled
-                    ? t('game.playAgain')
-                    : `${playAgainCountdown}…`}
-              </Text>
-            </PressableScale>
-            <View style={styles.overlayBottomRow}>
-              <PressableScale style={styles.overlaySkinsBtn} onPress={handleHome}>
-                <Text style={styles.overlaySkinsBtnText}>{t('common.home')}</Text>
-              </PressableScale>
-              <PressableScale style={styles.overlaySkinsBtn} onPress={handleSkins}>
-                <Text style={styles.overlaySkinsBtnText}>{t('home.skins')}</Text>
-              </PressableScale>
-              <PressableScale style={styles.overlaySettingsBtn} onPress={handleSettings}>
-                <Text style={styles.overlaySkinsBtnText}>{t('common.settings')}</Text>
-              </PressableScale>
+            <View style={styles.overlayCard}>
+              <View style={styles.overlayContent}>
+                <Text style={styles.overlayTitle}>{t('home.title')}</Text>
+                <View style={styles.overlayTitleUnderline} />
+                <PressableScale
+                  style={styles.overlayBtnPrimary}
+                  onPress={() => startCountdown(startGame)}
+                >
+                  <Text style={styles.overlayBtnIcon}>▶</Text>
+                  <Text style={styles.overlayBtnText}>{t('game.tapToStart')}</Text>
+                </PressableScale>
+                <View style={styles.overlayDivider} />
+                <View style={styles.overlayBottomRow}>
+                  <PressableScale style={styles.overlaySecondaryLink} onPress={handleHome}>
+                    <Text style={styles.overlaySecondaryLinkText}>{t('common.home')}</Text>
+                  </PressableScale>
+                  <PressableScale style={styles.overlaySecondaryLink} onPress={handleSkins}>
+                    <Text style={styles.overlaySecondaryLinkText}>{t('home.skins')}</Text>
+                  </PressableScale>
+                  <PressableScale style={styles.overlaySecondaryLink} onPress={handleSettings}>
+                    <Text style={styles.overlaySecondaryLinkText}>{t('common.settings')}</Text>
+                  </PressableScale>
+                </View>
+              </View>
             </View>
           </Animated.View>
         )}
