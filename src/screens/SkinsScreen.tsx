@@ -5,7 +5,6 @@
 import React, { useMemo } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
@@ -20,6 +19,8 @@ import { useGameStore, SKIN_IDS, SKIN_COSTS, SKIN_VISUALS, type SkinVisual } fro
 import { useTheme } from '../hooks/useTheme';
 import { usePulseAnimation } from '../hooks/usePulseAnimation';
 import { spacing } from '../theme';
+import { Text, Header, Card, Button } from '../design-system';
+import { borderRadius } from '../design-system/tokens';
 
 export function SkinsScreen() {
   const insets = useSafeAreaInsets();
@@ -88,29 +89,12 @@ export function SkinsScreen() {
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        container: { flex: 1, backgroundColor: colors.background, paddingTop: insets.top },
-        header: {
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: spacing.md,
-          paddingTop: spacing.xl,
-          paddingBottom: spacing.md,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.primaryDim,
-        },
-        backBtn: { padding: spacing.sm },
-        backBtnText: { fontSize: 16, color: colors.primary },
-        title: { fontSize: 20, fontWeight: '700', color: colors.text },
-        coins: { fontSize: 16, color: colors.text },
+        container: { flex: 1, backgroundColor: colors.background },
         list: { flex: 1 },
         listContent: { padding: spacing.md, paddingBottom: spacing.xl * 2 },
         skinRow: {
           flexDirection: 'row',
           alignItems: 'center',
-          backgroundColor: colors.backgroundLight,
-          borderRadius: 12,
-          padding: spacing.md,
           marginBottom: spacing.sm,
         },
         skinPreview: {
@@ -156,28 +140,20 @@ export function SkinsScreen() {
           opacity: 0.9,
         },
         skinInfo: { flex: 1 },
-        skinName: { fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: spacing.xs },
-        equipped: { fontSize: 14, color: colors.success },
-        equipBtn: { alignSelf: 'flex-start', backgroundColor: colors.primary, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: 8 },
-        equipBtnText: { fontSize: 14, fontWeight: '600', color: colors.onPrimary },
         lockedRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-        cost: { fontSize: 14, color: colors.textMuted },
-        unlockBtn: { backgroundColor: colors.textMuted, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 8 },
-        unlockBtnDisabled: { opacity: 0.5 },
-        unlockBtnText: { fontSize: 12, color: colors.text },
       }),
     [colors, insets.top]
   );
 
   return (
     <Animated.View style={styles.container} entering={FadeIn.duration(220)}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backBtnText}>{t('common.back')}</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>{t('skins.title')}</Text>
-        <Text style={styles.coins}>🪙 {totalCoins}</Text>
-      </View>
+      <Header
+        title={t('skins.title')}
+        onBack={() => navigation.goBack()}
+        backLabel={t('common.back')}
+        rightComponent={<Text variant="body">🪙 {totalCoins}</Text>}
+        style={{ borderBottomColor: colors.primaryDim }}
+      />
       <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
         {SKIN_IDS.map((skinId) => {
           const unlocked = unlockedSkins.includes(skinId);
@@ -187,36 +163,41 @@ export function SkinsScreen() {
           const skinVisual = SKIN_VISUALS[skinId] ?? SKIN_VISUALS.classic;
 
           return (
-            <View key={skinId} style={styles.skinRow}>
+            <Card key={skinId} variant="default" style={styles.skinRow}>
               <View style={styles.skinPreview}>
                 <SkinPreviewCircle skin={skinVisual} equipped={equipped} />
               </View>
               <View style={styles.skinInfo}>
-                <Text style={styles.skinName}>{t(`skins.${skinId}`)}</Text>
+                <Text variant="body" style={{ fontWeight: '600', marginBottom: spacing.xs }}>
+                  {t(`skins.${skinId}`)}
+                </Text>
                 {unlocked ? (
                   equipped ? (
-                    <Text style={styles.equipped}>{t('common.equipped')}</Text>
+                    <Text variant="bodySmall" color="success">{t('common.equipped')}</Text>
                   ) : (
-                    <TouchableOpacity style={styles.equipBtn} onPress={() => handleEquip(skinId)}>
-                      <Text style={styles.equipBtnText}>{t('common.equip')}</Text>
-                    </TouchableOpacity>
+                    <Button
+                      title={t('common.equip')}
+                      onPress={() => handleEquip(skinId)}
+                      variant="primary"
+                      size="small"
+                      style={{ alignSelf: 'flex-start' }}
+                    />
                   )
                 ) : (
                   <View style={styles.lockedRow}>
-                    <Text style={styles.cost}>{cost} 🪙</Text>
-                    <TouchableOpacity
-                      style={[styles.unlockBtn, !canUnlock && styles.unlockBtnDisabled]}
+                    <Text variant="bodySmall" color="muted">{cost} 🪙</Text>
+                    <Button
+                      title={canUnlock ? t('common.unlock') : t('common.locked')}
                       onPress={() => handleUnlock(skinId)}
+                      variant="ghost"
+                      size="small"
                       disabled={!canUnlock}
-                    >
-                      <Text style={styles.unlockBtnText}>
-                        {canUnlock ? t('common.unlock') : t('common.locked')}
-                      </Text>
-                    </TouchableOpacity>
+                      style={{ backgroundColor: colors.textMuted }}
+                    />
                   </View>
                 )}
               </View>
-            </View>
+            </Card>
           );
         })}
       </ScrollView>

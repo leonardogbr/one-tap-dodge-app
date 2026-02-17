@@ -3,7 +3,7 @@
  */
 
 import React, { useMemo, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
@@ -12,9 +12,10 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useGameStore } from '../state/store';
 import { getChallengesForGroup, CHALLENGE_SCOPE, getLifetimeValue } from '../engine/challenges';
-import { PressableScale } from '../components/PressableScale';
 import { useTheme } from '../hooks/useTheme';
 import { spacing } from '../theme';
+import { Text, Card, Header, Button } from '../design-system';
+import { borderRadius } from '../design-system/tokens';
 
 export function ChallengesScreen() {
   const insets = useSafeAreaInsets();
@@ -85,115 +86,81 @@ export function ChallengesScreen() {
           backgroundColor: colors.background,
           paddingTop: insets.top,
         },
-        header: {
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingHorizontal: spacing.md,
-          paddingVertical: spacing.md,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.backgroundLight,
-        },
-        backBtn: { paddingVertical: spacing.sm, paddingRight: spacing.md },
-        backBtnText: { fontSize: 16, color: colors.primary },
-        title: { fontSize: 20, fontWeight: '700', color: colors.text },
         scroll: { flex: 1 },
         scrollContent: { padding: spacing.lg },
         multiplierCard: {
-          backgroundColor: colors.backgroundLight,
-          borderRadius: 12,
-          padding: spacing.lg,
           marginBottom: spacing.xl,
           alignItems: 'center',
         },
-        multiplierLabel: { fontSize: 14, color: colors.textMuted, marginBottom: spacing.xs },
-        multiplierValue: { fontSize: 28, fontWeight: '700', color: colors.primary },
-        multiplierNext: { fontSize: 14, color: colors.textMuted, marginTop: spacing.sm },
         rewardBanner: {
           backgroundColor: colors.primary,
-          borderRadius: 12,
+          borderRadius: borderRadius.md,
           padding: spacing.lg,
           marginBottom: spacing.lg,
           alignItems: 'center',
         },
-        rewardBannerText: {
-          fontSize: 16,
-          fontWeight: '700',
-          color: colors.onPrimary,
-          marginBottom: spacing.md,
-        },
-        claimBtn: {
-          backgroundColor: '#ffffff',
-          borderRadius: 8,
-          paddingVertical: spacing.md,
-          paddingHorizontal: spacing.xl,
-          minWidth: 200,
-          alignItems: 'center',
-        },
-        claimBtnText: {
-          fontSize: 16,
-          fontWeight: '700',
-          color: '#000',
-        },
         challengeCard: {
-          backgroundColor: colors.backgroundLight,
-          borderRadius: 12,
-          padding: spacing.lg,
           marginBottom: spacing.md,
         },
-        challengeDesc: { fontSize: 16, color: colors.text, marginBottom: spacing.sm },
         progressBar: {
           height: 8,
           backgroundColor: colors.background,
-          borderRadius: 4,
+          borderRadius: borderRadius.xs,
           overflow: 'hidden',
         },
-        progressFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 4 },
-        progressText: { fontSize: 12, color: colors.textMuted, marginTop: spacing.xs },
+        progressFill: { height: '100%', backgroundColor: colors.primary, borderRadius: borderRadius.xs },
       }),
     [colors, insets.top]
   );
 
   return (
     <Animated.View style={styles.container} entering={FadeIn.duration(220)}>
-      <View style={styles.header}>
-        <PressableScale style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backBtnText}>{t('common.back')}</Text>
-        </PressableScale>
-        <Text style={styles.title}>{t('challenges.title')}</Text>
-      </View>
+      <Header
+        title={t('challenges.title')}
+        onBack={() => navigation.goBack()}
+        backLabel={t('common.back')}
+      />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.multiplierCard}>
-          <Text style={styles.multiplierLabel}>{t('challenges.currentMultiplier')}</Text>
-          <Text style={styles.multiplierValue}>{scoreMultiplier}x</Text>
+        <Card variant="default" style={styles.multiplierCard}>
+          <Text variant="bodySmall" color="muted" style={{ marginBottom: spacing.xs }}>
+            {t('challenges.currentMultiplier')}
+          </Text>
+          <Text variant="h2" color="primary">{scoreMultiplier}x</Text>
           {challengeGroupIndex <= 17 && (
-            <Text style={styles.multiplierNext}>
+            <Text variant="bodySmall" color="muted" style={{ marginTop: spacing.sm }}>
               {t('challenges.nextMultiplier', { value: nextMultiplier })}
             </Text>
           )}
-        </View>
+        </Card>
         {rewardAvailable && (
           <View style={styles.rewardBanner}>
-            <Text style={styles.rewardBannerText}>{t('challenges.rewardAvailable')}</Text>
-            <PressableScale style={styles.claimBtn} onPress={handleClaimReward}>
-              <Text style={styles.claimBtnText}>{t('challenges.claimReward')}</Text>
-            </PressableScale>
+            <Text variant="button" style={{ color: colors.onPrimary, marginBottom: spacing.md }}>
+              {t('challenges.rewardAvailable')}
+            </Text>
+            <Button
+              title={t('challenges.claimReward')}
+              onPress={handleClaimReward}
+              variant="ghost"
+              size="medium"
+              style={{ backgroundColor: '#ffffff', minWidth: 200 }}
+            />
           </View>
         )}
         {challenges.map((ch) => {
           const current = getProgress(ch);
           const pct = ch.target > 0 ? Math.min(1, current / ch.target) : 0;
           return (
-            <View key={ch.id} style={styles.challengeCard}>
-              <Text style={styles.challengeDesc}>
+            <Card key={ch.id} variant="default" style={styles.challengeCard}>
+              <Text variant="body" style={{ marginBottom: spacing.sm }}>
                 {t(ch.descriptionKey, { count: ch.target })}
               </Text>
               <View style={styles.progressBar}>
                 <View style={[styles.progressFill, { width: `${pct * 100}%` }]} />
               </View>
-              <Text style={styles.progressText}>
+              <Text variant="caption" color="muted" style={{ marginTop: spacing.xs }}>
                 {current} / {ch.target}
               </Text>
-            </View>
+            </Card>
           );
         })}
       </ScrollView>

@@ -5,7 +5,6 @@
 import React, { useCallback, useState, useRef, useEffect, useLayoutEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableWithoutFeedback,
   useWindowDimensions,
@@ -35,6 +34,8 @@ import { HUD } from '../components/overlays/HUD';
 import { PressableScale } from '../components/PressableScale';
 import { useTheme } from '../hooks/useTheme';
 import { spacing } from '../theme';
+import { Text, Button, Card } from '../design-system';
+import { borderRadius, shadows } from '../design-system/tokens';
 import {
   PLAYER_RADIUS,
   OBSTACLE_WIDTH,
@@ -243,7 +244,7 @@ export function GameScreen() {
         gameArea: { position: 'absolute', left: 0, top: 0, overflow: 'hidden' },
         lanes: { flexDirection: 'row', flex: 1 },
         lane: { flex: 1, backgroundColor: colors.backgroundLight, borderRightWidth: 1, borderRightColor: colors.primaryDim },
-        obstacle: { position: 'absolute', backgroundColor: colors.obstacle, opacity: 0.95, borderRadius: 8 },
+        obstacle: { position: 'absolute', backgroundColor: colors.obstacle, opacity: 0.95, borderRadius: borderRadius.sm },
         coin: { position: 'absolute', backgroundColor: '#ffd700', borderWidth: 2, borderColor: '#b8860b' },
         playerWrap: {
           position: 'absolute',
@@ -303,12 +304,8 @@ export function GameScreen() {
         topBarLeft: { flexDirection: 'row', gap: spacing.xs, alignItems: 'center' },
         topBarCenter: { flex: 1 },
         pauseBtn: { padding: spacing.sm },
-        pauseBtnText: { fontSize: 18, fontWeight: '700', color: colors.textMuted },
         multiplierWrap: { flexDirection: 'row', gap: spacing.xs, alignItems: 'center' },
-        multiplierBadge: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 8 },
-        multiplierBadgePrimary: { backgroundColor: colors.primary },
-        multiplierBadgeSuccess: { backgroundColor: colors.success },
-        multiplierBadgeText: { fontSize: 14, fontWeight: '700', color: colors.onPrimary },
+        multiplierBadge: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: borderRadius.sm },
         overlay: {
           ...StyleSheet.absoluteFillObject,
           backgroundColor: 'rgba(0,0,0,0.7)',
@@ -320,29 +317,13 @@ export function GameScreen() {
           flexDirection: 'row',
           alignItems: 'center',
           alignSelf: 'stretch',
-          backgroundColor: colors.backgroundLight,
-          borderRadius: 24,
           paddingVertical: spacing.xl * 1.5,
           paddingHorizontal: spacing.md,
           minWidth: 280,
           maxWidth: 360,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.4,
-          shadowRadius: 24,
-          elevation: 12,
         },
         overlayContent: { flex: 1, alignItems: 'center', },
         btnRow: { alignItems: 'stretch', alignSelf: 'stretch' },
-        overlayTitle: {
-          fontSize: 28,
-          fontWeight: '700',
-          color: colors.text,
-          textTransform: 'uppercase',
-          letterSpacing: 1,
-          marginBottom: spacing.xs,
-          textAlign: 'center',
-        },
         overlayTitleUnderline: {
           width: 56,
           height: 3,
@@ -350,67 +331,6 @@ export function GameScreen() {
           backgroundColor: colors.primary,
           marginBottom: spacing.xl,
         },
-        overlayScore: { fontSize: 20, color: colors.primary, marginBottom: spacing.md, textAlign: 'center' },
-        overlayBtnPrimary: {
-          alignSelf: 'stretch',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: spacing.sm,
-          backgroundColor: colors.primary,
-          paddingVertical: spacing.md,
-          paddingHorizontal: spacing.xl * 1.5,
-          borderRadius: 999,
-          marginBottom: spacing.md,
-        },
-        overlayBtnPrimaryDisabled: { opacity: 0.5 },
-        overlayBtnSecondary: {
-          alignSelf: 'stretch',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: spacing.sm,
-          backgroundColor: colors.backgroundLight,
-          borderWidth: 1,
-          borderColor: colors.primaryDim,
-          paddingVertical: spacing.md,
-          paddingHorizontal: spacing.xl * 1.5,
-          borderRadius: 999,
-          marginBottom: spacing.md,
-        },
-        overlayBtnSecondaryIcon: { fontSize: 16, color: colors.text },
-        overlayBtnSecondaryText: { fontSize: 17, fontWeight: '700', color: colors.text, textAlign: 'center' },
-        overlayBtnDanger: {
-          alignSelf: 'stretch',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: spacing.sm,
-          backgroundColor: colors.backgroundLight,
-          borderWidth: 1,
-          borderColor: colors.danger,
-          paddingVertical: spacing.md,
-          paddingHorizontal: spacing.xl * 1.5,
-          borderRadius: 999,
-        },
-        overlayBtnIcon: { fontSize: 16, color: colors.onPrimary },
-        overlayBtnText: { fontSize: 17, fontWeight: '700', color: colors.onPrimary, textAlign: 'center' },
-        overlayBtnDangerIcon: { fontSize: 16, color: colors.danger },
-        overlayBtnDangerText: { fontSize: 17, fontWeight: '700', color: colors.danger, textAlign: 'center' },
-        overlayReviveBtn: {
-          alignSelf: 'stretch',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: spacing.sm,
-          backgroundColor: colors.success,
-          paddingVertical: spacing.md,
-          paddingHorizontal: spacing.xl,
-          borderRadius: 999,
-          marginBottom: spacing.sm,
-        },
-        overlayReviveBtnDisabled: { opacity: 0.7 },
-        overlayReviveBtnText: { fontSize: 16, fontWeight: '700', color: colors.background, textAlign: 'center' },
         overlayDivider: {
           width: '100%',
           height: 1,
@@ -426,16 +346,14 @@ export function GameScreen() {
           paddingHorizontal: spacing.md,
         },
         overlayNavBtn: {
-          borderRadius: 16,
+          borderRadius: borderRadius.lg,
           paddingVertical: spacing.md,
           paddingHorizontal: spacing.sm,
           alignItems: 'center',
           justifyContent: 'center',
         },
         overlayNavIcon: { fontSize: 28, marginBottom: spacing.xs },
-        overlayNavLabel: { fontSize: 14, fontWeight: '600', color: colors.primary },
         countdownOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', zIndex: 20 },
-        countdownText: { fontSize: 72, fontWeight: '800', color: colors.primary },
         explosionWrap: { position: 'absolute', zIndex: 10, pointerEvents: 'none' },
         explosionCircle: { backgroundColor: colors.danger, borderRadius: 999, opacity: 0.8 },
       }),
@@ -549,13 +467,13 @@ export function GameScreen() {
               {(scoreMultiplier > 1 || coinMultiplierActive) && (
                 <View style={styles.multiplierWrap}>
                   {scoreMultiplier > 1 && (
-                    <View style={[styles.multiplierBadge, styles.multiplierBadgePrimary]}>
-                      <Text style={styles.multiplierBadgeText}>{scoreMultiplier}x</Text>
+                    <View style={[styles.multiplierBadge, { backgroundColor: colors.primary }]}>
+                      <Text variant="bodySmall" style={{ color: colors.onPrimary, fontWeight: '700' }}>{scoreMultiplier}x</Text>
                     </View>
                   )}
                   {coinMultiplierActive && (
-                    <View style={[styles.multiplierBadge, styles.multiplierBadgeSuccess]}>
-                      <Text style={styles.multiplierBadgeText}>2x coins!</Text>
+                    <View style={[styles.multiplierBadge, { backgroundColor: colors.success }]}>
+                      <Text variant="bodySmall" style={{ color: colors.onPrimary, fontWeight: '700' }}>2x coins!</Text>
                     </View>
                   )}
                 </View>
@@ -564,7 +482,7 @@ export function GameScreen() {
             <View style={styles.topBarCenter} pointerEvents="none" />
             {phase === 'playing' && (
               <PressableScale style={styles.pauseBtn} onPress={pause}>
-                <Text style={styles.pauseBtnText}>II</Text>
+                <Text variant="h4" color="muted">II</Text>
               </PressableScale>
             )}
           </View>
@@ -582,7 +500,7 @@ export function GameScreen() {
         {/* Countdown overlay (3, 2, 1, Go!) */}
         {countdownStep !== null && (
           <View style={styles.countdownOverlay} pointerEvents="box-only">
-            <Text style={styles.countdownText}>
+            <Text variant="h1" color="primary" style={{ fontSize: 72 }}>
               {countdownStep === 'go' ? t('game.countdownGo') : String(countdownStep)}
             </Text>
           </View>
@@ -595,32 +513,45 @@ export function GameScreen() {
             entering={FadeIn.duration(180)}
             exiting={FadeOut.duration(150)}
           >
-            <View style={styles.overlayCard}>
+            <Card variant="elevated" style={styles.overlayCard}>
               <View style={styles.overlayContent}>
-                <Text style={styles.overlayTitle}>{t('game.paused')}</Text>
+                <Text variant="h2" style={{ textTransform: 'uppercase', marginBottom: spacing.xs, textAlign: 'center' }}>
+                  {t('game.paused')}
+                </Text>
                 <View style={styles.overlayTitleUnderline} />
                 <View style={styles.btnRow}>
-                  <PressableScale style={styles.overlayBtnPrimary} onPress={() => startCountdown(resume)}>
-                    <Text style={styles.overlayBtnIcon}>▶</Text>
-                    <Text style={styles.overlayBtnText}>{t('common.resume')}</Text>
-                  </PressableScale>
-                  <PressableScale
-                    style={styles.overlayBtnSecondary}
+                  <Button
+                    title={t('common.resume')}
+                    onPress={() => startCountdown(resume)}
+                    variant="primary"
+                    size="medium"
+                    icon="▶"
+                    fullWidth
+                    style={{ marginBottom: spacing.md }}
+                  />
+                  <Button
+                    title={t('common.restart')}
                     onPress={() => {
                       restartFromPause();
                       startCountdown(startGame);
                     }}
-                  >
-                    <Text style={styles.overlayBtnSecondaryIcon}>↻</Text>
-                    <Text style={styles.overlayBtnSecondaryText}>{t('common.restart')}</Text>
-                  </PressableScale>
-                <PressableScale style={styles.overlayBtnDanger} onPress={quitFromPause}>
-                    <Text style={styles.overlayBtnDangerIcon}>→</Text>
-                    <Text style={styles.overlayBtnDangerText}>{t('common.quit')}</Text>
-                  </PressableScale>
+                    variant="secondary"
+                    size="medium"
+                    icon="↻"
+                    fullWidth
+                    style={{ marginBottom: spacing.md }}
+                  />
+                  <Button
+                    title={t('common.quit')}
+                    onPress={quitFromPause}
+                    variant="danger"
+                    size="medium"
+                    icon="→"
+                    fullWidth
+                  />
                 </View>
               </View>
-            </View>
+            </Card>
           </Animated.View>
         )}
 
@@ -631,33 +562,37 @@ export function GameScreen() {
             entering={FadeIn.duration(220)}
             exiting={FadeOut.duration(180)}
           >
-            <View style={styles.overlayCard}>
+            <Card variant="elevated" style={styles.overlayCard}>
               <View style={styles.overlayContent}>
-                <Text style={styles.overlayTitle}>{t('home.title')}</Text>
+                <Text variant="h2" style={{ textTransform: 'uppercase', marginBottom: spacing.xs, textAlign: 'center' }}>
+                  {t('home.title')}
+                </Text>
                 <View style={styles.overlayTitleUnderline} />
                 <View style={styles.btnRow}>
-                  <PressableScale
-                    style={styles.overlayBtnPrimary}
+                  <Button
+                    title={t('game.tapToStart')}
                     onPress={() => startCountdown(startGame)}
-                  >
-                    <Text style={styles.overlayBtnIcon}>▶</Text>
-                    <Text style={styles.overlayBtnText}>{t('game.tapToStart')}</Text>
-                  </PressableScale>
+                    variant="primary"
+                    size="medium"
+                    icon="▶"
+                    fullWidth
+                    style={{ marginBottom: spacing.md }}
+                  />
                   <View style={styles.overlayDivider} />
                   <View style={styles.overlayNavRow}>
                     <PressableScale style={styles.overlayNavBtn} onPress={handleHome}>
-                      <Text style={styles.overlayNavIcon}>🏠</Text>
+                      <Text variant="h3" style={styles.overlayNavIcon}>🏠</Text>
                     </PressableScale>
                     <PressableScale style={styles.overlayNavBtn} onPress={handleSkins}>
-                      <Text style={styles.overlayNavIcon}>👤</Text>
+                      <Text variant="h3" style={styles.overlayNavIcon}>👤</Text>
                     </PressableScale>
                     <PressableScale style={styles.overlayNavBtn} onPress={handleSettings}>
-                      <Text style={styles.overlayNavIcon}>⚙</Text>
+                      <Text variant="h3" style={styles.overlayNavIcon}>⚙</Text>
                     </PressableScale>
                   </View>
                 </View>
               </View>
-            </View>
+            </Card>
           </Animated.View>
         )}
       </View>

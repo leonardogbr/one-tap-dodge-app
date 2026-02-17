@@ -5,7 +5,6 @@
 import React from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   Switch,
   ScrollView,
@@ -19,9 +18,10 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useGameStore, type ThemeMode, type LocaleCode } from '../state/store';
 import { changeLanguage } from '../i18n';
-import { PressableScale } from '../components/PressableScale';
 import { useTheme } from '../hooks/useTheme';
 import { spacing } from '../theme';
+import { Text, Header } from '../design-system';
+import { borderRadius } from '../design-system/tokens';
 
 const THEME_OPTIONS: { value: ThemeMode; key: string }[] = [
   { value: 'dark', key: 'themeDark' },
@@ -51,19 +51,7 @@ export function SettingsScreen() {
   const styles = React.useMemo(
     () =>
       StyleSheet.create({
-        container: { flex: 1, backgroundColor: colors.background, paddingTop: insets.top },
-        header: {
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingHorizontal: spacing.md,
-          paddingTop: spacing.xl,
-          paddingBottom: spacing.md,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.backgroundLight,
-        },
-        backBtn: { paddingVertical: spacing.sm, paddingRight: spacing.md },
-        backBtnText: { fontSize: 16, color: colors.primary },
-        title: { fontSize: 20, fontWeight: '700', color: colors.text },
+        container: { flex: 1, backgroundColor: colors.background },
         scroll: { flex: 1 },
         scrollContent: { padding: spacing.lg },
         row: {
@@ -74,11 +62,7 @@ export function SettingsScreen() {
           borderBottomWidth: 1,
           borderBottomColor: colors.backgroundLight,
         },
-        label: { fontSize: 16, color: colors.text },
         sectionTitle: {
-          fontSize: 14,
-          fontWeight: '600',
-          color: colors.textMuted,
           marginTop: spacing.lg,
           marginBottom: spacing.sm,
         },
@@ -86,12 +70,10 @@ export function SettingsScreen() {
         pickerBtn: {
           paddingHorizontal: spacing.md,
           paddingVertical: spacing.sm,
-          borderRadius: 8,
+          borderRadius: borderRadius.sm,
           backgroundColor: colors.backgroundLight,
         },
         pickerBtnActive: { backgroundColor: colors.primaryDim, borderWidth: 1, borderColor: colors.primary },
-        pickerBtnText: { fontSize: 14, color: colors.text },
-        pickerBtnTextActive: { color: colors.primary, fontWeight: '600' },
       }),
     [colors, insets.top]
   );
@@ -103,15 +85,14 @@ export function SettingsScreen() {
 
   return (
     <Animated.View style={styles.container} entering={FadeIn.duration(220)}>
-      <View style={styles.header}>
-        <PressableScale style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backBtnText}>{t('common.back')}</Text>
-        </PressableScale>
-        <Text style={styles.title}>{t('settings.title')}</Text>
-      </View>
+      <Header
+        title={t('settings.title')}
+        onBack={() => navigation.goBack()}
+        backLabel={t('common.back')}
+      />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.row}>
-          <Text style={styles.label}>{t('settings.soundEffects')}</Text>
+          <Text variant="body">{t('settings.soundEffects')}</Text>
           <Switch
             value={soundOn}
             onValueChange={(v) => setSetting('soundOn', v)}
@@ -120,7 +101,7 @@ export function SettingsScreen() {
           />
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>{t('settings.music')}</Text>
+          <Text variant="body">{t('settings.music')}</Text>
           <Switch
             value={musicOn}
             onValueChange={(v) => setSetting('musicOn', v)}
@@ -129,7 +110,7 @@ export function SettingsScreen() {
           />
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>{t('settings.haptics')}</Text>
+          <Text variant="body">{t('settings.haptics')}</Text>
           <Switch
             value={hapticsOn}
             onValueChange={(v) => setSetting('hapticsOn', v)}
@@ -138,7 +119,7 @@ export function SettingsScreen() {
           />
         </View>
 
-        <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
+        <Text variant="label" color="muted" style={styles.sectionTitle}>{t('settings.language')}</Text>
         <View style={styles.pickerRow}>
           {LOCALE_OPTIONS.map((opt) => (
             <TouchableOpacity
@@ -147,7 +128,9 @@ export function SettingsScreen() {
               onPress={() => handleLocale(opt.value)}
             >
               <Text
-                style={[styles.pickerBtnText, locale === opt.value && styles.pickerBtnTextActive]}
+                variant="bodySmall"
+                color={locale === opt.value ? 'primary' : 'default'}
+                style={locale === opt.value ? { fontWeight: '600' } : {}}
               >
                 {opt.value === 'system' ? t(opt.label) : opt.label}
               </Text>
@@ -155,7 +138,7 @@ export function SettingsScreen() {
           ))}
         </View>
 
-        <Text style={styles.sectionTitle}>{t('settings.theme')}</Text>
+        <Text variant="label" color="muted" style={styles.sectionTitle}>{t('settings.theme')}</Text>
         <View style={styles.pickerRow}>
           {THEME_OPTIONS.map((opt) => (
             <TouchableOpacity
@@ -164,7 +147,9 @@ export function SettingsScreen() {
               onPress={() => setSetting('themeMode', opt.value)}
             >
               <Text
-                style={[styles.pickerBtnText, themeMode === opt.value && styles.pickerBtnTextActive]}
+                variant="bodySmall"
+                color={themeMode === opt.value ? 'primary' : 'default'}
+                style={themeMode === opt.value ? { fontWeight: '600' } : {}}
               >
                 {t(`settings.${opt.key}`)}
               </Text>

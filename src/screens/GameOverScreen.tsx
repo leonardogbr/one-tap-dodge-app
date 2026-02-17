@@ -6,7 +6,6 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   ActivityIndicator,
@@ -36,6 +35,8 @@ import { useTranslation } from 'react-i18next';
 import { useGameStore } from '../state/store';
 import { spacing } from '../theme';
 import { isRewardedLoaded, showRewarded } from '../services/ads';
+import { Text, Card, Button } from '../design-system';
+import { borderRadius, shadows } from '../design-system/tokens';
 
 function formatTime(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
@@ -197,15 +198,6 @@ export function GameOverScreen() {
           alignItems: 'center',
           width: '100%',
         },
-        title: {
-          fontSize: 32,
-          fontWeight: '800',
-          color: colors.danger,
-          textTransform: 'uppercase',
-          letterSpacing: 1,
-          marginBottom: spacing.sm,
-          textAlign: 'center',
-        },
         titleUnderline: {
           width: 64,
           height: 3,
@@ -220,36 +212,22 @@ export function GameOverScreen() {
           marginBottom: spacing.xs,
           minHeight: 60,
           width: '100%',
-          paddingHorizontal: spacing.md, // Add padding to ensure badge doesn't go off screen
+          paddingHorizontal: spacing.md,
         },
         scoreWrap: { alignItems: 'center', justifyContent: 'center' },
-        score: {
-          fontSize: 48,
-          fontWeight: '800',
-          color: colors.text,
-          textAlign: 'center',
-        },
         newBestBadge: {
           position: 'absolute',
           top: -10,
           left: '50%',
-          marginLeft: Math.min(screenWidth * 0.15, 70), // Position to the right of score center, but limit to stay on screen
-          backgroundColor: colors.success,
+          marginLeft: Math.min(screenWidth * 0.15, 70),
           paddingHorizontal: spacing.sm,
           paddingVertical: spacing.xs,
-          borderRadius: 12,
+          borderRadius: borderRadius.md,
           flexDirection: 'row',
           alignItems: 'center',
           gap: spacing.xs,
-          shadowColor: colors.success,
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.5,
-          shadowRadius: 8,
-          elevation: 8,
-          maxWidth: screenWidth * 0.35, // Ensure badge doesn't exceed screen width
+          maxWidth: screenWidth * 0.35,
         },
-        newBestText: { fontSize: 12, fontWeight: '700', color: colors.background },
-        finalScoreLabel: { fontSize: 14, color: colors.textMuted, marginBottom: spacing.lg, textAlign: 'center' },
         statsRow: {
           flexDirection: 'row',
           justifyContent: 'space-between',
@@ -259,71 +237,19 @@ export function GameOverScreen() {
         },
         statCard: {
           flex: 1,
-          backgroundColor: colors.backgroundLight,
-          borderRadius: 16,
-          padding: spacing.md,
           alignItems: 'center',
           marginHorizontal: spacing.xs,
         },
         statIcon: { fontSize: 24, marginBottom: spacing.xs },
-        statLabel: {
-          fontSize: 11,
-          color: colors.textMuted,
-          textTransform: 'uppercase',
-          marginBottom: spacing.xs,
-          textAlign: 'center',
-        },
-        statValue: { fontSize: 20, fontWeight: '700', color: colors.text, textAlign: 'center' },
         reviveCard: {
           width: '100%',
           maxWidth: 340,
-          backgroundColor: colors.backgroundLight,
-          borderRadius: 20,
-          padding: spacing.lg,
           marginBottom: spacing.lg,
         },
-        reviveTitle: { fontSize: 18, fontWeight: '700', color: colors.text, marginBottom: spacing.xs, textAlign: 'left' },
-        reviveDesc: { fontSize: 14, color: colors.textMuted, marginBottom: spacing.md, textAlign: 'left' },
-        reviveBtn: {
-          alignSelf: 'stretch',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: spacing.sm,
-          backgroundColor: colors.primary,
-          paddingVertical: spacing.md,
-          borderRadius: 999,
-        },
-        reviveBtnText: { fontSize: 16, fontWeight: '700', color: colors.onPrimary, textAlign: 'center' },
         buttonsWrap: {
           width: contentWidth,
           alignSelf: 'center',
         },
-        playAgainBtn: {
-          width: '100%',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: spacing.sm,
-          backgroundColor: colors.primary,
-          paddingVertical: spacing.lg,
-          borderRadius: 999,
-          marginBottom: spacing.md,
-        },
-        playAgainBtnText: { fontSize: 18, fontWeight: '700', color: colors.onPrimary, textAlign: 'center' },
-        homeBtn: {
-          width: '100%',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: spacing.sm,
-          backgroundColor: colors.backgroundLight,
-          borderWidth: 1,
-          borderColor: colors.textMuted,
-          paddingVertical: spacing.md,
-          borderRadius: 999,
-        },
-        homeBtnText: { fontSize: 17, fontWeight: '700', color: colors.text, textAlign: 'center' },
       }),
     [colors, insets.top, insets.bottom, contentWidth, screenWidth]
   );
@@ -335,71 +261,95 @@ export function GameOverScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>{t('game.gameOver')}</Text>
+        <Text variant="h1" color="danger" style={{ textTransform: 'uppercase', marginBottom: spacing.sm, textAlign: 'center' }}>
+          {t('game.gameOver')}
+        </Text>
         <View style={styles.titleUnderline} />
         <View style={styles.scoreContainer}>
           <View style={styles.scoreWrap}>
-            <Text style={styles.score}>{score.toLocaleString()}</Text>
+            <Text variant="h1" style={{ fontSize: 48, textAlign: 'center' }}>{score.toLocaleString()}</Text>
           </View>
           {isNewBest && (
-            <Animated.View style={[styles.newBestBadge, floatAnimatedStyle]}>
-              <Text style={styles.newBestText}>🏆</Text>
-              <Text style={styles.newBestText}>{t('game.newBest')}</Text>
+            <Animated.View
+              style={[
+                styles.newBestBadge,
+                { backgroundColor: colors.success },
+                shadows.md(colors.success),
+                floatAnimatedStyle,
+              ]}
+            >
+              <Text variant="caption" style={{ color: colors.background, fontWeight: '700' }}>🏆</Text>
+              <Text variant="caption" style={{ color: colors.background, fontWeight: '700' }}>{t('game.newBest')}</Text>
             </Animated.View>
           )}
         </View>
-        <Text style={styles.finalScoreLabel}>{t('game.finalScore')}</Text>
+        <Text variant="bodySmall" color="muted" style={{ marginBottom: spacing.lg, textAlign: 'center' }}>
+          {t('game.finalScore')}
+        </Text>
 
         <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statIcon}>🕐</Text>
-            <Text style={styles.statLabel}>{t('game.time')}</Text>
-            <Text style={styles.statValue}>{formatTime(runTimeMs)}</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statIcon}>⚠️</Text>
-            <Text style={styles.statLabel}>{t('game.nearMiss')}</Text>
-            <Text style={styles.statValue}>{nearMisses}</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statIcon}>🪙</Text>
-            <Text style={styles.statLabel}>{t('game.coins')}</Text>
-            <Text style={styles.statValue}>{coins}</Text>
-          </View>
+          <Card variant="default" style={styles.statCard}>
+            <Text variant="h3">🕐</Text>
+            <Text variant="caption" color="muted" style={{ textTransform: 'uppercase', marginBottom: spacing.xs, textAlign: 'center' }}>
+              {t('game.time')}
+            </Text>
+            <Text variant="h4" style={{ textAlign: 'center' }}>{formatTime(runTimeMs)}</Text>
+          </Card>
+          <Card variant="default" style={styles.statCard}>
+            <Text variant="h3">⚠️</Text>
+            <Text variant="caption" color="muted" style={{ textTransform: 'uppercase', marginBottom: spacing.xs, textAlign: 'center' }}>
+              {t('game.nearMiss')}
+            </Text>
+            <Text variant="h4" style={{ textAlign: 'center' }}>{nearMisses}</Text>
+          </Card>
+          <Card variant="default" style={styles.statCard}>
+            <Text variant="h3">🪙</Text>
+            <Text variant="caption" color="muted" style={{ textTransform: 'uppercase', marginBottom: spacing.xs, textAlign: 'center' }}>
+              {t('game.coins')}
+            </Text>
+            <Text variant="h4" style={{ textAlign: 'center' }}>{coins}</Text>
+          </Card>
         </View>
 
         {canRevive && (
-          <View style={styles.reviveCard}>
-            <Text style={styles.reviveTitle}>{t('game.oneLastChance')}</Text>
-            <Text style={styles.reviveDesc}>{t('game.watchAdReviveDescription')}</Text>
-            <PressableScale
-              style={styles.reviveBtn}
+          <Card variant="default" style={styles.reviveCard}>
+            <Text variant="h4" style={{ marginBottom: spacing.xs, textAlign: 'left' }}>
+              {t('game.oneLastChance')}
+            </Text>
+            <Text variant="bodySmall" color="muted" style={{ marginBottom: spacing.md, textAlign: 'left' }}>
+              {t('game.watchAdReviveDescription')}
+            </Text>
+            <Button
+              title={isRewardedLoaded() ? t('game.watchAdToContinue') : t('game.loadingAd')}
               onPress={handleRevive}
+              variant="primary"
+              size="medium"
+              icon="▶"
               disabled={!isRewardedLoaded() || reviveLoading}
-            >
-              {reviveLoading ? (
-                <ActivityIndicator color={colors.onPrimary} size="small" />
-              ) : (
-                <>
-                  <Text style={styles.reviveBtnText}>▶</Text>
-                  <Text style={styles.reviveBtnText}>
-                    {isRewardedLoaded() ? t('game.watchAdToContinue') : t('game.loadingAd')}
-                  </Text>
-                </>
-              )}
-            </PressableScale>
-          </View>
+              fullWidth
+            />
+          </Card>
         )}
 
         <View style={styles.buttonsWrap}>
-          <PressableScale style={styles.playAgainBtn} onPress={handlePlayAgain}>
-            <Text style={styles.playAgainBtnText}>↻</Text>
-            <Text style={styles.playAgainBtnText}>{t('game.playAgain')}</Text>
-          </PressableScale>
-          <PressableScale style={styles.homeBtn} onPress={handleHome}>
-            <Text style={styles.homeBtnText}>⌂</Text>
-            <Text style={styles.homeBtnText}>{t('common.home')}</Text>
-          </PressableScale>
+          <Button
+            title={t('game.playAgain')}
+            onPress={handlePlayAgain}
+            variant="primary"
+            size="large"
+            icon="↻"
+            fullWidth
+            style={{ marginBottom: spacing.md }}
+          />
+          <Button
+            title={t('common.home')}
+            onPress={handleHome}
+            variant="ghost"
+            size="medium"
+            icon="⌂"
+            fullWidth
+            style={{ borderWidth: 1, borderColor: colors.textMuted }}
+          />
         </View>
       </ScrollView>
     </View>

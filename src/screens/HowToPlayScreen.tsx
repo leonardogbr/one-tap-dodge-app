@@ -3,7 +3,7 @@
  */
 
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +13,8 @@ import type { RootStackParamList } from '../navigation/types';
 import { PressableScale } from '../components/PressableScale';
 import { useTheme } from '../hooks/useTheme';
 import { spacing } from '../theme';
+import { Text, Card, Button } from '../design-system';
+import { borderRadius } from '../design-system/tokens';
 import {
   PLAYER_RADIUS,
   OBSTACLE_WIDTH,
@@ -65,7 +67,6 @@ export function HowToPlayScreen() {
           zIndex: 10,
           padding: spacing.sm,
         },
-        backBtnText: { fontSize: 16, color: colors.primary },
         scroll: { flex: 1 },
         scrollContent: {
           paddingHorizontal: spacing.lg,
@@ -73,24 +74,11 @@ export function HowToPlayScreen() {
           paddingBottom: insets.bottom + 100,
           alignItems: 'center',
         },
-        title: {
-          fontSize: 30,
-          fontWeight: '700',
-          color: colors.text,
-          textAlign: 'center',
-          marginBottom: spacing.xs,
-        },
-        subtitle: {
-          fontSize: 17,
-          color: colors.textMuted,
-          textAlign: 'center',
-          marginBottom: spacing.lg,
-        },
         illustrationCard: {
           width: '55%',
           alignSelf: 'center',
           height: ILLUSTRATION_HEIGHT,
-          borderRadius: 20,
+          borderRadius: borderRadius.xl,
           flexDirection: 'row',
           marginBottom: spacing.lg,
           overflow: 'hidden',
@@ -150,10 +138,6 @@ export function HowToPlayScreen() {
           width: '100%',
           flexDirection: 'row',
           alignItems: 'center',
-          backgroundColor: colors.backgroundLight,
-          borderRadius: 16,
-          paddingVertical: spacing.md,
-          paddingHorizontal: spacing.md,
           marginBottom: spacing.sm,
         },
         ruleIconCircle: {
@@ -164,32 +148,10 @@ export function HowToPlayScreen() {
           alignItems: 'center',
           marginRight: spacing.md,
         },
-        ruleText: {
-          flex: 1,
-          fontSize: 19,
-          color: colors.text,
-          fontWeight: '500',
-        },
         gotItBtnWrap: {
           alignSelf: 'stretch',
           marginTop: spacing.lg,
         },
-        gotItBtn: {
-          width: '100%',
-          backgroundColor: colors.primary,
-          borderRadius: 20,
-          paddingVertical: spacing.lg,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: spacing.sm,
-          shadowColor: colors.primary,
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.4,
-          shadowRadius: 12,
-          elevation: 8,
-        },
-        gotItText: { fontSize: 18, fontWeight: '700', color: colors.onPrimary },
       }),
     [colors, insets.top, insets.bottom]
   );
@@ -201,15 +163,19 @@ export function HowToPlayScreen() {
         onPress={() => navigation.goBack()}
         activeOpacity={0.7}
       >
-        <Text style={styles.backBtnText}>{t('common.back')}</Text>
+        <Text variant="body" color="primary">{t('common.back')}</Text>
       </TouchableOpacity>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>{t('howToPlay.title')}</Text>
-        <Text style={styles.subtitle}>{t('howToPlay.subtitle')}</Text>
+        <Text variant="h1" style={{ textAlign: 'center', marginBottom: spacing.xs }}>
+          {t('howToPlay.title')}
+        </Text>
+        <Text variant="body" color="muted" style={{ textAlign: 'center', marginBottom: spacing.lg }}>
+          {t('howToPlay.subtitle')}
+        </Text>
 
         <View style={styles.illustrationCard}>
           <View style={[styles.lane, styles.laneLeftBorder, styles.laneLeft]}>
@@ -240,19 +206,23 @@ export function HowToPlayScreen() {
         </View>
 
         {INSTRUCTION_ITEMS.map(({ key, icon, colorKey }) => (
-          <View key={key} style={styles.ruleCard}>
+          <Card key={key} variant="default" style={styles.ruleCard}>
             <View style={[styles.ruleIconCircle, { backgroundColor: getIconColor(colorKey) }]}>
-              <Text style={{ fontSize: 20 }}>{icon}</Text>
+              <Text variant="h4">{icon}</Text>
             </View>
-            <Text style={styles.ruleText}>{t(`howToPlay.${key}`)}</Text>
-          </View>
+            <Text variant="body" style={{ flex: 1 }}>{t(`howToPlay.${key}`)}</Text>
+          </Card>
         ))}
 
         <View style={styles.gotItBtnWrap}>
-          <PressableScale style={styles.gotItBtn} onPress={() => navigation.goBack()}>
-            <Text style={styles.gotItText}>{t('howToPlay.gotIt')}</Text>
-            <Text style={styles.gotItText}>✓</Text>
-          </PressableScale>
+          <Button
+            title={t('howToPlay.gotIt')}
+            onPress={() => navigation.goBack()}
+            variant="primary"
+            size="large"
+            icon="✓"
+            fullWidth
+          />
         </View>
       </ScrollView>
     </Animated.View>
