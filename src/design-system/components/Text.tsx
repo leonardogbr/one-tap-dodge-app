@@ -8,7 +8,7 @@ import { Text as RNText, StyleSheet, TextStyle } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { typography, TypographyVariant } from '../tokens/typography';
 
-export type TextColor = 'default' | 'muted' | 'primary' | 'danger' | 'success';
+export type TextColor = 'default' | 'muted' | 'primary' | 'secondary' | 'danger' | 'success';
 
 export interface TextProps {
   children: React.ReactNode;
@@ -38,6 +38,8 @@ export function Text({
       baseStyle.color = colors.textMuted;
     } else if (color === 'primary') {
       baseStyle.color = colors.primary;
+    } else if (color === 'secondary') {
+      baseStyle.color = colors.secondary;
     } else if (color === 'danger') {
       baseStyle.color = colors.danger;
     } else if (color === 'success') {

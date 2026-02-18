@@ -8,7 +8,6 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
   BackHandler,
   Platform,
   useWindowDimensions,
@@ -29,7 +28,6 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated';
-import { PressableScale } from '../components/PressableScale';
 import { useTheme } from '../hooks/useTheme';
 import { useTranslation } from 'react-i18next';
 import { useGameStore } from '../state/store';
@@ -38,6 +36,7 @@ import { useRewardedAdLoaded } from '../hooks/useRewardedAdLoaded';
 import { spacing } from '../theme';
 import { isRewardedLoaded, showRewarded } from '../services/ads';
 import { Text, Card, Button } from '../design-system';
+import { Icon } from '../design-system/components/Icon';
 import { borderRadius, shadows } from '../design-system/tokens';
 
 function formatTime(ms: number): string {
@@ -67,7 +66,7 @@ export function GameOverScreen() {
   const floatPhase = useSharedValue(0);
   const scalePhase = useSharedValue(0);
   const opacityPhase = useSharedValue(0);
-  
+
   useEffect(() => {
     if (isNewBest) {
       // Initial entrance animation: fade in + scale bounce
@@ -76,7 +75,7 @@ export function GameOverScreen() {
         withTiming(1.3, { duration: 300, easing: Easing.out(Easing.cubic) }),
         withTiming(1, { duration: 200, easing: Easing.in(Easing.cubic) })
       );
-      
+
       // Start floating animation after initial bounce
       floatPhase.value = withDelay(
         500,
@@ -99,7 +98,7 @@ export function GameOverScreen() {
       scalePhase.value = 0;
       opacityPhase.value = 0;
     }
-    
+
     // Cleanup: cancel animations when component unmounts
     return () => {
       cancelAnimation(floatPhase);
@@ -250,7 +249,18 @@ export function GameOverScreen() {
         statCard: {
           flex: 1,
           alignItems: 'center',
+          justifyContent: 'space-between',
           marginHorizontal: spacing.xs,
+          minHeight: 112,
+        },
+        statCardTop: {
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+        },
+        statCardValue: {
+          alignSelf: 'stretch',
+          alignItems: 'center',
+          paddingTop: spacing.sm,
         },
         statIcon: { fontSize: 24, marginBottom: spacing.xs },
         reviveCard: {
@@ -301,25 +311,37 @@ export function GameOverScreen() {
 
         <View style={styles.statsRow}>
           <Card variant="default" style={styles.statCard}>
-            <Text variant="h3">🕐</Text>
-            <Text variant="caption" color="muted" style={{ textTransform: 'uppercase', marginBottom: spacing.xs, textAlign: 'center' }}>
-              {t('game.time')}
-            </Text>
-            <Text variant="h4" style={{ textAlign: 'center' }}>{formatTime(runTimeMs)}</Text>
+            <View style={styles.statCardTop}>
+              <Icon name="timer" size={28} color={colors.primary} style={{ marginBottom: spacing.sm }} />
+              <Text variant="caption" color="muted" style={{ textTransform: 'uppercase', marginBottom: spacing.xs, textAlign: 'center' }}>
+                {t('game.time')}
+              </Text>
+            </View>
+            <View style={styles.statCardValue}>
+              <Text variant="h4" style={{ textAlign: 'center' }}>{formatTime(runTimeMs)}</Text>
+            </View>
           </Card>
           <Card variant="default" style={styles.statCard}>
-            <Text variant="h3">⚠️</Text>
-            <Text variant="caption" color="muted" style={{ textTransform: 'uppercase', marginBottom: spacing.xs, textAlign: 'center' }}>
-              {t('game.nearMiss')}
-            </Text>
-            <Text variant="h4" style={{ textAlign: 'center' }}>{nearMisses}</Text>
+            <View style={styles.statCardTop}>
+              <Icon name="warning" size={28} color={colors.obstacle} style={{ marginBottom: spacing.sm }} />
+              <Text variant="caption" color="muted" style={{ textTransform: 'uppercase', marginBottom: spacing.xs, textAlign: 'center' }}>
+                {t('game.nearMiss')}
+              </Text>
+            </View>
+            <View style={styles.statCardValue}>
+              <Text variant="h4" style={{ textAlign: 'center' }}>{nearMisses}</Text>
+            </View>
           </Card>
           <Card variant="default" style={styles.statCard}>
-            <Text variant="h3">🪙</Text>
-            <Text variant="caption" color="muted" style={{ textTransform: 'uppercase', marginBottom: spacing.xs, textAlign: 'center' }}>
-              {t('game.coins')}
-            </Text>
-            <Text variant="h4" style={{ textAlign: 'center' }}>{coins}</Text>
+            <View style={styles.statCardTop}>
+              <Icon name="monetization_on" size={28} color={colors.coin} style={{ marginBottom: spacing.sm }} />
+              <Text variant="caption" color="muted" style={{ textTransform: 'uppercase', marginBottom: spacing.xs, textAlign: 'center' }}>
+                {t('game.coins')}
+              </Text>
+            </View>
+            <View style={styles.statCardValue}>
+              <Text variant="h4" style={{ textAlign: 'center' }}>{coins}</Text>
+            </View>
           </Card>
         </View>
 
@@ -334,9 +356,9 @@ export function GameOverScreen() {
             <Button
               title={rewardedAdLoaded ? t('game.watchAdToContinue') : t('game.loadingAd')}
               onPress={handleRevive}
-              variant="primary"
+              variant="revive"
               size="medium"
-              icon="▶"
+              icon="play_circle"
               disabled={!rewardedAdLoaded || reviveLoading}
               fullWidth
             />
@@ -349,7 +371,7 @@ export function GameOverScreen() {
             onPress={handlePlayAgain}
             variant="primary"
             size="large"
-            icon="↻"
+            icon="replay"
             fullWidth
             style={{ marginBottom: spacing.md }}
           />
@@ -358,7 +380,7 @@ export function GameOverScreen() {
             onPress={handleHome}
             variant="ghost"
             size="medium"
-            icon="⌂"
+            icon="home"
             fullWidth
             style={{ borderWidth: 1, borderColor: colors.textMuted }}
           />

@@ -10,10 +10,10 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { PressableScale } from '../components/PressableScale';
 import { useTheme } from '../hooks/useTheme';
 import { spacing } from '../theme';
-import { Text, Card, Button } from '../design-system';
+import { Text, Button } from '../design-system';
+import { Icon } from '../design-system/components/Icon';
 import { borderRadius } from '../design-system/tokens';
 import {
   PLAYER_RADIUS,
@@ -26,15 +26,18 @@ import { SKIN_VISUALS } from '../state/store';
 const NEAR_MISS_AMBER = '#d97706';
 
 const ILLUSTRATION_HEIGHT = 180;
+const INSTRUCTION_ICON_SIZE = 40;
+const INSTRUCTION_MIN_HEIGHT = 56;
+
 const INSTRUCTION_ITEMS: {
   key: 'tapToSwap' | 'dodgeObstacles' | 'nearMissBonus' | 'coinsChargeShield';
-  icon: string;
+  icon: 'touch_app' | 'warning' | 'bolt' | 'shield';
   colorKey: 'primary' | 'obstacle' | 'amber' | 'success';
 }[] = [
-  { key: 'tapToSwap', icon: '👆', colorKey: 'primary' },
-  { key: 'dodgeObstacles', icon: '⚠️', colorKey: 'obstacle' },
-  { key: 'nearMissBonus', icon: '⚡', colorKey: 'amber' },
-  { key: 'coinsChargeShield', icon: '🛡️', colorKey: 'success' },
+  { key: 'tapToSwap', icon: 'touch_app', colorKey: 'primary' },
+  { key: 'dodgeObstacles', icon: 'warning', colorKey: 'obstacle' },
+  { key: 'nearMissBonus', icon: 'bolt', colorKey: 'amber' },
+  { key: 'coinsChargeShield', icon: 'shield', colorKey: 'success' },
 ];
 
 const CLASSIC_SKIN = SKIN_VISUALS.classic;
@@ -50,6 +53,13 @@ export function HowToPlayScreen() {
     if (colorKey === 'obstacle') return colors.obstacle;
     if (colorKey === 'success') return colors.success;
     return NEAR_MISS_AMBER;
+  };
+
+  const getIconBgColor = (colorKey: 'primary' | 'obstacle' | 'amber' | 'success') => {
+    if (colorKey === 'primary') return colors.primaryDim;
+    if (colorKey === 'obstacle') return 'rgba(255, 77, 109, 0.15)';
+    if (colorKey === 'success') return 'rgba(63, 185, 80, 0.15)';
+    return 'rgba(250, 204, 21, 0.15)';
   };
 
   const styles = useMemo(
@@ -134,19 +144,26 @@ export function HowToPlayScreen() {
           width: OBSTACLE_WIDTH,
           height: OBSTACLE_HEIGHT,
         },
-        ruleCard: {
+        instructionRow: {
           width: '100%',
           flexDirection: 'row',
           alignItems: 'center',
+          gap: spacing.md,
+          minHeight: INSTRUCTION_MIN_HEIGHT,
+          paddingHorizontal: spacing.md,
+          paddingVertical: spacing.sm,
           marginBottom: spacing.sm,
+          borderRadius: borderRadius.lg,
+          borderWidth: 1,
+          borderColor: 'rgba(255,255,255,0.05)',
+          backgroundColor: 'rgba(255,255,255,0.05)',
         },
-        ruleIconCircle: {
-          width: 40,
-          height: 40,
-          borderRadius: 20,
-          justifyContent: 'center',
+        instructionIconBox: {
+          width: INSTRUCTION_ICON_SIZE,
+          height: INSTRUCTION_ICON_SIZE,
+          borderRadius: borderRadius.md,
           alignItems: 'center',
-          marginRight: spacing.md,
+          justifyContent: 'center',
         },
         gotItBtnWrap: {
           alignSelf: 'stretch',
@@ -206,12 +223,17 @@ export function HowToPlayScreen() {
         </View>
 
         {INSTRUCTION_ITEMS.map(({ key, icon, colorKey }) => (
-          <Card key={key} variant="default" style={styles.ruleCard}>
-            <View style={[styles.ruleIconCircle, { backgroundColor: getIconColor(colorKey) }]}>
-              <Text variant="h4">{icon}</Text>
+          <View key={key} style={styles.instructionRow}>
+            <View
+              style={[
+                styles.instructionIconBox,
+                { backgroundColor: getIconBgColor(colorKey) },
+              ]}
+            >
+              <Icon name={icon} size={24} color={getIconColor(colorKey)} />
             </View>
             <Text variant="body" style={{ flex: 1 }}>{t(`howToPlay.${key}`)}</Text>
-          </Card>
+          </View>
         ))}
 
         <View style={styles.gotItBtnWrap}>

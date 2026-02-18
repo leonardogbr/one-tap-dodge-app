@@ -6,7 +6,6 @@ import React, { useMemo } from 'react';
 import {
   View,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,7 +19,7 @@ import { useTheme } from '../hooks/useTheme';
 import { usePulseAnimation } from '../hooks/usePulseAnimation';
 import { spacing } from '../theme';
 import { Text, Header, Card, Button } from '../design-system';
-import { borderRadius } from '../design-system/tokens';
+import { Icon } from '../design-system/components/Icon';
 
 export function SkinsScreen() {
   const insets = useSafeAreaInsets();
@@ -151,7 +150,12 @@ export function SkinsScreen() {
         title={t('skins.title')}
         onBack={() => navigation.goBack()}
         backLabel={t('common.back')}
-        rightComponent={<Text variant="body">🪙 {totalCoins}</Text>}
+        rightComponent={
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+            <Icon name="monetization_on" size={20} color={colors.coin} />
+            <Text variant="body">{totalCoins}</Text>
+          </View>
+        }
         style={{ borderBottomColor: colors.primaryDim }}
       />
       <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
@@ -185,7 +189,10 @@ export function SkinsScreen() {
                   )
                 ) : (
                   <View style={styles.lockedRow}>
-                    <Text variant="bodySmall" color="muted">{cost} 🪙</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+                      <Icon name="monetization_on" size={16} color={colors.coin} />
+                      <Text variant="bodySmall" color="muted">{cost}</Text>
+                    </View>
                     <Button
                       title={canUnlock ? t('common.unlock') : t('common.locked')}
                       onPress={() => handleUnlock(skinId)}

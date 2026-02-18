@@ -34,7 +34,7 @@ import { HUD } from '../components/overlays/HUD';
 import { PressableScale } from '../components/PressableScale';
 import { useTheme } from '../hooks/useTheme';
 import { spacing } from '../theme';
-import { Text, Button, Card } from '../design-system';
+import { Text, Button, Card, Icon } from '../design-system';
 import { borderRadius, shadows } from '../design-system/tokens';
 import {
   PLAYER_RADIUS,
@@ -525,7 +525,7 @@ export function GameScreen() {
                     onPress={() => startCountdown(resume)}
                     variant="primary"
                     size="medium"
-                    icon="▶"
+                    icon="play_arrow"
                     fullWidth
                     style={{ marginBottom: spacing.md }}
                   />
@@ -537,7 +537,7 @@ export function GameScreen() {
                     }}
                     variant="secondary"
                     size="medium"
-                    icon="↻"
+                    icon="replay"
                     fullWidth
                     style={{ marginBottom: spacing.md }}
                   />
@@ -546,7 +546,7 @@ export function GameScreen() {
                     onPress={quitFromPause}
                     variant="danger"
                     size="medium"
-                    icon="→"
+                    icon="close"
                     fullWidth
                   />
                 </View>
@@ -574,20 +574,20 @@ export function GameScreen() {
                     onPress={() => startCountdown(startGame)}
                     variant="primary"
                     size="medium"
-                    icon="▶"
+                    icon="play_arrow"
                     fullWidth
                     style={{ marginBottom: spacing.md }}
                   />
                   <View style={styles.overlayDivider} />
                   <View style={styles.overlayNavRow}>
                     <PressableScale style={styles.overlayNavBtn} onPress={handleHome}>
-                      <Text variant="h3" style={styles.overlayNavIcon}>🏠</Text>
+                      <Icon name="home" size={28} color={colors.text} style={styles.overlayNavIcon} />
                     </PressableScale>
                     <PressableScale style={styles.overlayNavBtn} onPress={handleSkins}>
-                      <Text variant="h3" style={styles.overlayNavIcon}>👤</Text>
+                      <Icon name="checkroom" size={28} color={colors.text} style={styles.overlayNavIcon} />
                     </PressableScale>
                     <PressableScale style={styles.overlayNavBtn} onPress={handleSettings}>
-                      <Text variant="h3" style={styles.overlayNavIcon}>⚙</Text>
+                      <Icon name="settings" size={28} color={colors.text} style={styles.overlayNavIcon} />
                     </PressableScale>
                   </View>
                 </View>

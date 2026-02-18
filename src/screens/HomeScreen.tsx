@@ -16,7 +16,7 @@ import { usePulseAnimation } from '../hooks/usePulseAnimation';
 import { useInterstitialBeforeGame } from '../hooks/useInterstitialBeforeGame';
 import { useGameStore, SKIN_VISUALS, PRIME_SKIN_ID } from '../state/store';
 import { spacing } from '../theme';
-import { Text, Card, Button } from '../design-system';
+import { Text, Card, Button, Icon } from '../design-system';
 import { borderRadius, shadows } from '../design-system/tokens';
 
 const PLAYER_PREVIEW_SIZE = 80;
@@ -245,7 +245,7 @@ export function HomeScreen() {
             onPress={handlePlay}
             variant="primary"
             size="large"
-            icon="▶"
+            icon="play_arrow"
             fullWidth
           />
         </View>
@@ -255,7 +255,7 @@ export function HomeScreen() {
             onPress={() => navigation.navigate('Challenges')}
             variant="secondary"
             size="medium"
-            icon="🎯"
+            icon="emoji_events"
             fullWidth
           />
         </View>
@@ -263,13 +263,13 @@ export function HomeScreen() {
 
       <View style={styles.navRow}>
         <PressableScale style={styles.navBtn} onPress={() => navigation.navigate('Skins')}>
-          <Text variant="h3" style={styles.navIcon}>👤</Text>
+          <Icon name="checkroom" size={28} color={colors.text} style={styles.navIcon} />
         </PressableScale>
         <PressableScale style={styles.navBtn} onPress={() => navigation.navigate('HowToPlay')}>
-          <Text variant="h3" style={styles.navIcon}>🎮</Text>
+          <Icon name="help_outline" size={28} color={colors.text} style={styles.navIcon} />
         </PressableScale>
         <PressableScale style={styles.navBtn} onPress={() => navigation.navigate('Settings')}>
-          <Text variant="h3" style={styles.navIcon}>⚙</Text>
+          <Icon name="settings" size={28} color={colors.text} style={styles.navIcon} />
         </PressableScale>
       </View>
     </Animated.View>

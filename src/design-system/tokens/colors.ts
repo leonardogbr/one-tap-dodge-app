@@ -1,6 +1,10 @@
 /**
  * Design System - Color Tokens
- * Centralized color definitions for the app
+ * Aligned with Stitch UI Kit & Color Palette (Complete UI Kit).
+ *
+ * Accents: Electric Cyan (primary), Neon Purple (secondary), Coral Warning (danger), Coin (yellow/amber).
+ * Dark: Primary BG #070A12, Surface #151A26, Secondary Surface #1F2633.
+ * Light: Primary BG #F4F7FF, Surface #FFFFFF, Secondary Surface #E6EBF5.
  */
 
 export type ColorPalette = {
@@ -9,41 +13,52 @@ export type ColorPalette = {
   backgroundCard: string;
   primary: string;
   primaryDim: string;
+  secondary: string;
   onPrimary: string;
   text: string;
   textMuted: string;
   danger: string;
   success: string;
   obstacle: string;
+  /** Moeda / ícone monetization_on (doc: yellow-400) */
+  coin: string;
 };
 
 export const darkColors: ColorPalette = {
-  background: '#0d1117',
-  backgroundLight: '#161b22',
-  backgroundCard: '#21262d',
-  primary: '#38e8ff',
-  primaryDim: '#38e8ff40',
-  onPrimary: '#000',
-  text: '#e6edf3',
-  textMuted: '#8b949e',
-  danger: '#f85149',
-  success: '#3fb950',
-  obstacle: '#e53935',
+  // Dark Mode Palette
+  background: '#070A12',
+  backgroundLight: '#151A26',
+  backgroundCard: '#1F2633',
+  // Accents
+  primary: '#38E8FF',
+  primaryDim: '#38E8FF40',
+  secondary: '#8A5CFF',
+  onPrimary: '#070A12',
+  text: '#E6EDF3',
+  textMuted: '#8B949E',
+  danger: '#FF4D6D',
+  success: '#3FB950',
+  obstacle: '#FF4D6D',
+  coin: '#FACC15', // yellow-400, ícone de moeda (doc)
 };
 
 export const lightColors: ColorPalette = {
-  background: '#f0f4f8',
-  backgroundLight: '#e2e8f0',
-  backgroundCard: '#ffffff',
-  primary: '#0ea5e9',
-  primaryDim: '#0ea5e940',
-  onPrimary: '#ffffff',
-  text: '#1e293b',
-  textMuted: '#64748b',
-  danger: '#dc2626',
-  success: '#16a34a',
-  obstacle: '#dc2626',
+  // Light Mode Palette
+  background: '#F4F7FF',
+  backgroundLight: '#FFFFFF',
+  backgroundCard: '#E6EBF5',
+  // Accents (same as dark for consistency; onPrimary dark for contrast on cyan)
+  primary: '#38E8FF',
+  primaryDim: '#38E8FF40',
+  secondary: '#8A5CFF',
+  onPrimary: '#070A12',
+  text: '#1E2633',
+  textMuted: '#5C6578',
+  danger: '#FF4D6D',
+  success: '#16A34A',
+  obstacle: '#FF4D6D',
+  coin: '#EAB308', // yellow-500, um pouco mais escuro no claro para contraste
 };
 
-/** Legacy export: defaults to dark for backward compatibility. Prefer useTheme(). */
+/** Legacy export: defaults to dark. Prefer useTheme(). */
 export const colors = darkColors;

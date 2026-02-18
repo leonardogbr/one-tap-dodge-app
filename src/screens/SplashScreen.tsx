@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { useTheme } from '../hooks/useTheme';
+import { FONT_FAMILY } from '../design-system/tokens/typography';
 import { spacing } from '../theme';
 
 const SPLASH_DURATION_MS = 2000;
@@ -42,8 +43,8 @@ export function SplashScreen() {
           paddingTop: insets.top,
           paddingBottom: insets.bottom,
         },
-        title: { fontSize: 28, fontWeight: '700', color: colors.primary, marginBottom: spacing.sm, textAlign: 'center' },
-        subtitle: { fontSize: 14, color: colors.textMuted, textAlign: 'center' },
+        title: { fontFamily: FONT_FAMILY.bold, fontSize: 28, fontWeight: '700', color: colors.primary, marginBottom: spacing.sm, textAlign: 'center' },
+        subtitle: { fontFamily: FONT_FAMILY.regular, fontSize: 14, color: colors.textMuted, textAlign: 'center' },
       }),
     [colors, insets.top, insets.bottom]
   );

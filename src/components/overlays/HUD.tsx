@@ -15,6 +15,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useTheme } from '../../hooks/useTheme';
+import { FONT_FAMILY } from '../../design-system/tokens/typography';
+import { Icon } from '../../design-system/components/Icon';
 import { spacing } from '../../theme';
 
 interface HUDProps {
@@ -52,21 +54,21 @@ export function HUD({
           alignItems: 'center',
           zIndex: 10,
         },
-        score: { fontSize: 36, fontWeight: '700', color: colors.text },
-        best: { fontSize: 14, color: colors.textMuted, marginTop: spacing.xs },
+        score: { fontFamily: FONT_FAMILY.bold, fontSize: 36, fontWeight: '700', color: colors.text },
+        best: { fontFamily: FONT_FAMILY.regular, fontSize: 14, color: colors.textMuted, marginTop: spacing.xs },
         coinMultiplierBadge: { marginTop: spacing.xs, backgroundColor: colors.success, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 8 },
-        coinMultiplierText: { fontSize: 14, fontWeight: '700', color: colors.background },
+        coinMultiplierText: { fontFamily: FONT_FAMILY.bold, fontSize: 14, fontWeight: '700', color: colors.background },
         row: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm, gap: spacing.sm },
-        coins: { fontSize: 14, color: colors.text },
+        coins: { fontFamily: FONT_FAMILY.regular, fontSize: 14, color: colors.text },
         shieldWrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
         shieldBar: { width: 80, height: 8, backgroundColor: colors.backgroundLight, borderRadius: 4, overflow: 'hidden', borderWidth: 1, borderColor: 'transparent' },
         shieldBarReady: { borderColor: colors.success, borderWidth: 1.5 },
         shieldFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 4 },
         shieldFillReady: { backgroundColor: colors.success },
-        shieldLabel: { fontSize: 12, color: colors.textMuted, minWidth: 52 },
+        shieldLabel: { fontFamily: FONT_FAMILY.regular, fontSize: 12, color: colors.textMuted, minWidth: 52 },
         shieldLabelReady: { color: colors.success, fontWeight: '700' },
         nearMissBadge: { marginTop: spacing.sm, alignSelf: 'center', backgroundColor: colors.primary, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 8 },
-        nearMissText: { fontSize: 16, fontWeight: '700', color: colors.onPrimary },
+        nearMissText: { fontFamily: FONT_FAMILY.bold, fontSize: 16, fontWeight: '700', color: colors.onPrimary },
       }),
     [colors, insets.top]
   );
@@ -106,7 +108,10 @@ export function HUD({
         </View>
       )}
       <View style={styles.row}>
-        <Text style={styles.coins}>🪙 {coinsThisRun}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+          <Icon name="monetization_on" size={18} color={colors.coin} />
+          <Text style={styles.coins}>{coinsThisRun}</Text>
+        </View>
         <View style={styles.shieldWrap}>
           <View
             style={[

@@ -34,7 +34,7 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string/>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>GADApplicationIdentifier</key>
@@ -55,5 +55,18 @@
 	<false/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>MaterialIcons.ttf</string>
+		<string>Inter_18pt-Regular.ttf</string>
+		<string>Inter_18pt-SemiBold.ttf</string>
+		<string>Inter_18pt-Bold.ttf</string>
+		<string>Inter_24pt-Regular.ttf</string>
+		<string>Inter_24pt-SemiBold.ttf</string>
+		<string>Inter_24pt-Bold.ttf</string>
+		<string>Inter_28pt-Regular.ttf</string>
+		<string>Inter_28pt-SemiBold.ttf</string>
+		<string>Inter_28pt-Bold.ttf</string>
+	</array>
 </dict>
 </plist>

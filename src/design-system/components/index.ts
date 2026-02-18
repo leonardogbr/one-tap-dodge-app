@@ -7,3 +7,4 @@ export * from './Button';
 export * from './Card';
 export * from './Text';
 export * from './Header';
+export * from './Icon';

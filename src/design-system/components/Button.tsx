@@ -1,18 +1,22 @@
 /**
  * Design System - Button Component
- * Reusable button component with variants
+ * Matches code.html (Stitch UI Kit):
+ * - Primary: bg-primary, text-dark-bg, shadow-glow-primary (PLAY)
+ * - Ghost: border border-primary text-primary (GHOST BUTTON)
+ * - Secondary: border neutral, text muted (SECONDARY ACTION)
  */
 
 import React from 'react';
-import { Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { Text, ViewStyle, TextStyle } from 'react-native';
 import { PressableScale } from '../../components/PressableScale';
 import { useTheme } from '../../hooks/useTheme';
 import { spacing } from '../tokens/spacing';
 import { borderRadius } from '../tokens/borders';
 import { typography } from '../tokens/typography';
 import { shadows } from '../tokens/shadows';
+import { Icon } from './Icon';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'ghost';
+export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'ghost' | 'revive';
 export type ButtonSize = 'small' | 'medium' | 'large';
 
 export interface ButtonProps {
@@ -43,10 +47,9 @@ export function Button({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      borderRadius: borderRadius.full,
+      borderRadius: borderRadius.md, // code.html: rounded-xl (12px)
     };
 
-    // Size styles
     if (size === 'small') {
       baseStyle.paddingVertical = spacing.sm;
       baseStyle.paddingHorizontal = spacing.md;
@@ -61,22 +64,30 @@ export function Button({
       baseStyle.gap = spacing.sm;
     }
 
-    // Variant styles
+    // code.html: PLAY = bg-primary text-dark-bg; GHOST = border-primary text-primary; SECONDARY ACTION = border-slate-700 text-slate-400
     if (variant === 'primary') {
       baseStyle.backgroundColor = colors.primary;
+      baseStyle.borderWidth = 0;
       Object.assign(baseStyle, shadows.primary(colors.primary));
     } else if (variant === 'secondary') {
       baseStyle.backgroundColor = 'transparent';
       baseStyle.borderWidth = 1;
-      baseStyle.borderColor = colors.primaryDim;
+      baseStyle.borderColor = colors.backgroundCard;
     } else if (variant === 'danger') {
       baseStyle.backgroundColor = 'transparent';
       baseStyle.borderWidth = 1;
       baseStyle.borderColor = colors.danger;
     } else if (variant === 'success') {
       baseStyle.backgroundColor = colors.success;
+      baseStyle.borderWidth = 0;
     } else if (variant === 'ghost') {
-      baseStyle.backgroundColor = colors.backgroundLight;
+      baseStyle.backgroundColor = 'transparent';
+      baseStyle.borderWidth = 1;
+      baseStyle.borderColor = colors.primary;
+    } else if (variant === 'revive') {
+      baseStyle.backgroundColor = colors.secondary;
+      baseStyle.borderWidth = 0;
+      Object.assign(baseStyle, shadows.primary(colors.secondary));
     }
 
     if (fullWidth) {
@@ -95,12 +106,14 @@ export function Button({
       ...(size === 'small' ? typography.buttonSmall : typography.button),
     };
 
-    if (variant === 'primary' || variant === 'success') {
-      baseStyle.color = colors.onPrimary;
+    if (variant === 'primary' || variant === 'success' || variant === 'revive') {
+      baseStyle.color = variant === 'revive' ? '#fff' : colors.onPrimary;
     } else if (variant === 'secondary') {
-      baseStyle.color = colors.primary;
+      baseStyle.color = colors.textMuted;
     } else if (variant === 'danger') {
       baseStyle.color = colors.danger;
+    } else if (variant === 'ghost') {
+      baseStyle.color = colors.primary;
     } else {
       baseStyle.color = colors.text;
     }
@@ -110,6 +123,7 @@ export function Button({
 
   const buttonStyle = getButtonStyle();
   const textStyle = getTextStyle();
+  const iconSize = size === 'small' ? 18 : 20;
 
   return (
     <PressableScale
@@ -117,7 +131,9 @@ export function Button({
       onPress={onPress}
       disabled={disabled}
     >
-      {icon && <Text style={textStyle}>{icon}</Text>}
+      {icon && (
+        <Icon name={icon} size={iconSize} color={textStyle.color} />
+      )}
       <Text style={textStyle}>{title}</Text>
     </PressableScale>
   );
