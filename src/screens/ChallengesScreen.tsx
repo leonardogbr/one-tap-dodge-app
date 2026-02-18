@@ -107,7 +107,7 @@ export function ChallengesScreen() {
           borderRadius: borderRadius.xs,
           overflow: 'hidden',
         },
-        progressFill: { height: '100%', backgroundColor: colors.primary, borderRadius: borderRadius.xs },
+        progressFill: { height: '100%', backgroundColor: colors.secondary, borderRadius: borderRadius.xs },
       }),
     [colors, insets.top]
   );

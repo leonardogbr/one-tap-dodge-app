@@ -85,7 +85,9 @@ export function HowToPlayScreen() {
           alignItems: 'center',
         },
         illustrationCard: {
-          width: '55%',
+          width: '50%',
+          maxWidth: 200,
+          minWidth: 170,
           alignSelf: 'center',
           height: ILLUSTRATION_HEIGHT,
           borderRadius: borderRadius.xl,

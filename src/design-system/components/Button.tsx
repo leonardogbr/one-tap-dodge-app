@@ -20,7 +20,7 @@ export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'gh
 export type ButtonSize = 'small' | 'medium' | 'large';
 
 export interface ButtonProps {
-  title: string;
+  title?: string;
   onPress: () => void;
   variant?: ButtonVariant;
   size?: ButtonSize;
@@ -31,7 +31,7 @@ export interface ButtonProps {
 }
 
 export function Button({
-  title,
+  title = '',
   onPress,
   variant = 'primary',
   size = 'medium',
@@ -41,6 +41,10 @@ export function Button({
   fullWidth = false,
 }: ButtonProps) {
   const { colors } = useTheme();
+
+  const hasText = title && title.trim().length > 0;
+  const hasIcon = !!icon;
+  const hasBoth = hasText && hasIcon;
 
   const getButtonStyle = (): ViewStyle => {
     const baseStyle: ViewStyle = {
@@ -53,15 +57,33 @@ export function Button({
     if (size === 'small') {
       baseStyle.paddingVertical = spacing.sm;
       baseStyle.paddingHorizontal = spacing.md;
-      baseStyle.gap = spacing.xs;
+      // Aplicar gap apenas se houver tanto ícone quanto texto
+      if (hasBoth) {
+        baseStyle.gap = spacing.xs;
+      }
     } else if (size === 'medium') {
       baseStyle.paddingVertical = spacing.md;
       baseStyle.paddingHorizontal = spacing.xl;
-      baseStyle.gap = spacing.sm;
+      if (hasBoth) {
+        baseStyle.gap = spacing.sm;
+      }
     } else if (size === 'large') {
       baseStyle.paddingVertical = spacing.lg;
       baseStyle.paddingHorizontal = spacing.xl * 2;
-      baseStyle.gap = spacing.sm;
+      if (hasBoth) {
+        baseStyle.gap = spacing.sm;
+      }
+    }
+
+    // Se for apenas ícone, ajustar padding para manter proporção
+    if (hasIcon && !hasText) {
+      if (size === 'small') {
+        baseStyle.paddingHorizontal = spacing.sm;
+      } else if (size === 'medium') {
+        baseStyle.paddingHorizontal = spacing.md;
+      } else if (size === 'large') {
+        baseStyle.paddingHorizontal = spacing.lg;
+      }
     }
 
     // code.html: PLAY = bg-primary text-dark-bg; GHOST = border-primary text-primary; SECONDARY ACTION = border-slate-700 text-slate-400
@@ -124,6 +146,7 @@ export function Button({
   const buttonStyle = getButtonStyle();
   const textStyle = getTextStyle();
   const iconSize = size === 'small' ? 18 : 20;
+  const iconColor = textStyle.color ? String(textStyle.color) : undefined;
 
   return (
     <PressableScale
@@ -132,9 +155,9 @@ export function Button({
       disabled={disabled}
     >
       {icon && (
-        <Icon name={icon} size={iconSize} color={textStyle.color} />
+        <Icon name={icon} size={iconSize} color={iconColor} />
       )}
-      <Text style={textStyle}>{title}</Text>
+      {hasText && <Text style={textStyle}>{title}</Text>}
     </PressableScale>
   );
 }

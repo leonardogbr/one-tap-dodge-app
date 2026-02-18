@@ -188,7 +188,7 @@ export function HomeScreen() {
           <Card variant="default" style={styles.scoreCard}>
             <Text variant="h2" color="muted" style={styles.scoreValueLast}>{lastScore > 0 ? lastScore : '-'}</Text>
             <View style={styles.scoreLabel}>
-              <Text variant="caption" color="muted">↻</Text>
+              <Icon name="history" size={14} color={colors.textMuted} />
               <Text variant="caption" color="muted">{t('home.lastScore')}</Text>
             </View>
           </Card>
@@ -262,11 +262,11 @@ export function HomeScreen() {
       </View>
 
       <View style={styles.navRow}>
-        <PressableScale style={styles.navBtn} onPress={() => navigation.navigate('Skins')}>
-          <Icon name="checkroom" size={28} color={colors.text} style={styles.navIcon} />
-        </PressableScale>
         <PressableScale style={styles.navBtn} onPress={() => navigation.navigate('HowToPlay')}>
           <Icon name="help_outline" size={28} color={colors.text} style={styles.navIcon} />
+        </PressableScale>
+        <PressableScale style={styles.navBtn} onPress={() => navigation.navigate('Skins')}>
+          <Icon name="checkroom" size={28} color={colors.text} style={styles.navIcon} />
         </PressableScale>
         <PressableScale style={styles.navBtn} onPress={() => navigation.navigate('Settings')}>
           <Icon name="settings" size={28} color={colors.text} style={styles.navIcon} />

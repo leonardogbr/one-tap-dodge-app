@@ -25,6 +25,10 @@ export const ICON_NAMES = [
   'bolt',        // How to Play: near-miss bonus
   'timer',       // Game Over: time card
   'play_circle', // Game Over: botão assistir anúncio (revive)
+  'history',     // Última pontuação / histórico
+  'lock',        // Skins: indicador de bloqueado
+  'lock_open',   // Skins: botão desbloquear
+  'check',       // Skins: botão equipar
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];
@@ -51,6 +55,10 @@ export const ICON_MAP: Record<IconName, string> = {
   bolt: '\u26A1',           // ⚡
   timer: '\u23F1',          // ⏱ (stopwatch)
   play_circle: '\u25B6',    // ▶ (play)
+  history: '\u21BA',        // ↺ (history / clock with counter-clockwise arrow)
+  lock: '\u1F512',         // 🔒 (lock / cadeado)
+  lock_open: '\u1F513',    // 🔓 (lock open / cadeado aberto)
+  check: '\u2713',        // ✓ (check mark / equipar)
 };
 
 export function getIconChar(name: IconName | string): string {

@@ -114,6 +114,7 @@ export function GameScreen() {
   const canRevive = useGameStore((s) => s.canRevive);
   const reviveEarnedFromAd = useGameStore((s) => s.reviveEarnedFromAd);
   const equippedSkinId = useGameStore((s) => s.equippedSkinId);
+  const totalCoins = useGameStore((s) => s.totalCoins);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Game'>>();
   const skinVisual = SKIN_VISUALS[equippedSkinId] ?? SKIN_VISUALS.classic;
   const pulseAnimatedStyle = usePulseAnimation(!!skinVisual.pulse);
@@ -243,8 +244,12 @@ export function GameScreen() {
   }, [countdownStep, phase, swapLane]);
 
   const styles = React.useMemo(
-    () =>
-      StyleSheet.create({
+    () => {
+      const isSmallScreen = screenWidth < 375;
+      const isLargeScreen = screenWidth > 768;
+      const previewSize = isSmallScreen ? 48 : isLargeScreen ? 64 : 56;
+      
+      return StyleSheet.create({
         container: { flex: 1, backgroundColor: colors.background, paddingTop: insets.top },
         gameArea: { position: 'absolute', left: 0, top: 0, overflow: 'hidden' },
         lanes: { flexDirection: 'row', flex: 1 },
@@ -309,8 +314,15 @@ export function GameScreen() {
         topBarLeft: { flexDirection: 'row', gap: spacing.xs, alignItems: 'center' },
         topBarCenter: { flex: 1 },
         pauseBtn: { padding: spacing.sm },
-        multiplierWrap: { flexDirection: 'row', gap: spacing.xs, alignItems: 'center' },
+        multiplierWrap: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
         multiplierBadge: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: borderRadius.sm },
+        shieldIconActive: {
+          backgroundColor: 'rgba(96, 165, 250, 0.1)', // blue-500/10
+          borderWidth: 1,
+          borderColor: 'rgba(96, 165, 250, 0.3)', // blue-400/30
+          borderRadius: borderRadius.sm,
+          padding: spacing.xs,
+        },
         overlay: {
           ...StyleSheet.absoluteFillObject,
           backgroundColor: 'rgba(0,0,0,0.7)',
@@ -322,11 +334,9 @@ export function GameScreen() {
         overlayCard: {
           flexDirection: 'row',
           alignItems: 'center',
-          alignSelf: 'stretch',
-          paddingVertical: spacing.xl * 1.5,
-          paddingHorizontal: spacing.md,
-          minWidth: 280,
-          maxWidth: 360,
+          paddingVertical: isSmallScreen ? spacing.lg : spacing.xl * 1.5,
+          paddingHorizontal: isSmallScreen ? spacing.md : spacing.lg,
+          maxWidth: isLargeScreen ? 400 : Math.min(360, screenWidth * 0.9),
         },
         overlayContent: { flex: 1, alignItems: 'center', },
         btnRow: { alignItems: 'stretch', alignSelf: 'stretch' },
@@ -359,11 +369,87 @@ export function GameScreen() {
           justifyContent: 'center',
         },
         overlayNavIcon: { fontSize: 28, marginBottom: spacing.xs },
+        idleModalContent: { gap: isSmallScreen ? spacing.sm : spacing.md },
+        idlePreviewAndStatsRow: {
+          flexDirection: isSmallScreen ? 'column' : 'row',
+          alignItems: isSmallScreen ? 'center' : 'center',
+          gap: isSmallScreen ? spacing.sm : spacing.md,
+          marginBottom: spacing.sm,
+          width: '100%',
+        },
+        idlePlayerPreviewWrap: {
+          width: previewSize,
+          height: previewSize,
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'visible',
+        },
+        idlePlayerPreviewPulse: {
+          position: 'absolute',
+          width: previewSize,
+          height: previewSize,
+          borderRadius: previewSize / 2,
+        },
+        idlePlayerPreviewBody: {
+          position: 'absolute',
+          width: previewSize,
+          height: previewSize,
+          borderRadius: previewSize / 2,
+          borderWidth: 2,
+          overflow: 'hidden',
+        },
+        idlePlayerPreviewHighlight: {
+          position: 'absolute',
+          top: -4,
+          left: -4,
+          width: '70%',
+          height: '70%',
+          borderRadius: 999,
+          opacity: 0.7,
+        },
+        idlePlayerPreviewShadow: {
+          position: 'absolute',
+          bottom: -4,
+          right: -4,
+          width: '80%',
+          height: '80%',
+          borderRadius: 999,
+          opacity: 0.5,
+        },
+        idlePlayerPreviewRing: {
+          position: 'absolute',
+          top: 1,
+          left: 1,
+          right: 1,
+          bottom: 1,
+          borderRadius: 999,
+          borderWidth: 1,
+          opacity: 0.9,
+        },
+        idleQuickStats: {
+          flex: isSmallScreen ? 0 : 1,
+          gap: spacing.xs,
+          width: isSmallScreen ? '100%' : undefined,
+          alignItems: isSmallScreen ? 'stretch' : undefined,
+        },
+        idleQuickStatRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: spacing.xs,
+          minWidth: 0,
+        },
+        idleQuickStatLabel: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.xs,
+        },
         countdownOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', zIndex: 20 },
         explosionWrap: { position: 'absolute', zIndex: 10, pointerEvents: 'none' },
         explosionCircle: { backgroundColor: colors.danger, borderRadius: 999, opacity: 0.8 },
-      }),
-    [colors, insets.top]
+      });
+    },
+    [colors, insets.top, screenWidth]
   );
 
   if (!dimensions) {
@@ -471,11 +557,18 @@ export function GameScreen() {
         {(phase === 'playing' || scoreMultiplier > 1) && (
           <View style={styles.topBarRow} pointerEvents="box-none">
             <View style={styles.topBarLeft} pointerEvents="none">
-              {scoreMultiplier > 1 && (
+              {(scoreMultiplier > 1 || shieldMeter >= 1) && (
                 <View style={styles.multiplierWrap}>
-                  <View style={[styles.multiplierBadge, { backgroundColor: colors.primary }]}>
-                    <Text variant="bodySmall" style={{ color: colors.onPrimary, fontWeight: '700' }}>{scoreMultiplier}x</Text>
-                  </View>
+                  {scoreMultiplier > 1 && (
+                    <View style={[styles.multiplierBadge, { backgroundColor: colors.primary }]}>
+                      <Text variant="bodySmall" style={{ color: colors.onPrimary, fontWeight: '700' }}>{scoreMultiplier}x</Text>
+                    </View>
+                  )}
+                  {shieldMeter >= 1 && (
+                    <View style={styles.shieldIconActive}>
+                      <Icon name="shield" size={18} color={isDark ? '#93C5FD' : '#2563EB'} />
+                    </View>
+                  )}
                 </View>
               )}
             </View>
@@ -535,7 +628,7 @@ export function GameScreen() {
                       restartFromPause();
                       startCountdown(startGame);
                     }}
-                    variant="secondary"
+                    variant="ghost"
                     size="medium"
                     icon="replay"
                     fullWidth
@@ -568,27 +661,88 @@ export function GameScreen() {
                   {t('home.title')}
                 </Text>
                 <View style={styles.overlayTitleUnderline} />
-                <View style={styles.btnRow}>
-                  <Button
-                    title={t('game.tapToStart')}
-                    onPress={() => startCountdown(startGame)}
-                    variant="primary"
-                    size="medium"
-                    icon="play_arrow"
-                    fullWidth
-                    style={{ marginBottom: spacing.md }}
-                  />
-                  <View style={styles.overlayDivider} />
-                  <View style={styles.overlayNavRow}>
-                    <PressableScale style={styles.overlayNavBtn} onPress={handleHome}>
-                      <Icon name="home" size={28} color={colors.text} style={styles.overlayNavIcon} />
-                    </PressableScale>
-                    <PressableScale style={styles.overlayNavBtn} onPress={handleSkins}>
-                      <Icon name="checkroom" size={28} color={colors.text} style={styles.overlayNavIcon} />
-                    </PressableScale>
-                    <PressableScale style={styles.overlayNavBtn} onPress={handleSettings}>
-                      <Icon name="settings" size={28} color={colors.text} style={styles.overlayNavIcon} />
-                    </PressableScale>
+                <Text variant="bodySmall" color="muted" style={{ textAlign: 'center', marginTop: spacing.xs, marginBottom: spacing.md }}>
+                  {t('home.subtitle')}
+                </Text>
+
+                <View style={styles.idleModalContent}>
+                  <View style={styles.idlePreviewAndStatsRow}>
+                    <View style={styles.idlePlayerPreviewWrap}>
+                      {skinVisual.pulse && (
+                        <Animated.View
+                          style={[
+                            styles.idlePlayerPreviewPulse,
+                            {
+                              backgroundColor: isDark
+                                ? (skinVisual.edge ?? skinVisual.base)
+                                : colors.primary,
+                            },
+                            pulseAnimatedStyle,
+                          ]}
+                        />
+                      )}
+                      <View
+                        style={[
+                          styles.idlePlayerPreviewBody,
+                          {
+                            backgroundColor: skinVisual.base,
+                            borderColor: skinVisual.edge ?? colors.text,
+                          }]}
+                      >
+                        {skinVisual.shadow && (
+                          <View style={[styles.idlePlayerPreviewShadow, { backgroundColor: skinVisual.shadow }]} />
+                        )}
+                        {skinVisual.highlight && (
+                          <View
+                            style={[styles.idlePlayerPreviewHighlight, { backgroundColor: skinVisual.highlight }]}
+                          />
+                        )}
+                        {skinVisual.edge && (
+                          <View style={[styles.idlePlayerPreviewRing, { borderColor: skinVisual.edge }]} />
+                        )}
+                      </View>
+                    </View>
+
+                    <View style={styles.idleQuickStats}>
+                      <View style={styles.idleQuickStatRow}>
+                        <View style={styles.idleQuickStatLabel}>
+                          <Icon name="emoji_events" size={14} color={colors.textMuted} />
+                          <Text variant="caption" color="muted">{t('home.bestScore')}</Text>
+                        </View>
+                        <Text variant="body" style={{ fontWeight: '700' }}>{highScore.toLocaleString()}</Text>
+                      </View>
+                      <View style={styles.idleQuickStatRow}>
+                        <View style={styles.idleQuickStatLabel}>
+                          <Icon name="monetization_on" size={14} color={colors.coin} />
+                          <Text variant="caption" color="muted">{t('game.coins')}</Text>
+                        </View>
+                        <Text variant="body" style={{ fontWeight: '700' }}>{totalCoins.toLocaleString()}</Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <View style={styles.btnRow}>
+                    <Button
+                      title={t('game.tapToStart')}
+                      onPress={() => startCountdown(startGame)}
+                      variant="primary"
+                      size="medium"
+                      icon="play_arrow"
+                      fullWidth
+                      style={{ marginBottom: spacing.md }}
+                    />
+                    <View style={styles.overlayDivider} />
+                    <View style={styles.overlayNavRow}>
+                      <PressableScale style={styles.overlayNavBtn} onPress={handleHome}>
+                        <Icon name="home" size={28} color={colors.text} style={styles.overlayNavIcon} />
+                      </PressableScale>
+                      <PressableScale style={styles.overlayNavBtn} onPress={handleSkins}>
+                        <Icon name="checkroom" size={28} color={colors.text} style={styles.overlayNavIcon} />
+                      </PressableScale>
+                      <PressableScale style={styles.overlayNavBtn} onPress={handleSettings}>
+                        <Icon name="settings" size={28} color={colors.text} style={styles.overlayNavIcon} />
+                      </PressableScale>
+                    </View>
                   </View>
                 </View>
               </View>

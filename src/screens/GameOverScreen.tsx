@@ -378,11 +378,10 @@ export function GameOverScreen() {
           <Button
             title={t('common.home')}
             onPress={handleHome}
-            variant="ghost"
+            variant="secondary"
             size="medium"
             icon="home"
             fullWidth
-            style={{ borderWidth: 1, borderColor: colors.textMuted }}
           />
         </View>
       </ScrollView>

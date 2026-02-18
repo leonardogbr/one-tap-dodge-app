@@ -195,19 +195,32 @@ export function tick(
     };
 
     const coinSpawnY = -COIN_HEIGHT;
-    const coinSpawnYEnd = coinSpawnY + COIN_HEIGHT;
-    const laneHasObstacleInCoinBand = (l: Lane): boolean =>
-      state.obstacles.some(
+    
+    // Helper function to check if two rectangles overlap
+    const rectsOverlap = (
+      r1x: number, r1y: number, r1w: number, r1h: number,
+      r2x: number, r2y: number, r2w: number, r2h: number
+    ): boolean => {
+      return r1x < r2x + r2w && r1x + r1w > r2x && r1y < r2y + r2h && r1y + r1h > r2y;
+    };
+
+    // Check if coin would overlap with any obstacle in the given lane
+    const laneHasObstacleOverlap = (l: Lane): boolean => {
+      const coinX = state.laneCenterX[l] - COIN_WIDTH / 2;
+      return state.obstacles.some(
         (obs) =>
           obs.lane === l &&
-          obs.y + obs.height > coinSpawnY &&
-          obs.y < coinSpawnYEnd
+          rectsOverlap(
+            coinX, coinSpawnY, COIN_WIDTH, COIN_HEIGHT,
+            obs.x, obs.y, obs.width, obs.height
+          )
       );
+    };
 
     let lane: Lane | null = pickLane();
-    if (laneHasObstacleInCoinBand(lane)) {
+    if (laneHasObstacleOverlap(lane)) {
       const otherLane = lane === LANE_LEFT ? LANE_RIGHT : LANE_LEFT;
-      if (!laneHasObstacleInCoinBand(otherLane)) {
+      if (!laneHasObstacleOverlap(otherLane)) {
         lane = otherLane;
       } else {
         lane = null;

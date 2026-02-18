@@ -20,6 +20,7 @@ import { usePulseAnimation } from '../hooks/usePulseAnimation';
 import { spacing } from '../theme';
 import { Text, Header, Card, Button } from '../design-system';
 import { Icon } from '../design-system/components/Icon';
+import { borderRadius } from '../design-system/tokens';
 
 export function SkinsScreen() {
   const insets = useSafeAreaInsets();
@@ -139,7 +140,31 @@ export function SkinsScreen() {
           opacity: 0.9,
         },
         skinInfo: { flex: 1 },
-        lockedRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+        lockedRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+        lockIconContainer: {
+          width: 34,
+          height: 34,
+          borderRadius: borderRadius.sm,
+          backgroundColor: colors.textMuted + '20',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderWidth: 1,
+          borderColor: colors.textMuted + '40',
+        },
+        unlockButton: {
+          width: 34,
+          height: 34,
+          minWidth: 34,
+          paddingVertical: 0,
+          paddingHorizontal: 0,
+        },
+        equipButton: {
+          width: 34,
+          height: 34,
+          minWidth: 34,
+          paddingVertical: 0,
+          paddingHorizontal: 0,
+        },
       }),
     [colors, insets.top]
   );
@@ -180,11 +205,11 @@ export function SkinsScreen() {
                     <Text variant="bodySmall" color="success">{t('common.equipped')}</Text>
                   ) : (
                     <Button
-                      title={t('common.equip')}
                       onPress={() => handleEquip(skinId)}
                       variant="primary"
                       size="small"
-                      style={{ alignSelf: 'flex-start' }}
+                      icon="check"
+                      style={styles.equipButton}
                     />
                   )
                 ) : (
@@ -193,14 +218,19 @@ export function SkinsScreen() {
                       <Icon name="monetization_on" size={16} color={colors.coin} />
                       <Text variant="bodySmall" color="muted">{cost}</Text>
                     </View>
-                    <Button
-                      title={canUnlock ? t('common.unlock') : t('common.locked')}
-                      onPress={() => handleUnlock(skinId)}
-                      variant="ghost"
-                      size="small"
-                      disabled={!canUnlock}
-                      style={{ backgroundColor: colors.textMuted }}
-                    />
+                    {canUnlock ? (
+                      <Button
+                        onPress={() => handleUnlock(skinId)}
+                        variant="revive"
+                        size="small"
+                        icon="lock_open"
+                        style={styles.unlockButton}
+                      />
+                    ) : (
+                      <View style={styles.lockIconContainer}>
+                        <Icon name="lock" size={18} color={colors.textMuted} />
+                      </View>
+                    )}
                   </View>
                 )}
               </View>
