@@ -1,6 +1,11 @@
 /**
  * Ads — rewarded (revive) and interstitial (after N game overs).
  * Ad Unit IDs come from .env via react-native-config; Test IDs used in __DEV__ or when unset.
+ *
+ * This app targets children (Google Play Families). We set RequestConfiguration before init:
+ * - tagForChildDirectedTreatment: COPPA compliance, no interest-based/remarketing ads
+ * - tagForUnderAgeOfConsent: GDPR/EEA under-age treatment
+ * - maxAdContentRating G: only age-appropriate ads (Families policy).
  */
 
 import { Platform } from 'react-native';
@@ -12,6 +17,7 @@ import {
   TestIds,
   RewardedAdEventType,
   AdEventType,
+  MaxAdContentRating,
 } from 'react-native-google-mobile-ads';
 
 const REWARDED_AD_UNIT_ID: string =
@@ -76,6 +82,12 @@ function loadInterstitial() {
 }
 
 export async function initAds(): Promise<void> {
+  // Must run BEFORE initialize() — required for Google Play Families / child-directed apps.
+  await MobileAds().setRequestConfiguration({
+    maxAdContentRating: MaxAdContentRating.G,
+    tagForChildDirectedTreatment: true,
+    tagForUnderAgeOfConsent: true,
+  });
   await MobileAds().initialize();
   createRewarded();
   createInterstitial();

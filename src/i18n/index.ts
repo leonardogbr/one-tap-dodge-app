@@ -37,6 +37,8 @@ export function initI18n(savedLocale: 'pt-BR' | 'es' | 'en' | 'system'): void {
     fallbackLng: 'en',
     compatibilityJSON: 'v4',
     react: { useSuspense: false },
+    // Suppress promotional messages in console
+    debug: false,
   });
 }
 

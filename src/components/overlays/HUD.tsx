@@ -72,6 +72,13 @@ export function HUD({
       );
     }
     prevScoreRef.current = score;
+    
+    return () => {
+      // Cleanup: reset scale on unmount
+      if (scoreScale.value !== 1) {
+        scoreScale.value = 1;
+      }
+    };
   }, [score, scoreScale]);
 
   const scoreAnimatedStyle = useAnimatedStyle(() => ({

@@ -3,7 +3,7 @@
  */
 
 import React, { useMemo, useRef } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +15,8 @@ import { useTheme } from '../hooks/useTheme';
 import { usePulseAnimation } from '../hooks/usePulseAnimation';
 import { useGameStore, SKIN_VISUALS, PRIME_SKIN_ID } from '../state/store';
 import { spacing } from '../theme';
+import { Text, Card, Button } from '../design-system';
+import { borderRadius, shadows } from '../design-system/tokens';
 
 const PLAYER_PREVIEW_SIZE = 80;
 
@@ -53,8 +55,6 @@ export function HomeScreen() {
         },
         top: { alignItems: 'center', alignSelf: 'stretch' },
         titleBlock: { alignItems: 'center', marginBottom: spacing.lg },
-        titleOneTap: { fontSize: 28, fontWeight: '800', color: colors.text },
-        titleDodge: { fontSize: 28, fontWeight: '800', color: colors.primary },
         scoreRow: {
           flexDirection: 'row',
           justifyContent: 'center',
@@ -65,44 +65,24 @@ export function HomeScreen() {
         },
         scoreCard: {
           flex: 1,
-          backgroundColor: colors.backgroundLight,
-          borderRadius: 16,
-          padding: spacing.md,
           alignItems: 'center',
           minWidth: 0,
         },
         scoreCardBest: {
           flex: 1,
-          backgroundColor: colors.backgroundCard,
-          borderRadius: 16,
-          padding: spacing.md,
           alignItems: 'center',
           minWidth: 0,
-          borderWidth: 1,
-          borderColor: colors.primaryDim,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.25,
-          shadowRadius: 8,
-          elevation: 6,
         },
         scoreValueBest: {
-          fontSize: 28,
-          fontWeight: '800',
-          color: colors.primary,
           marginBottom: spacing.xs,
           textShadowColor: colors.primary,
           textShadowOffset: { width: 0, height: 0 },
           textShadowRadius: 2,
         },
         scoreValueLast: {
-          fontSize: 28,
-          fontWeight: '800',
-          color: colors.textMuted,
           marginBottom: spacing.xs,
         },
-        scoreLabel: { fontSize: 12, color: colors.textMuted, flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-        scoreLabelText: { fontSize: 12, color: colors.textMuted },
+        scoreLabel: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
         playerPreviewWrap: {
           width: PLAYER_PREVIEW_SIZE,
           height: PLAYER_PREVIEW_SIZE,
@@ -154,38 +134,7 @@ export function HomeScreen() {
           opacity: 0.9,
         },
         playBtnWrapper: { width: '100%', marginBottom: spacing.md },
-        playBtn: {
-          width: '100%',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: spacing.sm,
-          backgroundColor: colors.primary,
-          paddingVertical: spacing.lg,
-          paddingHorizontal: spacing.xl * 2,
-          borderRadius: 999,
-          shadowColor: colors.primary,
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.4,
-          shadowRadius: 12,
-          elevation: 8,
-        },
-        playBtnText: { fontSize: 20, fontWeight: '700', color: colors.onPrimary },
         challengesBtnWrapper: { width: '100%', marginBottom: spacing.xl },
-        challengesBtn: {
-          width: '100%',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: spacing.sm,
-          backgroundColor: 'transparent',
-          paddingVertical: spacing.md,
-          paddingHorizontal: spacing.xl * 2,
-          borderRadius: 999,
-          borderWidth: 1,
-          borderColor: colors.primaryDim,
-        },
-        challengesBtnText: { fontSize: 18, fontWeight: '600', color: colors.primary },
         navRow: {
           flexDirection: 'row',
           justifyContent: 'space-between',
@@ -196,27 +145,20 @@ export function HomeScreen() {
         navBtn: {
           minWidth: 80,
           backgroundColor: colors.backgroundLight,
-          borderRadius: 16,
+          borderRadius: borderRadius.lg,
           paddingVertical: spacing.md,
           paddingHorizontal: spacing.sm,
           alignItems: 'center',
           justifyContent: 'center',
         },
         navIcon: { fontSize: 28, marginBottom: spacing.xs },
-        navLabel: { fontSize: 14, fontWeight: '600', color: colors.primary },
         rewardBanner: {
           backgroundColor: colors.primary,
-          borderRadius: 12,
+          borderRadius: borderRadius.md,
           padding: spacing.md,
           marginBottom: spacing.md,
           width: '100%',
           alignItems: 'center',
-        },
-        rewardBannerText: {
-          fontSize: 14,
-          fontWeight: '600',
-          color: colors.onPrimary,
-          textAlign: 'center',
         },
       }),
     [colors, insets.top, insets.bottom]
@@ -226,25 +168,25 @@ export function HomeScreen() {
     <Animated.View style={styles.container} entering={FadeIn.duration(220)}>
       <View style={styles.top}>
         <View style={styles.titleBlock}>
-          <Text style={styles.titleOneTap}>{t('home.titleOneTap')}</Text>
-          <Text style={styles.titleDodge}>{t('home.titleDodge')}</Text>
+          <Text variant="h2">{t('home.titleOneTap')}</Text>
+          <Text variant="h2" color="primary">{t('home.titleDodge')}</Text>
         </View>
 
         <View style={styles.scoreRow}>
-          <View style={styles.scoreCardBest}>
-            <Text style={styles.scoreValueBest}>{highScore}</Text>
+          <Card variant="highlighted" style={styles.scoreCardBest}>
+            <Text variant="h2" color="primary" style={styles.scoreValueBest}>{highScore}</Text>
             <View style={styles.scoreLabel}>
-              <Text style={styles.scoreLabelText}>🏆</Text>
-              <Text style={styles.scoreLabelText}>{t('home.bestScore')}</Text>
+              <Text variant="caption" color="muted">🏆</Text>
+              <Text variant="caption" color="muted">{t('home.bestScore')}</Text>
             </View>
-          </View>
-          <View style={styles.scoreCard}>
-            <Text style={styles.scoreValueLast}>{lastScore > 0 ? lastScore : '-'}</Text>
+          </Card>
+          <Card variant="default" style={styles.scoreCard}>
+            <Text variant="h2" color="muted" style={styles.scoreValueLast}>{lastScore > 0 ? lastScore : '-'}</Text>
             <View style={styles.scoreLabel}>
-              <Text style={styles.scoreLabelText}>↻</Text>
-              <Text style={styles.scoreLabelText}>{t('home.lastScore')}</Text>
+              <Text variant="caption" color="muted">↻</Text>
+              <Text variant="caption" color="muted">{t('home.lastScore')}</Text>
             </View>
-          </View>
+          </Card>
         </View>
 
         {rewardAvailable && (
@@ -252,7 +194,7 @@ export function HomeScreen() {
             style={styles.rewardBanner}
             onPress={() => navigation.navigate('Challenges')}
           >
-            <Text style={styles.rewardBannerText}>{t('home.rewardBanner')}</Text>
+            <Text variant="bodySmall" color="default" style={{ color: colors.onPrimary, textAlign: 'center' }}>{t('home.rewardBanner')}</Text>
           </PressableScale>
         )}
 
@@ -293,31 +235,36 @@ export function HomeScreen() {
         </View>
 
         <View style={styles.playBtnWrapper}>
-          <PressableScale style={styles.playBtn} onPress={handlePlay}>
-            <Text style={styles.playBtnText}>{t('common.play')}</Text>
-            <Text style={styles.playBtnText}>▶</Text>
-          </PressableScale>
+          <Button
+            title={t('common.play')}
+            onPress={handlePlay}
+            variant="primary"
+            size="large"
+            icon="▶"
+            fullWidth
+          />
         </View>
         <View style={styles.challengesBtnWrapper}>
-          <PressableScale
-            style={styles.challengesBtn}
+          <Button
+            title={t('challenges.title')}
             onPress={() => navigation.navigate('Challenges')}
-          >
-            <Text style={styles.challengesBtnText}>🎯</Text>
-            <Text style={styles.challengesBtnText}>{t('challenges.title')}</Text>
-          </PressableScale>
+            variant="secondary"
+            size="medium"
+            icon="🎯"
+            fullWidth
+          />
         </View>
       </View>
 
       <View style={styles.navRow}>
         <PressableScale style={styles.navBtn} onPress={() => navigation.navigate('Skins')}>
-          <Text style={styles.navIcon}>👤</Text>
+          <Text variant="h3" style={styles.navIcon}>👤</Text>
         </PressableScale>
         <PressableScale style={styles.navBtn} onPress={() => navigation.navigate('HowToPlay')}>
-          <Text style={styles.navIcon}>🎮</Text>
+          <Text variant="h3" style={styles.navIcon}>🎮</Text>
         </PressableScale>
         <PressableScale style={styles.navBtn} onPress={() => navigation.navigate('Settings')}>
-          <Text style={styles.navIcon}>⚙</Text>
+          <Text variant="h3" style={styles.navIcon}>⚙</Text>
         </PressableScale>
       </View>
     </Animated.View>
