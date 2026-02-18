@@ -3,14 +3,10 @@
     "back": "← Back",
     "play": "Play",
     "home": "Home",
-    "settings": "Settings",
     "resume": "Resume",
     "restart": "Restart",
     "quit": "Quit",
-    "equip": "Equip",
-    "equipped": "Equipped",
-    "unlock": "Unlock",
-    "locked": "Locked"
+    "equipped": "Equipped"
   },
   "home": {
     "title": "One Tap Dodge",
@@ -19,16 +15,12 @@
     "subtitle": "Tap to swap lanes. Dodge obstacles.",
     "bestScore": "Best score",
     "lastScore": "Last score",
-    "howToPlay": "How to Play",
-    "guide": "Guide",
-    "skins": "Skins",
-    "noInternetNeeded": "No internet needed"
+    "rewardBanner": "🎉 Reward available in Challenges!"
   },
   "game": {
     "tapToStart": "Start",
     "gameOver": "Game Over",
     "playAgain": "Play again",
-    "score": "Score",
     "finalScore": "Final score",
     "newBest": "NEW BEST!",
     "time": "Time",
@@ -97,7 +89,6 @@
     "nextMultiplier": "Complete both → {{value}}x",
     "rewardAvailable": "Reward available!",
     "claimReward": "Claim reward",
-    "rewardClaimed": "Reward claimed!",
     "near_miss_run": "Get {{count}} near-misses in one run",
     "coins_run": "Collect {{count}} coins in one run",
     "score_run": "Score {{count}} points in one run",
@@ -105,19 +96,6 @@
     "score_total": "Accumulate {{count}} points total",
     "games_played": "Play {{count}} games",
     "near_miss_total": "Accumulate {{count}} near-misses total"
-  },
-  "home": {
-    "title": "One Tap Dodge",
-    "titleOneTap": "One Tap",
-    "titleDodge": "Dodge",
-    "subtitle": "Tap to swap lanes. Dodge obstacles.",
-    "bestScore": "Best score",
-    "lastScore": "Last score",
-    "howToPlay": "How to Play",
-    "guide": "Guide",
-    "skins": "Skins",
-    "noInternetNeeded": "No internet needed",
-    "rewardBanner": "🎉 Reward available in Challenges!"
   },
   "splash": {
     "loading": "Loading..."

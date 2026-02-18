@@ -3,14 +3,10 @@
     "back": "← Voltar",
     "play": "Jogar",
     "home": "Início",
-    "settings": "Configurações",
     "resume": "Continuar",
     "restart": "Reiniciar",
     "quit": "Sair",
-    "equip": "Equipar",
-    "equipped": "Equipado",
-    "unlock": "Desbloquear",
-    "locked": "Bloqueado"
+    "equipped": "Equipado"
   },
   "home": {
     "title": "One Tap Dodge",
@@ -19,17 +15,12 @@
     "subtitle": "Toque para trocar de faixa. Desvie dos obstáculos.",
     "bestScore": "Melhor pontuação",
     "lastScore": "Última pontuação",
-    "howToPlay": "Como jogar",
-    "guide": "Guia",
-    "skins": "Aparências",
-    "noInternetNeeded": "Não precisa de internet",
     "rewardBanner": "🎉 Recompensa disponível nos Desafios!"
   },
   "game": {
     "tapToStart": "Começar",
     "gameOver": "Fim de jogo",
     "playAgain": "Jogar de novo",
-    "score": "Pontuação",
     "finalScore": "Pontuação final",
     "newBest": "NOVO RECORDE!",
     "time": "Tempo",
@@ -98,7 +89,6 @@
     "nextMultiplier": "Complete os dois → {{value}}x",
     "rewardAvailable": "Recompensa disponível!",
     "claimReward": "Resgatar recompensa",
-    "rewardClaimed": "Recompensa resgatada!",
     "near_miss_run": "Faça {{count}} near-misses em uma partida",
     "coins_run": "Colete {{count}} moedas em uma partida",
     "score_run": "Atinja {{count}} pontos em uma partida",
