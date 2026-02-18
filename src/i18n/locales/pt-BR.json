@@ -40,7 +40,12 @@
     "paused": "Pausado",
     "watchAdToContinue": "Assistir anúncio para continuar",
     "loadingAd": "Carregando anúncio…",
-    "countdownGo": "JÁ!"
+    "countdownGo": "JÁ!",
+    "bestShort": "Melhor:",
+    "doubleCoins": "2x moedas!",
+    "shield": "Escudo",
+    "shieldReady": "Escudo PRONTO",
+    "nearMissBonusLabel": "+50"
   },
   "settings": {
     "title": "Configurações",

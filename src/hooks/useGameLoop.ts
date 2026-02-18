@@ -229,6 +229,8 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
       setReviveGrace(state, Date.now() + 2000);
       state.phase = 'playing';
       incrementRevivesUsedThisRun();
+      // Zero shield so the first collision after revive triggers game over (no “invincibility” from leftover shield)
+      setShieldMeter(0);
       setPhase('playing');
       setObstacles([...state.obstacles]);
       setCoins([...state.coins]);
@@ -239,7 +241,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
         isRevivingRef.current = false;
       }, 500);
     }
-  }, [incrementRevivesUsedThisRun]);
+  }, [incrementRevivesUsedThisRun, setShieldMeter]);
 
   useEffect(() => {
     if (!dimensions || phase !== 'playing' || !stateRef.current) return;

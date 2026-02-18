@@ -33,6 +33,24 @@ let interstitialAd: InterstitialAd | null = null;
 let rewardedLoaded = false;
 let interstitialLoaded = false;
 
+/** Listeners notified when rewarded ad load state changes (LOADED or ERROR). Used so UI can re-render. */
+const rewardedLoadListeners = new Set<() => void>();
+
+function notifyRewardedLoadState(): void {
+  rewardedLoadListeners.forEach((listener) => listener());
+}
+
+/**
+ * Subscribe to rewarded ad load state changes. Callback is called when the ad loads or fails.
+ * Returns unsubscribe function.
+ */
+export function subscribeRewardedLoadState(listener: () => void): () => void {
+  rewardedLoadListeners.add(listener);
+  return () => {
+    rewardedLoadListeners.delete(listener);
+  };
+}
+
 export function isRewardedLoaded(): boolean {
   return rewardedLoaded && rewardedAd?.loaded === true;
 }
@@ -45,13 +63,16 @@ function createRewarded() {
   rewardedAd = RewardedAd.createForAdRequest(REWARDED_AD_UNIT_ID, {});
   rewardedAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
     rewardedLoaded = true;
+    notifyRewardedLoadState();
   });
   rewardedAd.addAdEventListener(AdEventType.CLOSED, () => {
     rewardedLoaded = false;
+    notifyRewardedLoadState();
     loadRewarded();
   });
   rewardedAd.addAdEventListener(AdEventType.ERROR, () => {
     rewardedLoaded = false;
+    notifyRewardedLoadState();
     loadRewarded();
   });
   loadRewarded();
@@ -75,6 +96,11 @@ function createInterstitial() {
 
 function loadRewarded() {
   rewardedAd?.load();
+}
+
+/** Call to retry loading the rewarded ad (e.g. after a failure). UI can call this on "Tentar novamente". */
+export function retryLoadRewarded(): void {
+  if (rewardedAd && !rewardedLoaded) loadRewarded();
 }
 
 function loadInterstitial() {

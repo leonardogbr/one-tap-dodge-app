@@ -13,6 +13,7 @@ import type { RootStackParamList } from '../navigation/types';
 import { PressableScale } from '../components/PressableScale';
 import { useTheme } from '../hooks/useTheme';
 import { usePulseAnimation } from '../hooks/usePulseAnimation';
+import { useInterstitialBeforeGame } from '../hooks/useInterstitialBeforeGame';
 import { useGameStore, SKIN_VISUALS, PRIME_SKIN_ID } from '../state/store';
 import { spacing } from '../theme';
 import { Text, Card, Button } from '../design-system';
@@ -31,14 +32,18 @@ export function HomeScreen() {
   const skinVisual = SKIN_VISUALS[PRIME_SKIN_ID] ?? SKIN_VISUALS.classic;
   const pulseAnimatedStyle = usePulseAnimation(!!skinVisual.pulse);
   const isNavigatingRef = useRef(false);
+  const maybeShowInterstitialThenProceed = useInterstitialBeforeGame();
 
   const handlePlay = () => {
     if (isNavigatingRef.current) return;
     isNavigatingRef.current = true;
-    navigation.navigate('Game');
-    setTimeout(() => {
-      isNavigatingRef.current = false;
-    }, 1000);
+    maybeShowInterstitialThenProceed(() => {
+      navigation.navigate('Game');
+    }).finally(() => {
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 1000);
+    });
   };
 
   const styles = useMemo(

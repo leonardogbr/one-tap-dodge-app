@@ -5,6 +5,7 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import Animated, {
   FadeIn,
   FadeOut,
@@ -22,6 +23,8 @@ interface HUDProps {
   coinsThisRun?: number;
   shieldMeter?: number; // 0–1
   nearMissFlash?: boolean;
+  /** 2x coins bonus active — show badge in HUD (center, below best). */
+  coinMultiplierActive?: boolean;
 }
 
 export function HUD({
@@ -30,8 +33,10 @@ export function HUD({
   coinsThisRun = 0,
   shieldMeter = 0,
   nearMissFlash,
+  coinMultiplierActive = false,
 }: HUDProps) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const scoreScale = useSharedValue(1);
   const prevScoreRef = useRef(score);
@@ -49,6 +54,8 @@ export function HUD({
         },
         score: { fontSize: 36, fontWeight: '700', color: colors.text },
         best: { fontSize: 14, color: colors.textMuted, marginTop: spacing.xs },
+        coinMultiplierBadge: { marginTop: spacing.xs, backgroundColor: colors.success, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: 8 },
+        coinMultiplierText: { fontSize: 14, fontWeight: '700', color: colors.background },
         row: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm, gap: spacing.sm },
         coins: { fontSize: 14, color: colors.text },
         shieldWrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
@@ -91,7 +98,12 @@ export function HUD({
         <Text style={styles.score}>{score}</Text>
       </Animated.View>
       {best > 0 && (
-        <Text style={styles.best}>Best: {best}</Text>
+        <Text style={styles.best}>{t('game.bestShort')} {best}</Text>
+      )}
+      {coinMultiplierActive && (
+        <View style={styles.coinMultiplierBadge}>
+          <Text style={styles.coinMultiplierText}>{t('game.doubleCoins')}</Text>
+        </View>
       )}
       <View style={styles.row}>
         <Text style={styles.coins}>🪙 {coinsThisRun}</Text>
@@ -116,7 +128,7 @@ export function HUD({
               shieldMeter >= 1 && styles.shieldLabelReady,
             ]}
           >
-            {shieldMeter >= 1 ? 'Shield READY' : 'Shield'}
+            {shieldMeter >= 1 ? t('game.shieldReady') : t('game.shield')}
           </Text>
         </View>
       </View>
@@ -126,7 +138,7 @@ export function HUD({
           entering={FadeIn.duration(180)}
           exiting={FadeOut.duration(220)}
         >
-          <Text style={styles.nearMissText}>+50</Text>
+          <Text style={styles.nearMissText}>{t('game.nearMissBonusLabel')}</Text>
         </Animated.View>
       )}
     </View>

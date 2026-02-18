@@ -33,6 +33,8 @@ import { PressableScale } from '../components/PressableScale';
 import { useTheme } from '../hooks/useTheme';
 import { useTranslation } from 'react-i18next';
 import { useGameStore } from '../state/store';
+import { useInterstitialBeforeGame } from '../hooks/useInterstitialBeforeGame';
+import { useRewardedAdLoaded } from '../hooks/useRewardedAdLoaded';
 import { spacing } from '../theme';
 import { isRewardedLoaded, showRewarded } from '../services/ads';
 import { Text, Card, Button } from '../design-system';
@@ -57,6 +59,8 @@ export function GameOverScreen() {
   const [reviveLoading, setReviveLoading] = useState(false);
   const contentWidth = screenWidth - spacing.xl * 2;
   const isNavigatingRef = useRef(false);
+  const maybeShowInterstitialThenProceed = useInterstitialBeforeGame();
+  const rewardedAdLoaded = useRewardedAdLoaded();
 
   // Floating animation for NEW BEST badge
   // Always initialize hooks to maintain consistent order
@@ -135,18 +139,21 @@ export function GameOverScreen() {
   const handlePlayAgain = () => {
     if (isNavigatingRef.current) return;
     isNavigatingRef.current = true;
-    // Reset navigation stack: remove both Game and GameOver, then navigate to new Game
-    // This ensures we start with a clean stack: Home -> Game (new)
-    navigation.reset({
-      index: 1,
-      routes: [
-        { name: 'Home' },
-        { name: 'Game' },
-      ],
+    maybeShowInterstitialThenProceed(() => {
+      // Reset navigation stack: remove both Game and GameOver, then navigate to new Game
+      // This ensures we start with a clean stack: Home -> Game (new)
+      navigation.reset({
+        index: 1,
+        routes: [
+          { name: 'Home' },
+          { name: 'Game' },
+        ],
+      });
+    }).finally(() => {
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 1000);
     });
-    setTimeout(() => {
-      isNavigatingRef.current = false;
-    }, 1000);
   };
 
   const handleHome = () => {
@@ -325,12 +332,12 @@ export function GameOverScreen() {
               {t('game.watchAdReviveDescription')}
             </Text>
             <Button
-              title={isRewardedLoaded() ? t('game.watchAdToContinue') : t('game.loadingAd')}
+              title={rewardedAdLoaded ? t('game.watchAdToContinue') : t('game.loadingAd')}
               onPress={handleRevive}
               variant="primary"
               size="medium"
               icon="▶"
-              disabled={!isRewardedLoaded() || reviveLoading}
+              disabled={!rewardedAdLoaded || reviveLoading}
               fullWidth
             />
           </Card>

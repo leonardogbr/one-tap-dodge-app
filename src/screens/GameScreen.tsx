@@ -113,7 +113,6 @@ export function GameScreen() {
   const scoreMultiplier = useGameStore((s) => s.scoreMultiplier);
   const canRevive = useGameStore((s) => s.canRevive);
   const reviveEarnedFromAd = useGameStore((s) => s.reviveEarnedFromAd);
-  const setReviveEarnedFromAd = useGameStore((s) => s.setReviveEarnedFromAd);
   const equippedSkinId = useGameStore((s) => s.equippedSkinId);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Game'>>();
   const skinVisual = SKIN_VISUALS[equippedSkinId] ?? SKIN_VISUALS.classic;
@@ -195,28 +194,27 @@ export function GameScreen() {
   }, [phase]);
 
   // When returning from GameOver after earning revive from ad, trigger revive.
-  // Also reset state when coming back from GameOver screen (e.g., "Play Again")
+  // Only run revive when we actually came back from GameOver (user watched ad and pressed back).
+  // If we only check reviveEarnedFromAd, the effect also runs when phase changes to 'game_over'
+  // (new callback), and we'd auto-revive every time without the user watching an ad.
   useFocusEffect(
     useCallback(() => {
-      // Handle revive from ad
-      if (reviveEarnedFromAd) {
+      if (reviveEarnedFromAd && hasNavigatedAwayRef.current) {
         hasNavigatedAwayRef.current = false;
-        setReviveEarnedFromAd(false);
         revive();
         return;
       }
 
       // Only reset if we had navigated away (hasNavigatedAwayRef is true)
       // and phase is still 'game_over' when screen receives focus
-      // This means we came back from GameOver screen
+      // This means we came back from GameOver screen (e.g. "Play Again" without watching ad)
       if (hasNavigatedAwayRef.current && phase === 'game_over') {
         hasNavigatedAwayRef.current = false;
         resetForCountdown();
-        // Reset coins and shield meter when coming back from GameOver
         setCoinsThisRun(0);
         setShieldMeter(0);
       }
-    }, [phase, resetForCountdown, reviveEarnedFromAd, setReviveEarnedFromAd, revive, setCoinsThisRun, setShieldMeter])
+    }, [phase, resetForCountdown, reviveEarnedFromAd, revive, setCoinsThisRun, setShieldMeter])
   );
 
   // Reset coins and shield meter when screen receives focus and phase is 'idle' or 'paused'
@@ -319,6 +317,7 @@ export function GameScreen() {
           justifyContent: 'center',
           alignItems: 'center',
           paddingHorizontal: spacing.md,
+          zIndex: 25,
         },
         overlayCard: {
           flexDirection: 'row',
@@ -466,23 +465,17 @@ export function GameScreen() {
           coinsThisRun={coinsThisRun}
           shieldMeter={shieldMeter}
           nearMissFlash={nearMissFlash}
+          coinMultiplierActive={coinMultiplierActive}
         />
 
-        {(phase === 'playing' || (scoreMultiplier > 1 || coinMultiplierActive)) && (
+        {(phase === 'playing' || scoreMultiplier > 1) && (
           <View style={styles.topBarRow} pointerEvents="box-none">
             <View style={styles.topBarLeft} pointerEvents="none">
-              {(scoreMultiplier > 1 || coinMultiplierActive) && (
+              {scoreMultiplier > 1 && (
                 <View style={styles.multiplierWrap}>
-                  {scoreMultiplier > 1 && (
-                    <View style={[styles.multiplierBadge, { backgroundColor: colors.primary }]}>
-                      <Text variant="bodySmall" style={{ color: colors.onPrimary, fontWeight: '700' }}>{scoreMultiplier}x</Text>
-                    </View>
-                  )}
-                  {coinMultiplierActive && (
-                    <View style={[styles.multiplierBadge, { backgroundColor: colors.success }]}>
-                      <Text variant="bodySmall" style={{ color: colors.onPrimary, fontWeight: '700' }}>2x coins!</Text>
-                    </View>
-                  )}
+                  <View style={[styles.multiplierBadge, { backgroundColor: colors.primary }]}>
+                    <Text variant="bodySmall" style={{ color: colors.onPrimary, fontWeight: '700' }}>{scoreMultiplier}x</Text>
+                  </View>
                 </View>
               )}
             </View>

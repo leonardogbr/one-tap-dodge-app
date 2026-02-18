@@ -39,7 +39,12 @@
     "paused": "Paused",
     "watchAdToContinue": "Watch Ad to Continue",
     "loadingAd": "Loading ad…",
-    "countdownGo": "GO!"
+    "countdownGo": "GO!",
+    "bestShort": "Best:",
+    "doubleCoins": "2x coins!",
+    "shield": "Shield",
+    "shieldReady": "Shield READY",
+    "nearMissBonusLabel": "+50"
   },
   "settings": {
     "title": "Settings",
