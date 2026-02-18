@@ -90,6 +90,13 @@ export function GameScreen() {
         withTiming(1, { duration: 90 })
       );
     }
+    
+    return () => {
+      // Cleanup: reset scale on unmount
+      if (playerScale.value !== 1) {
+        playerScale.value = 1;
+      }
+    };
   }, [laneSwapTick, playerScale]);
   const playerAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: playerScale.value }],
@@ -605,11 +612,22 @@ function CollisionExplosion({ x, y, color }: { x: number; y: number; color: stri
   const opacity = useSharedValue(0.9);
 
   useEffect(() => {
+    // Reset values before starting animation
+    scale.value = 0;
+    opacity.value = 0.9;
+    
+    // Start animation
     scale.value = withSequence(
       withTiming(2.5, { duration: 350, easing: Easing.out(Easing.cubic) }),
       withTiming(3, { duration: 150 })
     );
     opacity.value = withDelay(200, withTiming(0, { duration: 300 }));
+    
+    return () => {
+      // Cleanup animations on unmount
+      scale.value = 0;
+      opacity.value = 0;
+    };
   }, [scale, opacity]);
 
   const animatedStyle = useAnimatedStyle(() => ({

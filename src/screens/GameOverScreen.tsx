@@ -90,9 +90,10 @@ export function GameOverScreen() {
       cancelAnimation(floatPhase);
       cancelAnimation(scalePhase);
       cancelAnimation(opacityPhase);
-      opacityPhase.value = 0;
-      scalePhase.value = 0;
+      // Reset values synchronously to avoid warnings
       floatPhase.value = 0;
+      scalePhase.value = 0;
+      opacityPhase.value = 0;
     }
     
     // Cleanup: cancel animations when component unmounts
@@ -100,6 +101,10 @@ export function GameOverScreen() {
       cancelAnimation(floatPhase);
       cancelAnimation(scalePhase);
       cancelAnimation(opacityPhase);
+      // Reset values on cleanup
+      floatPhase.value = 0;
+      scalePhase.value = 0;
+      opacityPhase.value = 0;
     };
   }, [isNewBest, floatPhase, scalePhase, opacityPhase]);
 
