@@ -84,7 +84,6 @@ export function ChallengesScreen() {
         container: {
           flex: 1,
           backgroundColor: colors.background,
-          paddingTop: insets.top,
         },
         scroll: { flex: 1 },
         scrollContent: { padding: spacing.lg },

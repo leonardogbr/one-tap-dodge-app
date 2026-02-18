@@ -36,11 +36,10 @@ export function Header({
           flexDirection: 'row',
           alignItems: 'center',
           paddingHorizontal: spacing.md,
-          paddingTop: spacing.xl,
+          paddingTop: insets.top + spacing.sm,
           paddingBottom: spacing.md,
           borderBottomWidth: 1,
           borderBottomColor: colors.backgroundLight,
-          paddingTop: insets.top + spacing.xl,
         },
         style,
       ]}
