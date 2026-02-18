@@ -72,34 +72,54 @@ export function GameScreen() {
     highScore,
     laneSwapTick,
     runTimeMs,
+    reviveCountdownPending,
+    setReviveCountdownPending,
     resetForCountdown,
     startGame,
     swapLane,
     pause,
     resume,
+    resumeFromRevive,
     quitFromPause,
     restartFromPause,
     revive,
   } = useGameLoop(dimensions);
 
   const playerScale = useSharedValue(1);
+  /** Animated left position for smooth lane transition (px). Synced on phase change; animated on swap. */
+  const playerLeft = useSharedValue(0);
+  const prevPhaseRef = useRef<string | null>(null);
+
+  // Sync player position when game phase shows the player (idle, countdown, or playing), without animation.
   useEffect(() => {
-    if (laneSwapTick > 0) {
-      playerScale.value = withSequence(
-        withTiming(1.15, { duration: 60, easing: Easing.out(Easing.cubic) }),
-        withTiming(1, { duration: 90 })
-      );
+    if (!dimensions || !player) return;
+    const laneCenters = dimensions.laneCenterX;
+    const targetLeft = laneCenters[player.lane] - PLAYER_RADIUS;
+    const justEnteredPlayingOrPaused =
+      (phase === 'playing' || phase === 'paused') &&
+      prevPhaseRef.current !== phase;
+    prevPhaseRef.current = phase;
+    if (phase === 'idle' || justEnteredPlayingOrPaused) {
+      playerLeft.value = targetLeft;
     }
-    
-    return () => {
-      // Cleanup: reset scale on unmount
-      if (playerScale.value !== 1) {
-        playerScale.value = 1;
-      }
-    };
-  }, [laneSwapTick, playerScale]);
+  }, [dimensions, player, phase, playerLeft]);
+
+  // On lane swap: only animate position (smooth transition). Scale pulse is countdown-only.
+  useEffect(() => {
+    if (!dimensions || !player || laneSwapTick <= 0) return;
+    const laneCenters = dimensions.laneCenterX;
+    const targetLeft = laneCenters[player.lane] - PLAYER_RADIUS;
+    playerLeft.value = withTiming(targetLeft, {
+      duration: 180,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [laneSwapTick, dimensions, player, playerLeft]);
+
   const playerAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: playerScale.value }],
+  }));
+  const playerPositionStyle = useAnimatedStyle(() => ({
+    left: playerLeft.value,
   }));
 
   const [countdownStep, setCountdownStep] = useState<CountdownStep>(null);
@@ -113,6 +133,7 @@ export function GameScreen() {
   const scoreMultiplier = useGameStore((s) => s.scoreMultiplier);
   const canRevive = useGameStore((s) => s.canRevive);
   const reviveEarnedFromAd = useGameStore((s) => s.reviveEarnedFromAd);
+  const setReviveEarnedFromAd = useGameStore((s) => s.setReviveEarnedFromAd);
   const equippedSkinId = useGameStore((s) => s.equippedSkinId);
   const totalCoins = useGameStore((s) => s.totalCoins);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Game'>>();
@@ -127,8 +148,17 @@ export function GameScreen() {
     []
   );
 
+  // Countdown drives the player scale pulse (in sync from when countdown appears).
+  const runCountdownPulse = useCallback(() => {
+    playerScale.value = withSequence(
+      withTiming(1.15, { duration: 60, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 90 })
+    );
+  }, [playerScale]);
+
   useEffect(() => {
     if (countdownStep === null) return;
+    runCountdownPulse();
     if (countdownStep === 'go') {
       const tId = setTimeout(() => {
         setCountdownStep(null);
@@ -139,7 +169,16 @@ export function GameScreen() {
     const next: CountdownStep = countdownStep === 3 ? 2 : countdownStep === 2 ? 1 : 'go';
     const tId = setTimeout(() => setCountdownStep(next), COUNTDOWN_STEP_MS);
     return () => clearTimeout(tId);
-  }, [countdownStep]);
+  }, [countdownStep, runCountdownPulse]);
+
+  // When returning from ad (revive): show countdown like after pause, then resume with revive grace.
+  // useLayoutEffect so countdown starts synchronously after revive() sets paused + reviveCountdownPending.
+  useLayoutEffect(() => {
+    if (phase === 'paused' && reviveCountdownPending) {
+      setReviveCountdownPending(false);
+      startCountdown(resumeFromRevive);
+    }
+  }, [phase, reviveCountdownPending, setReviveCountdownPending, resumeFromRevive]);
 
   // Android: prevent back button from leaving the game while playing or paused; allow back when idle/game_over.
   useEffect(() => {
@@ -195,34 +234,36 @@ export function GameScreen() {
   }, [phase]);
 
   // When returning from GameOver after earning revive from ad, trigger revive.
-  // Only run revive when we actually came back from GameOver (user watched ad and pressed back).
-  // If we only check reviveEarnedFromAd, the effect also runs when phase changes to 'game_over'
-  // (new callback), and we'd auto-revive every time without the user watching an ad.
+  // Revive when we have the flag and phase is game_over (avoids relying on hasNavigatedAwayRef if screen remounted).
+  // If phase is idle (e.g. screen remounted), clear the flag so we don't get stuck.
   useFocusEffect(
     useCallback(() => {
-      if (reviveEarnedFromAd && hasNavigatedAwayRef.current) {
-        hasNavigatedAwayRef.current = false;
-        revive();
+      if (!reviveEarnedFromAd) {
+        if (hasNavigatedAwayRef.current && phase === 'game_over') {
+          hasNavigatedAwayRef.current = false;
+          resetForCountdown();
+          setCoinsThisRun(0);
+          setShieldMeter(0);
+        }
         return;
       }
-
-      // Only reset if we had navigated away (hasNavigatedAwayRef is true)
-      // and phase is still 'game_over' when screen receives focus
-      // This means we came back from GameOver screen (e.g. "Play Again" without watching ad)
-      if (hasNavigatedAwayRef.current && phase === 'game_over') {
-        hasNavigatedAwayRef.current = false;
-        resetForCountdown();
-        setCoinsThisRun(0);
-        setShieldMeter(0);
+      if (phase === 'idle') {
+        setReviveEarnedFromAd(false);
+        return;
       }
-    }, [phase, resetForCountdown, reviveEarnedFromAd, revive, setCoinsThisRun, setShieldMeter])
+      if (phase === 'game_over') {
+        hasNavigatedAwayRef.current = false;
+        revive();
+      }
+    }, [phase, resetForCountdown, reviveEarnedFromAd, revive, setCoinsThisRun, setShieldMeter, setReviveEarnedFromAd])
   );
 
-  // Reset coins and shield meter when screen receives focus and phase is 'idle' or 'paused'
-  // This ensures they are zeroed when entering the screen for a new game
+  // Reset coins and shield only when entering the screen with no run in progress (idle).
+  // Do NOT zero when phase is 'paused': that would wipe run stats before quit and make
+  // the Game Over cards show 0 for coins (and would break consistency with near misses / time).
   useFocusEffect(
     useCallback(() => {
-      if (phase === 'idle' || phase === 'paused') {
+      if (phase === 'idle') {
         setCoinsThisRun(0);
         setShieldMeter(0);
       }
@@ -489,15 +530,15 @@ export function GameScreen() {
           ))}
 
           {player && (
-            <View
+            <Animated.View
               style={[
                 styles.playerWrap,
                 {
-                  left: laneCenters[player.lane] - PLAYER_RADIUS,
                   top: player.centerY - PLAYER_RADIUS,
                   width: PLAYER_RADIUS * 2,
                   height: PLAYER_RADIUS * 2,
                 },
+                playerPositionStyle,
               ]}
             >
               {skinVisual.pulse && (
@@ -541,7 +582,7 @@ export function GameScreen() {
                   <View style={[styles.playerRing, { borderColor: skinVisual.edge }]} />
                 )}
               </Animated.View>
-            </View>
+            </Animated.View>
           )}
         </View>
 
@@ -599,8 +640,8 @@ export function GameScreen() {
           </View>
         )}
 
-        {/* Pause overlay — hidden during countdown so countdown is shown on game view */}
-        {phase === 'paused' && countdownStep === null && (
+        {/* Pause overlay — hidden during countdown or when revive countdown is about to start */}
+        {phase === 'paused' && countdownStep === null && !reviveCountdownPending && (
           <Animated.View
             style={styles.overlay}
             entering={FadeIn.duration(180)}
@@ -639,7 +680,7 @@ export function GameScreen() {
                     onPress={quitFromPause}
                     variant="danger"
                     size="medium"
-                    icon="close"
+                    icon="exit_to_app"
                     fullWidth
                   />
                 </View>

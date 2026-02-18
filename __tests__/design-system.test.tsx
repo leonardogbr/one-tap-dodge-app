@@ -3,6 +3,8 @@
  * Tests for design system tokens and components
  */
 
+jest.mock('react-native-vector-icons/MaterialIcons', () => 'Icon');
+
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import { Text, Button, Card } from '../src/design-system';
@@ -70,8 +72,8 @@ describe('Design System Tokens', () => {
 
   describe('Typography', () => {
     it('should have correct typography variants', () => {
-      expect(typography.h1.fontSize).toBe(32);
-      expect(typography.h1.fontWeight).toBe('800');
+      expect(typography.h1.fontSize).toBe(36);
+      expect(typography.h1.fontWeight).toBe('700');
       expect(typography.body.fontSize).toBe(16);
       expect(typography.button.fontSize).toBe(18);
       expect(typography.button.fontWeight).toBe('700');
@@ -80,15 +82,15 @@ describe('Design System Tokens', () => {
 
   describe('Colors', () => {
     it('should have dark colors defined', () => {
-      expect(darkColors.background).toBe('#0d1117');
-      expect(darkColors.primary).toBe('#38e8ff');
-      expect(darkColors.text).toBe('#e6edf3');
+      expect(darkColors.background).toBe('#070A12');
+      expect(darkColors.primary).toBe('#38E8FF');
+      expect(darkColors.text).toBe('#E6EDF3');
     });
 
     it('should have light colors defined', () => {
-      expect(lightColors.background).toBe('#f0f4f8');
-      expect(lightColors.primary).toBe('#0ea5e9');
-      expect(lightColors.text).toBe('#1e293b');
+      expect(lightColors.background).toBe('#F4F7FF');
+      expect(lightColors.primary).toBe('#00B4D8');
+      expect(lightColors.text).toBe('#1E2633');
     });
   });
 });

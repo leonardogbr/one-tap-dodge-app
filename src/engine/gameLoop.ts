@@ -19,6 +19,7 @@ import {
   COIN_FIRST_SPAWN_DELAY_MS,
   COIN_WIDTH,
   COIN_HEIGHT,
+  COIN_OBSTACLE_SPAWN_MARGIN,
   SPAWN_OTHER_LANE_TOP_ZONE_Y,
   MAX_CONSECUTIVE_OBSTACLES_SAME_LANE,
 } from './constants';
@@ -46,8 +47,6 @@ export interface GameLoopState {
   nearMissStreak: number;
   /** Timestamp (ms) until which 2x coins spawn is active; 0 = inactive */
   coinMultiplierActiveUntil: number;
-  /** After revive: no obstacle spawn until this time (ms); 0 = no grace */
-  reviveGraceUntil: number;
 }
 
 export interface TickResult {
@@ -110,13 +109,8 @@ export function tick(
     (c) => c.y + c.height < state.screenHeight + 50
   );
 
-  // 3. Spawn obstacles — skip during revive grace so player can reorient
-  const inReviveGrace =
-    state.reviveGraceUntil > 0 && currentTimeMs < state.reviveGraceUntil;
-  if (
-    !inReviveGrace &&
-    shouldSpawn(state.lastSpawnTime, currentTimeMs, state.score)
-  ) {
+  // 3. Spawn obstacles
+  if (shouldSpawn(state.lastSpawnTime, currentTimeMs, state.score)) {
     const TOP_ZONE_Y = 120;
     const coinInTop = state.coins.find((c) => c.y < TOP_ZONE_Y);
     const laneWithCoinInTop = coinInTop ? coinInTop.lane : null;
@@ -195,25 +189,26 @@ export function tick(
     };
 
     const coinSpawnY = -COIN_HEIGHT;
-    
-    // Helper function to check if two rectangles overlap
+
     const rectsOverlap = (
       r1x: number, r1y: number, r1w: number, r1h: number,
       r2x: number, r2y: number, r2w: number, r2h: number
-    ): boolean => {
-      return r1x < r2x + r2w && r1x + r1w > r2x && r1y < r2y + r2h && r1y + r1h > r2y;
-    };
+    ): boolean =>
+      r1x < r2x + r2w && r1x + r1w > r2x && r1y < r2y + r2h && r1y + r1h > r2y;
 
-    // Check if coin would overlap with any obstacle in the given lane
+    // Check if coin would overlap (or get too close to) any obstacle in the lane.
+    // Use a margin so we never spawn with coin partly inside obstacle.
     const laneHasObstacleOverlap = (l: Lane): boolean => {
       const coinX = state.laneCenterX[l] - COIN_WIDTH / 2;
+      const m = COIN_OBSTACLE_SPAWN_MARGIN;
+      const cx = coinX - m;
+      const cy = coinSpawnY - m;
+      const cw = COIN_WIDTH + 2 * m;
+      const ch = COIN_HEIGHT + 2 * m;
       return state.obstacles.some(
         (obs) =>
           obs.lane === l &&
-          rectsOverlap(
-            coinX, coinSpawnY, COIN_WIDTH, COIN_HEIGHT,
-            obs.x, obs.y, obs.width, obs.height
-          )
+          rectsOverlap(cx, cy, cw, ch, obs.x, obs.y, obs.width, obs.height)
       );
     };
 
@@ -303,15 +298,6 @@ export function tick(
 export function removeObstacleById(state: GameLoopState, id: string): void {
   state.obstacles = state.obstacles.filter((o) => o.id !== id);
   state.phase = 'playing';
-}
-
-/** Clear all obstacles and set grace period (no spawn) until graceEndMs. Use after revive. */
-export function setReviveGrace(
-  state: GameLoopState,
-  graceEndMs: number
-): void {
-  state.obstacles = [];
-  state.reviveGraceUntil = graceEndMs;
 }
 
 export function createInitialPlayer(

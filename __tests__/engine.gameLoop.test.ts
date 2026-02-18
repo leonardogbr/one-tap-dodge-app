@@ -1,7 +1,6 @@
 import {
   tick,
   removeObstacleById,
-  setReviveGrace,
   createInitialPlayer,
   swapPlayerLane,
   type GameLoopState,
@@ -64,7 +63,6 @@ const createState = (overrides: Partial<GameLoopState> = {}): GameLoopState => (
   screenHeight: 600,
   nearMissStreak: 0,
   coinMultiplierActiveUntil: 0,
-  reviveGraceUntil: 0,
   ...overrides,
 });
 
@@ -120,14 +118,6 @@ describe('engine/gameLoop', () => {
     const state = createState({ lastSpawnTime: 1000 });
 
     tick(state, 0, 1000 + SPAWN_INTERVAL_MS - 1);
-
-    expect(state.obstacles).toHaveLength(0);
-  });
-
-  it('skips spawning obstacles during revive grace', () => {
-    const state = createState({ reviveGraceUntil: 5000 });
-
-    tick(state, 0, 2000);
 
     expect(state.obstacles).toHaveLength(0);
   });
@@ -355,17 +345,6 @@ describe('engine/gameLoop', () => {
 
     expect(state.obstacles).toHaveLength(0);
     expect(state.phase).toBe('playing');
-  });
-
-  it('clears obstacles and sets revive grace', () => {
-    const state = createState({
-      obstacles: [makeObstacle({ id: 'a' }), makeObstacle({ id: 'b' })],
-    });
-
-    setReviveGrace(state, 5000);
-
-    expect(state.obstacles).toHaveLength(0);
-    expect(state.reviveGraceUntil).toBe(5000);
   });
 
   it('creates initial player with provided or random lane', () => {

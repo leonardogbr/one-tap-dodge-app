@@ -9,6 +9,7 @@ export const ICON_NAMES = [
   'arrow_back',
   'settings',
   'close',
+  'exit_to_app',
   'play_arrow',
   'pause',
   'replay',
@@ -39,9 +40,10 @@ export const ICON_MAP: Record<IconName, string> = {
   arrow_back: '\u2190',    // ←
   settings: '\u2699',       // ⚙ (gear)
   close: '\u00D7',          // ×
+  exit_to_app: '\u2396',   // ⎖ (exit / leave) — fallback when not using icon font
   play_arrow: '\u25B6',     // ▶
   pause: '\u23F8',         // ⏸
-  replay: '\u21BB',        // ↻
+  replay: '\u21BB',        // ↻ (restart)
   shield: '\u26E8',        // ⛨ (shield)
   monetization_on: '\u00A2', // ¢ (coin / currency)
   checkroom: '\u1F45C',     // 👕 (Skins / wardrobe)

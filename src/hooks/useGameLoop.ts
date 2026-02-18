@@ -10,7 +10,6 @@ import {
   createInitialPlayer,
   swapPlayerLane,
   removeObstacleById,
-  setReviveGrace,
   type GameLoopState,
 } from '../engine/gameLoop';
 import { COIN_TO_SHIELD, MAX_REVIVES_PER_RUN } from '../engine/constants';
@@ -39,6 +38,10 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
   const [coinMultiplierActive, setCoinMultiplierActive] = useState(false);
   const [laneSwapTick, setLaneSwapTick] = useState(0);
   const [runTimeMs, setRunTimeMs] = useState(0);
+  /** True after revive() until countdown starts; GameScreen uses this to show countdown instead of pause overlay */
+  const [reviveCountdownPending, setReviveCountdownPending] = useState(false);
+  /** Bumped when resuming from revive so the loop effect re-runs and starts requestAnimationFrame */
+  const [loopResumeKey, setLoopResumeKey] = useState(0);
 
   const stateRef = useRef<GameLoopState | null>(null);
   const rafIdRef = useRef<number | null>(null);
@@ -52,6 +55,8 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
   const isResumingRef = useRef(false);
   const isQuittingRef = useRef(false);
   const isRevivingRef = useRef(false);
+  /** Set in the playing-phase effect so quitFromPause can call the same finish-run logic as collision */
+  const finishRunRef = useRef<(() => void) | null>(null);
 
   const {
     setScore: setStoreScore,
@@ -63,6 +68,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
     endRun,
     startRun: storeStartRun,
     setCanRevive,
+    setReviveEarnedFromAd,
     incrementRevivesUsedThisRun,
     highScore,
     addRunToLifetimeStats,
@@ -97,7 +103,6 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
         screenHeight: dimensions.height,
         nearMissStreak: 0,
         coinMultiplierActiveUntil: 0,
-        reviveGraceUntil: 0,
       };
       stateRef.current = state;
       setPhase('paused');
@@ -115,6 +120,14 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
       }, 500);
     }
   }, [dimensions, setCoinsThisRun, setShieldMeter]);
+
+  /** When entering the game screen (idle), show the player in a lane like after restart. */
+  useEffect(() => {
+    if (!dimensions || phase !== 'idle' || player !== null) return;
+    const initialPlayer = createInitialPlayer(dimensions.height);
+    pendingInitialLaneRef.current = initialPlayer.lane;
+    setPlayer({ ...initialPlayer });
+  }, [dimensions, phase, player]);
 
   const startGame = useCallback(() => {
     if (!dimensions || isStartingGameRef.current) return;
@@ -140,7 +153,6 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
         screenHeight: dimensions.height,
         nearMissStreak: 0,
         coinMultiplierActiveUntil: 0,
-        reviveGraceUntil: 0,
       };
       stateRef.current = state;
       state.lastCoinSpawnTime = Date.now();
@@ -192,13 +204,15 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
     }
   }, []);
 
+  /** Same destination as collision: finish run (stats, challenges, endRun) then game_over. Reuses finishRunAndCheckChallenges so revive and navigation behave the same. */
   const quitFromPause = useCallback(() => {
     if (isQuittingRef.current) return;
     const state = stateRef.current;
     if (!state || state.phase !== 'paused') return;
     isQuittingRef.current = true;
     try {
-      endRun();
+      setRunTimeMs(state.gameTimeMs);
+      finishRunRef.current?.();
       state.phase = 'game_over';
       setPhase('game_over');
     } finally {
@@ -206,7 +220,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
         isQuittingRef.current = false;
       }, 500);
     }
-  }, [endRun]);
+  }, []);
 
   /** End current run and reset board so a new countdown can start (e.g. Restart from pause). */
   const restartFromPause = useCallback(() => {
@@ -220,28 +234,36 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
     if (isRevivingRef.current) return;
     const state = stateRef.current;
     const id = lastCollidedObstacleIdRef.current;
-    if (!state || state.phase !== 'game_over' || !id) return;
+    if (!state || state.phase !== 'game_over') return;
     isRevivingRef.current = true;
+    setReviveEarnedFromAd(false);
     try {
       lastCollidedObstacleIdRef.current = null;
-      removeObstacleById(state, id);
-      // Clear all obstacles and pause spawn for 2s so the user can reorient after the ad
-      setReviveGrace(state, Date.now() + 2000);
-      state.phase = 'playing';
+      if (id) removeObstacleById(state, id);
       incrementRevivesUsedThisRun();
-      // Zero shield so the first collision after revive triggers game over (no “invincibility” from leftover shield)
       setShieldMeter(0);
-      setPhase('playing');
+      state.phase = 'paused';
+      setPhase('paused');
       setObstacles([...state.obstacles]);
       setCoins([...state.coins]);
       setPlayer({ ...state.player });
-      lastTimeRef.current = Date.now();
+      setReviveCountdownPending(true);
     } finally {
       setTimeout(() => {
         isRevivingRef.current = false;
       }, 500);
     }
-  }, [incrementRevivesUsedThisRun, setShieldMeter]);
+  }, [incrementRevivesUsedThisRun, setReviveEarnedFromAd, setShieldMeter]);
+
+  /** Called when countdown after revive finishes; same behavior as resume() (no extra grace). */
+  const resumeFromRevive = useCallback(() => {
+    const state = stateRef.current;
+    if (!state || state.phase !== 'paused') return;
+    state.phase = 'playing';
+    lastTimeRef.current = Date.now();
+    setLoopResumeKey((k) => k + 1);
+    setPhase('playing');
+  }, []);
 
   useEffect(() => {
     if (!dimensions || phase !== 'playing' || !stateRef.current) return;
@@ -312,6 +334,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
       
       endRun();
     };
+    finishRunRef.current = finishRunAndCheckChallenges;
 
     const loop = () => {
       const state = stateRef.current;
@@ -398,7 +421,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- loop uses store.getState() and refs; deps intentionally minimal to avoid restarting loop
-  }, [dimensions, phase]);
+  }, [dimensions, phase, loopResumeKey]);
 
   return {
     phase,
@@ -411,11 +434,14 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
     highScore,
     laneSwapTick,
     runTimeMs,
+    reviveCountdownPending,
+    setReviveCountdownPending,
     resetForCountdown,
     startGame,
     swapLane,
     pause,
     resume,
+    resumeFromRevive,
     quitFromPause,
     restartFromPause,
     revive,
