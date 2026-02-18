@@ -63,7 +63,7 @@ export function HUD({
         shieldWrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
         shieldBar: { width: 80, height: 8, backgroundColor: colors.backgroundLight, borderRadius: 4, overflow: 'hidden', borderWidth: 1, borderColor: 'transparent' },
         shieldBarReady: { borderColor: colors.success, borderWidth: 1.5 },
-        shieldFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 4 },
+        shieldFill: { height: '100%', backgroundColor: colors.secondary, borderRadius: 4 },
         shieldFillReady: { backgroundColor: colors.success },
         shieldLabel: { fontFamily: FONT_FAMILY.regular, fontSize: 12, color: colors.textMuted, minWidth: 52 },
         shieldLabelReady: { color: colors.success, fontWeight: '700' },

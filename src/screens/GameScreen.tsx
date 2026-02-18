@@ -358,9 +358,9 @@ export function GameScreen() {
         multiplierWrap: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
         multiplierBadge: { paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: borderRadius.sm },
         shieldIconActive: {
-          backgroundColor: 'rgba(96, 165, 250, 0.1)', // blue-500/10
+          backgroundColor: colors.success + '1A',
           borderWidth: 1,
-          borderColor: 'rgba(96, 165, 250, 0.3)', // blue-400/30
+          borderColor: colors.success + '4D',
           borderRadius: borderRadius.sm,
           padding: spacing.xs,
         },
@@ -607,7 +607,7 @@ export function GameScreen() {
                   )}
                   {shieldMeter >= 1 && (
                     <View style={styles.shieldIconActive}>
-                      <Icon name="shield" size={18} color={isDark ? '#93C5FD' : '#2563EB'} />
+                      <Icon name="shield" size={18} color={colors.success} />
                     </View>
                   )}
                 </View>
