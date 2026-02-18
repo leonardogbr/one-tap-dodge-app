@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
+import { View, type ViewStyle, type StyleProp } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { spacing } from '../tokens/spacing';
 import { borderRadius } from '../tokens/borders';
@@ -15,7 +15,7 @@ export type CardVariant = 'default' | 'elevated' | 'outlined' | 'highlighted';
 export interface CardProps {
   children: React.ReactNode;
   variant?: CardVariant;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   padding?: keyof typeof spacing;
 }
 

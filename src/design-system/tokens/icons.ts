@@ -30,6 +30,7 @@ export const ICON_NAMES = [
   'lock',        // Skins: indicador de bloqueado
   'lock_open',   // Skins: botão desbloquear
   'check',       // Skins: botão equipar
+  'check_circle', // Skins: indicador equipado
 ] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];
@@ -61,6 +62,7 @@ export const ICON_MAP: Record<IconName, string> = {
   lock: '\u1F512',         // 🔒 (lock / cadeado)
   lock_open: '\u1F513',    // 🔓 (lock open / cadeado aberto)
   check: '\u2713',        // ✓ (check mark / equipar)
+  check_circle: '\u2713', // ✓ (fallback; Material Icons render check_circle)
 };
 
 export function getIconChar(name: IconName | string): string {

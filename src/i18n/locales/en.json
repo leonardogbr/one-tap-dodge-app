@@ -6,7 +6,8 @@
     "resume": "Resume",
     "restart": "Restart",
     "quit": "Quit",
-    "equipped": "Equipped"
+    "equipped": "Equipped",
+    "free": "Free"
   },
   "home": {
     "title": "One Tap Dodge",

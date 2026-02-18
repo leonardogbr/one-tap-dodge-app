@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -46,7 +46,6 @@ export function SkinsScreen() {
     if (totalCoins >= cost) {
       unlockSkin(skinId);
       useGameStore.getState().addTotalCoins(-cost);
-      equipSkin(skinId);
     }
   };
 
@@ -110,6 +109,11 @@ export function SkinsScreen() {
         skinCircleWrap: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
         skinCircle: { width: 32, height: 32, borderRadius: 16, overflow: 'hidden' },
         skinCircleEquipped: { borderWidth: 2, borderColor: colors.success },
+        equippedCard: {
+          borderWidth: 2,
+          borderColor: colors.success,
+          backgroundColor: colors.success + '18',
+        },
         skinPulse: { position: 'absolute', width: 32, height: 32, borderRadius: 16, opacity: 0 },
         skinHighlight: {
           position: 'absolute',
@@ -140,7 +144,44 @@ export function SkinsScreen() {
           opacity: 0.9,
         },
         skinInfo: { flex: 1 },
-        lockedRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+        actionRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: spacing.sm,
+          minHeight: 34,
+        },
+        actionSpacer: { flex: 1 },
+        costRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.xs,
+        },
+        costRowUnlocked: { opacity: 0.5 },
+        costTextUnlocked: {
+          textDecorationLine: 'line-through',
+        },
+        actionSlot: {
+          width: 34,
+          height: 34,
+          minWidth: 34,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        actionSlotInner: {
+          width: 34,
+          height: 34,
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'absolute',
+        },
+        actionButton: {
+          width: 34,
+          height: 34,
+          minWidth: 34,
+          paddingVertical: 0,
+          paddingHorizontal: 0,
+        },
         lockIconContainer: {
           width: 34,
           height: 34,
@@ -151,19 +192,13 @@ export function SkinsScreen() {
           borderWidth: 1,
           borderColor: colors.textMuted + '40',
         },
-        unlockButton: {
+        equippedBadge: {
           width: 34,
           height: 34,
-          minWidth: 34,
-          paddingVertical: 0,
-          paddingHorizontal: 0,
-        },
-        equipButton: {
-          width: 34,
-          height: 34,
-          minWidth: 34,
-          paddingVertical: 0,
-          paddingHorizontal: 0,
+          borderRadius: borderRadius.sm,
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingHorizontal: 2,
         },
       }),
     [colors, insets.top]
@@ -190,9 +225,14 @@ export function SkinsScreen() {
           const cost = SKIN_COSTS[skinId] ?? 0;
           const canUnlock = !unlocked && totalCoins >= cost;
           const skinVisual = SKIN_VISUALS[skinId] ?? SKIN_VISUALS.classic;
+          const actionKey = unlocked ? (equipped ? 'equipped' : 'equip') : (canUnlock ? 'unlock' : 'locked');
 
           return (
-            <Card key={skinId} variant="default" style={styles.skinRow}>
+            <Card
+              key={skinId}
+              variant="default"
+              style={[styles.skinRow, ...(equipped ? [styles.equippedCard] : [])]}
+            >
               <View style={styles.skinPreview}>
                 <SkinPreviewCircle skin={skinVisual} equipped={equipped} />
               </View>
@@ -200,39 +240,70 @@ export function SkinsScreen() {
                 <Text variant="body" style={{ fontWeight: '600', marginBottom: spacing.xs }}>
                   {t(`skins.${skinId}`)}
                 </Text>
-                {unlocked ? (
-                  equipped ? (
-                    <Text variant="bodySmall" color="success">{t('common.equipped')}</Text>
-                  ) : (
-                    <Button
-                      onPress={() => handleEquip(skinId)}
-                      variant="primary"
-                      size="small"
-                      icon="check"
-                      style={styles.equipButton}
-                    />
-                  )
-                ) : (
-                  <View style={styles.lockedRow}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-                      <Icon name="monetization_on" size={16} color={colors.coin} />
-                      <Text variant="bodySmall" color="muted">{cost}</Text>
-                    </View>
-                    {canUnlock ? (
-                      <Button
-                        onPress={() => handleUnlock(skinId)}
-                        variant="revive"
-                        size="small"
-                        icon="lock_open"
-                        style={styles.unlockButton}
+                <View style={styles.actionRow}>
+                  {cost > 0 ? (
+                    <View
+                      style={[
+                        styles.costRow,
+                        unlocked && styles.costRowUnlocked,
+                      ]}
+                    >
+                      <Icon
+                        name="monetization_on"
+                        size={16}
+                        color={colors.coin}
                       />
-                    ) : (
-                      <View style={styles.lockIconContainer}>
-                        <Icon name="lock" size={18} color={colors.textMuted} />
-                      </View>
-                    )}
+                      <Text
+                        variant="bodySmall"
+                        color="muted"
+                        style={unlocked ? styles.costTextUnlocked : undefined}
+                      >
+                        {cost}
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text variant="bodySmall" color="muted">
+                      {t('common.free')}
+                    </Text>
+                  )}
+                  <View style={styles.actionSlot}>
+                    <Animated.View
+                      key={actionKey}
+                      entering={FadeIn.duration(180)}
+                      exiting={FadeOut.duration(120)}
+                      style={styles.actionSlotInner}
+                    >
+                      {actionKey === 'locked' && (
+                        <View style={styles.lockIconContainer}>
+                          <Icon name="lock" size={18} color={colors.textMuted} />
+                        </View>
+                      )}
+                      {actionKey === 'unlock' && (
+                        <Button
+                          onPress={() => handleUnlock(skinId)}
+                          variant="revive"
+                          size="small"
+                          icon="lock_open"
+                          style={styles.actionButton}
+                        />
+                      )}
+                      {actionKey === 'equip' && (
+                        <Button
+                          onPress={() => handleEquip(skinId)}
+                          variant="primary"
+                          size="small"
+                          icon="check"
+                          style={styles.actionButton}
+                        />
+                      )}
+                      {actionKey === 'equipped' && (
+                        <View style={[styles.equippedBadge, { backgroundColor: colors.success + '25' }]}>
+                          <Icon name="check_circle" size={22} color={colors.success} />
+                        </View>
+                      )}
+                    </Animated.View>
                   </View>
-                )}
+                </View>
               </View>
             </Card>
           );
