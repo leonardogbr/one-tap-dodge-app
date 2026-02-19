@@ -36,7 +36,8 @@
     "bestShort": "Best:",
     "doubleCoins": "2x coins!",
     "shield": "Shield",
-    "shieldReady": "Shield READY",
+    "shieldPower": "Shield Power",
+    "shieldReady": "Ready",
     "nearMissBonusLabel": "+50"
   },
   "settings": {

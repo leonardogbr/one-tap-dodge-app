@@ -16,6 +16,7 @@ const KEY_SETTINGS = '@onetapdodge/settings';
 const KEY_GAME_OVERS_INTERSTITIAL = '@onetapdodge/gameOversSinceLastInterstitial';
 const KEY_SCORE_MULTIPLIER = '@onetapdodge/scoreMultiplier';
 const KEY_CHALLENGE_GROUP_INDEX = '@onetapdodge/challengeGroupIndex';
+const KEY_CHALLENGE_SHUFFLE_SEED = '@onetapdodge/challengeShuffleSeed';
 const KEY_CURRENT_GROUP_PROGRESS = '@onetapdodge/currentGroupProgress';
 const KEY_CHALLENGE_GROUP_BASELINE = '@onetapdodge/challengeGroupBaseline';
 const KEY_LIFETIME_STATS = '@onetapdodge/lifetimeStats';
@@ -33,6 +34,7 @@ export async function hydrateStore(): Promise<void> {
       gameOvers,
       scoreMultiplier,
       challengeGroupIndex,
+      challengeShuffleSeed,
       currentGroupProgressJson,
       challengeGroupBaselineJson,
       lifetimeStatsJson,
@@ -47,6 +49,7 @@ export async function hydrateStore(): Promise<void> {
       AsyncStorage.getItem(KEY_GAME_OVERS_INTERSTITIAL),
       AsyncStorage.getItem(KEY_SCORE_MULTIPLIER),
       AsyncStorage.getItem(KEY_CHALLENGE_GROUP_INDEX),
+      AsyncStorage.getItem(KEY_CHALLENGE_SHUFFLE_SEED),
       AsyncStorage.getItem(KEY_CURRENT_GROUP_PROGRESS),
       AsyncStorage.getItem(KEY_CHALLENGE_GROUP_BASELINE),
       AsyncStorage.getItem(KEY_LIFETIME_STATS),
@@ -76,6 +79,13 @@ export async function hydrateStore(): Promise<void> {
       const v = parseInt(challengeGroupIndex, 10);
       if (Number.isInteger(v) && v >= 0 && v <= 17)
         updates.challengeGroupIndex = v;
+    }
+    if (challengeShuffleSeed != null) {
+      const v = parseInt(challengeShuffleSeed, 10);
+      if (Number.isInteger(v) && v >= 0)
+        updates.challengeShuffleSeed = v;
+    } else {
+      updates.challengeShuffleSeed = Math.floor(Math.random() * 2147483647);
     }
     if (currentGroupProgressJson != null) {
       try {
@@ -182,6 +192,10 @@ export function persistScoreMultiplier(v: number): void {
 
 export function persistChallengeGroupIndex(v: number): void {
   AsyncStorage.setItem(KEY_CHALLENGE_GROUP_INDEX, String(v));
+}
+
+export function persistChallengeShuffleSeed(v: number): void {
+  AsyncStorage.setItem(KEY_CHALLENGE_SHUFFLE_SEED, String(v));
 }
 
 export function persistCurrentGroupProgress(progress: CurrentGroupProgress): void {

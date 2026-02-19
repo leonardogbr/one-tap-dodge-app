@@ -36,7 +36,8 @@
     "bestShort": "Mejor:",
     "doubleCoins": "¡2x monedas!",
     "shield": "Escudo",
-    "shieldReady": "Escudo LISTO",
+    "shieldPower": "Poder del Escudo",
+    "shieldReady": "Listo",
     "nearMissBonusLabel": "+50"
   },
   "settings": {

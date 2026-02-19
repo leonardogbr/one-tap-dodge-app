@@ -14,7 +14,7 @@ export const OBSTACLE_WIDTH = 60;
 export const OBSTACLE_HEIGHT = 40;
 
 /** Player sits in bottom third: center Y as fraction of screen height from top (0–1) */
-export const PLAYER_CENTER_Y_FRACTION = 0.82;
+export const PLAYER_CENTER_Y_FRACTION = 0.74;
 
 /** Collision: strict overlap only (no gap). */
 export const COLLISION_STRICT = true;
@@ -32,16 +32,16 @@ export const SPAWN_OTHER_LANE_TOP_ZONE_Y = 140;
 /** Spawn: max obstacles in a row in the same lane; after this we force the other lane for variety. */
 export const MAX_CONSECUTIVE_OBSTACLES_SAME_LANE = 2;
 
-/** Coins: size and spawn interval (ms) */
-export const COIN_WIDTH = 28;
-export const COIN_HEIGHT = 28;
+/** Coins: size and spawn interval (ms). Design: slightly larger, with glow and pulse. */
+export const COIN_WIDTH = 36;
+export const COIN_HEIGHT = 36;
 /** Min gap (px) between coin spawn rect and obstacles; avoids coin partly inside obstacle. */
 export const COIN_OBSTACLE_SPAWN_MARGIN = 6;
 export const COIN_SPAWN_INTERVAL_MS = 4000;
 /** Coins start spawning only after this many ms of gameplay (e.g. 5s). */
 export const COIN_FIRST_SPAWN_DELAY_MS = 5000;
-/** Shield: each coin adds this much to meter (0–1). 14 coins = full shield. */
-export const COIN_TO_SHIELD = 1 / 14;
+/** Shield: each coin adds this much to meter (0–1). 15 coins = full shield. */
+export const COIN_TO_SHIELD = 1 / 15;
 
 /** Difficulty: speed increase per 1000 score (px/s) */
 export const SPEED_INCREASE_PER_1000 = 15;

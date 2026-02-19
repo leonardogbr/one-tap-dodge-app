@@ -21,6 +21,7 @@ import Animated, {
   withSequence,
   withTiming,
   withDelay,
+  withRepeat,
   Easing,
 } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
@@ -88,6 +89,8 @@ export function GameScreen() {
   const playerScale = useSharedValue(1);
   /** Animated left position for smooth lane transition (px). Synced on phase change; animated on swap. */
   const playerLeft = useSharedValue(0);
+  /** Coin pulse animation (design: breathing — scale 1→1.1→1, lung-like inhale/exhale) */
+  const coinPulse = useSharedValue(1);
   const prevPhaseRef = useRef<string | null>(null);
 
   // Sync player position when game phase shows the player (idle, countdown, or playing), without animation.
@@ -114,6 +117,27 @@ export function GameScreen() {
       easing: Easing.out(Easing.cubic),
     });
   }, [laneSwapTick, dimensions, player, playerLeft]);
+
+  useEffect(() => {
+    if (phase === 'playing') {
+      if (coins.length > 0) {
+        coinPulse.value = withRepeat(
+          withSequence(
+            withTiming(1.1, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
+            withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) })
+          ),
+          -1,
+          false
+        );
+      } else {
+        coinPulse.value = withTiming(1, { duration: 200 });
+      }
+    }
+  }, [phase, coins.length, coinPulse]);
+
+  const coinPulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: coinPulse.value }],
+  }));
 
   const playerAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: playerScale.value }],
@@ -296,7 +320,26 @@ export function GameScreen() {
         lanes: { flexDirection: 'row', flex: 1 },
         lane: { flex: 1, backgroundColor: colors.backgroundLight, borderRightWidth: 1, borderRightColor: colors.primaryDim },
         obstacle: { position: 'absolute', backgroundColor: colors.obstacle, opacity: 0.95, borderRadius: borderRadius.sm },
-        coin: { position: 'absolute', backgroundColor: '#ffd700', borderWidth: 2, borderColor: '#b8860b' },
+        coin: {
+          position: 'absolute',
+          backgroundColor: colors.coin,
+          borderRadius: 999,
+          borderWidth: 2,
+          borderColor: 'rgba(255,255,255,0.35)',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'visible',
+          shadowColor: colors.coin,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.7,
+          shadowRadius: 8,
+          elevation: 12,
+        },
+        coinSymbol: {
+          color: colors.onCoin,
+          fontWeight: '600',
+          fontSize: COIN_WIDTH * 0.55,
+        },
         playerWrap: {
           position: 'absolute',
           alignItems: 'center',
@@ -520,13 +563,21 @@ export function GameScreen() {
           ))}
 
           {coins.map((coin) => (
-            <View
+            <Animated.View
               key={coin.id}
               style={[
                 styles.coin,
-                { left: coin.x, top: coin.y, width: COIN_WIDTH, height: COIN_HEIGHT, borderRadius: COIN_WIDTH / 2 },
+                coinPulseStyle,
+                {
+                  left: coin.x,
+                  top: coin.y,
+                  width: COIN_WIDTH,
+                  height: COIN_HEIGHT,
+                },
               ]}
-            />
+            >
+              <Text style={styles.coinSymbol}>$</Text>
+            </Animated.View>
           ))}
 
           {player && (
@@ -595,7 +646,7 @@ export function GameScreen() {
           coinMultiplierActive={coinMultiplierActive}
         />
 
-        {(phase === 'playing' || scoreMultiplier > 1) && (
+        {(phase === 'playing' || (phase === 'paused' && shieldMeter >= 1) || scoreMultiplier > 1) && (
           <View style={styles.topBarRow} pointerEvents="box-none">
             <View style={styles.topBarLeft} pointerEvents="none">
               {(scoreMultiplier > 1 || shieldMeter >= 1) && (

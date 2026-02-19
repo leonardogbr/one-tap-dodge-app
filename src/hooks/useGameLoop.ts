@@ -15,7 +15,6 @@ import {
 import { COIN_TO_SHIELD, MAX_REVIVES_PER_RUN } from '../engine/constants';
 import {
   getChallengesForGroup,
-  getInitialProgressForGroup,
   getLifetimeValue,
   CHALLENGE_SCOPE,
 } from '../engine/challenges';
@@ -270,10 +269,17 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
 
     const finishRunAndCheckChallenges = () => {
       const store = useGameStore.getState();
-      const { coinsThisRun, score: runScore, nearMissesThisRun, challengeGroupIndex: groupIdx, challengeGroupBaseline } = store;
+      const {
+        coinsThisRun,
+        score: runScore,
+        nearMissesThisRun,
+        challengeGroupIndex: groupIdx,
+        challengeShuffleSeed: shuffleSeed,
+        challengeGroupBaseline,
+      } = store;
       addRunToLifetimeStats({ coins: coinsThisRun, score: runScore, nearMisses: nearMissesThisRun });
       let stateAfter = useGameStore.getState();
-      const challenges = getChallengesForGroup(groupIdx);
+      const challenges = getChallengesForGroup(groupIdx, shuffleSeed);
       
       // Update cumulative challenges progress (calculate as difference from baseline)
       for (const ch of challenges) {

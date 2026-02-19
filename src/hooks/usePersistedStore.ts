@@ -14,6 +14,7 @@ import {
   persistGameOversSinceLastInterstitial,
   persistScoreMultiplier,
   persistChallengeGroupIndex,
+  persistChallengeShuffleSeed,
   persistCurrentGroupProgress,
   persistChallengeGroupBaseline,
   persistLifetimeStats,
@@ -38,6 +39,7 @@ export function usePersistedStore() {
     locale: 'system',
     scoreMultiplier: 1,
     challengeGroupIndex: 0,
+    challengeShuffleSeed: 0,
     currentGroupProgress: {} as CurrentGroupProgress,
     challengeGroupBaseline: {
       totalCoins: 0,
@@ -120,6 +122,10 @@ export function usePersistedStore() {
       if (state.challengeGroupIndex !== last.current.challengeGroupIndex) {
         last.current.challengeGroupIndex = state.challengeGroupIndex;
         persistChallengeGroupIndex(state.challengeGroupIndex);
+      }
+      if (state.challengeShuffleSeed !== last.current.challengeShuffleSeed) {
+        last.current.challengeShuffleSeed = state.challengeShuffleSeed;
+        persistChallengeShuffleSeed(state.challengeShuffleSeed);
       }
       const progStr = JSON.stringify(state.currentGroupProgress);
       if (progStr !== JSON.stringify(last.current.currentGroupProgress)) {

@@ -20,8 +20,8 @@ export type ColorPalette = {
   danger: string;
   success: string;
   obstacle: string;
-  /** Moeda / ícone monetization_on (doc: yellow-400) */
   coin: string;
+  onCoin: string;
 };
 
 export const darkColors: ColorPalette = {
@@ -39,7 +39,8 @@ export const darkColors: ColorPalette = {
   danger: '#FF4D6D',
   success: '#3FB950',
   obstacle: '#FF4D6D',
-  coin: '#FACC15', // yellow-400, ícone de moeda (doc)
+  coin: '#FACC15',
+  onCoin: '#0a0a0a',
 };
 
 export const lightColors: ColorPalette = {
@@ -57,7 +58,8 @@ export const lightColors: ColorPalette = {
   danger: '#FF4D6D',
   success: '#16A34A',
   obstacle: '#FF4D6D',
-  coin: '#EAB308', // yellow-500, um pouco mais escuro no claro para contraste
+  coin: '#EAB308',
+  onCoin: '#0a0a0a',
 };
 
 /** Legacy export: defaults to dark. Prefer useTheme(). */

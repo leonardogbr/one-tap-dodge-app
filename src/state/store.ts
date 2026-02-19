@@ -34,6 +34,8 @@ export interface GameSlice {
   scoreMultiplier: number;
   /** Current challenge group index (0–17). */
   challengeGroupIndex: number;
+  /** Per-install random seed for challenge variety; 0 = legacy deterministic. */
+  challengeShuffleSeed: number;
   /** Progress for the 2 challenges of the current group (challengeId -> value). */
   currentGroupProgress: CurrentGroupProgress;
   /** Lifetime stats baseline when current group started (for cumulative challenges to start from 0). */
@@ -86,7 +88,7 @@ export interface ProgressSlice {
   incrementGamesPlayed: () => void;
   incrementGameOversSinceLastInterstitial: () => void;
   resetGameOversSinceLastInterstitial: () => void;
-  setFromPersisted: (data: Partial<Pick<ProgressSlice, 'totalCoins' | 'unlockedSkins' | 'equippedSkinId' | 'gameOversSinceLastInterstitial'> & { highScore?: number; lastScore?: number; scoreMultiplier?: number; challengeGroupIndex?: number; currentGroupProgress?: CurrentGroupProgress; challengeGroupBaseline?: LifetimeStats; lifetimeStats?: LifetimeStats; rewardAvailable?: boolean }>) => void;
+  setFromPersisted: (data: Partial<Pick<ProgressSlice, 'totalCoins' | 'unlockedSkins' | 'equippedSkinId' | 'gameOversSinceLastInterstitial'> & { highScore?: number; lastScore?: number; scoreMultiplier?: number; challengeGroupIndex?: number; challengeShuffleSeed?: number; currentGroupProgress?: CurrentGroupProgress; challengeGroupBaseline?: LifetimeStats; lifetimeStats?: LifetimeStats; rewardAvailable?: boolean }>) => void;
 }
 
 export type ThemeMode = 'dark' | 'light' | 'system';
@@ -307,6 +309,7 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
   shieldMeter: 0,
   scoreMultiplier: 1,
   challengeGroupIndex: 0,
+  challengeShuffleSeed: 0,
   currentGroupProgress: {},
   challengeGroupBaseline: defaultLifetimeStats,
   runStartedAfterClaim: false,
@@ -327,7 +330,12 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
   setCanRevive: (v) => set({ canRevive: v }),
   incrementRevivesUsedThisRun: () =>
     set((s) => ({ revivesUsedThisRun: s.revivesUsedThisRun + 1 })),
-  setShieldMeter: (v) => set({ shieldMeter: Math.min(1, Math.max(0, v)) }),
+  setShieldMeter: (v) => {
+    const clamped = Math.min(1, Math.max(0, v));
+    // Fix floating-point: 15 * (1/15) ≈ 0.9999…, normalize to 1 so shield activates at 15 coins
+    const normalized = clamped >= 1 - 1e-9 ? 1 : clamped;
+    set({ shieldMeter: normalized });
+  },
   consumeShield: () => {
     const { shieldMeter } = get();
     if (shieldMeter >= 1) {
@@ -384,7 +392,10 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
       const { getInitialProgressForGroup } = require('../engine/challenges');
       
       // Get initial progress for new group (all zeros - both run and cumulative start from 0)
-      const nextProgress = nextGroupIdx <= 17 ? getInitialProgressForGroup(nextGroupIdx) : {};
+      const nextProgress =
+        nextGroupIdx <= 17
+          ? getInitialProgressForGroup(nextGroupIdx, s.challengeShuffleSeed)
+          : {};
       
       // Set baseline to current lifetime stats so cumulative challenges count from this point forward
       const newBaseline = { ...s.lifetimeStats };

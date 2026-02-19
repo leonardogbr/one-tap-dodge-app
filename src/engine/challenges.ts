@@ -47,9 +47,10 @@ const TARGET_CONFIG: Record<
   near_miss_total: { base: 5, step: 4, min: 5, max: 100 },
 };
 
-/** Deterministic seeded shuffle: pick two distinct types for the group. */
-function pickTwoTypes(groupIndex: number): [ChallengeType, ChallengeType] {
-  const seed = groupIndex * 7919 + 1;
+/** Deterministic seeded shuffle: pick two distinct types for the group.
+ * shuffleSeed: per-install random offset so each device gets different challenge combos (0 = legacy). */
+function pickTwoTypes(groupIndex: number, shuffleSeed = 0): [ChallengeType, ChallengeType] {
+  const seed = groupIndex * 7919 + 1 + shuffleSeed;
   let s = seed;
   const next = () => {
     const n = s * 1103515245 + 12345;
@@ -77,10 +78,14 @@ function descriptionKeyFor(type: ChallengeType): string {
 
 /**
  * Returns the two challenges for the given group index (0–17).
- * Deterministic: same groupIndex always yields the same pair.
+ * Deterministic per install: same groupIndex + shuffleSeed yields the same pair.
+ * shuffleSeed varies per installation for variety.
  */
-export function getChallengesForGroup(groupIndex: number): [Challenge, Challenge] {
-  const [t1, t2] = pickTwoTypes(groupIndex);
+export function getChallengesForGroup(
+  groupIndex: number,
+  shuffleSeed = 0
+): [Challenge, Challenge] {
+  const [t1, t2] = pickTwoTypes(groupIndex, shuffleSeed);
   const id0 = `group_${groupIndex}_challenge_0`;
   const id1 = `group_${groupIndex}_challenge_1`;
   return [
@@ -102,8 +107,11 @@ export function getChallengesForGroup(groupIndex: number): [Challenge, Challenge
 /**
  * Initial progress object for a group (both challenge ids with 0).
  */
-export function getInitialProgressForGroup(groupIndex: number): Record<string, number> {
-  const [a, b] = getChallengesForGroup(groupIndex);
+export function getInitialProgressForGroup(
+  groupIndex: number,
+  shuffleSeed = 0
+): Record<string, number> {
+  const [a, b] = getChallengesForGroup(groupIndex, shuffleSeed);
   return { [a.id]: 0, [b.id]: 0 };
 }
 

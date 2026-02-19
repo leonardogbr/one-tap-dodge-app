@@ -25,6 +25,7 @@ export function ChallengesScreen() {
 
   const scoreMultiplier = useGameStore((s) => s.scoreMultiplier);
   const challengeGroupIndex = useGameStore((s) => s.challengeGroupIndex);
+  const challengeShuffleSeed = useGameStore((s) => s.challengeShuffleSeed);
   const coinsThisRun = useGameStore((s) => s.coinsThisRun);
   const score = useGameStore((s) => s.score);
   const nearMissesThisRun = useGameStore((s) => s.nearMissesThisRun);
@@ -49,8 +50,8 @@ export function ChallengesScreen() {
   };
 
   const challenges = useMemo(
-    () => getChallengesForGroup(challengeGroupIndex),
-    [challengeGroupIndex]
+    () => getChallengesForGroup(challengeGroupIndex, challengeShuffleSeed),
+    [challengeGroupIndex, challengeShuffleSeed]
   );
 
   const getProgress = (ch: (typeof challenges)[0]): number => {

@@ -36,7 +36,8 @@
     "bestShort": "Melhor:",
     "doubleCoins": "2x moedas!",
     "shield": "Escudo",
-    "shieldReady": "Escudo PRONTO",
+    "shieldPower": "Força do Escudo",
+    "shieldReady": "Pronto",
     "nearMissBonusLabel": "+50"
   },
   "settings": {
