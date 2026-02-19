@@ -61,7 +61,7 @@ export function HUD({
         row: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm, gap: spacing.sm },
         coins: { fontFamily: FONT_FAMILY.regular, fontSize: 14, color: colors.text },
         shieldWrap: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-        shieldBar: { width: 80, height: 8, backgroundColor: colors.backgroundLight, borderRadius: 4, overflow: 'hidden', borderWidth: 1, borderColor: 'transparent' },
+        shieldBar: { width: 80, height: 8, backgroundColor: colors.backgroundCard, borderRadius: 4, overflow: 'hidden', borderWidth: 1, borderColor: 'transparent' },
         shieldBarReady: { borderColor: colors.success, borderWidth: 1.5 },
         shieldFill: { height: '100%', backgroundColor: colors.secondary, borderRadius: 4 },
         shieldFillReady: { backgroundColor: colors.success },

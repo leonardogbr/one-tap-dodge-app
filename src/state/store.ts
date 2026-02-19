@@ -370,7 +370,7 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
   addRunToLifetimeStats: (run) =>
     set((s) => ({
       lifetimeStats: {
-        totalCoins: s.totalCoins,
+        totalCoins: s.lifetimeStats.totalCoins + run.coins,
         totalScore: s.lifetimeStats.totalScore + run.score,
         gamesPlayed: s.lifetimeStats.gamesPlayed + 1,
         totalNearMisses: s.lifetimeStats.totalNearMisses + run.nearMisses,
