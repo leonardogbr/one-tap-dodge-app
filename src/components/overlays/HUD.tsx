@@ -19,6 +19,7 @@ import Animated, {
 import { useTheme } from '../../hooks/useTheme';
 import { FONT_FAMILY } from '../../design-system/tokens/typography';
 import { Icon } from '../../design-system/components/Icon';
+import { OdometerNumber } from '../OdometerNumber';
 import { spacing } from '../../theme';
 
 interface HUDProps {
@@ -242,8 +243,8 @@ export function HUD({
             </View>
           </View>
           <View style={styles.coinsPill}>
-            <Icon name="monetization_on" size={24} color={colors.coin} />
-            <Text style={styles.coinsCount}>{coinsThisRun}</Text>
+            <Icon name="monetization_on" size={18} color={colors.coin} />
+            <OdometerNumber value={coinsThisRun} style={styles.coinsCount} />
           </View>
         </View>
       </View>
