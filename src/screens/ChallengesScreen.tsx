@@ -275,7 +275,8 @@ export function ChallengesScreen() {
             variant="primary"
             size="large"
             fullWidth
-            icon="emoji_events"
+            icon="target"
+            iconCommunity
           />
         </Animated.View>
       )}

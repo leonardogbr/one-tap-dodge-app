@@ -19,6 +19,8 @@ import {
   persistChallengeGroupBaseline,
   persistLifetimeStats,
   persistRewardAvailable,
+  persistEarnedTrophies,
+  persistSeenTrophiesCount,
 } from '../state/persistence';
 import { useGameStore } from '../state/store';
 import type { CurrentGroupProgress, LifetimeStats } from '../state/store';
@@ -54,6 +56,8 @@ export function usePersistedStore() {
       totalNearMisses: 0,
     } as LifetimeStats,
     rewardAvailable: false,
+    earnedTrophies: [] as string[],
+    seenTrophiesCount: 0,
   });
 
   useEffect(() => {
@@ -152,6 +156,17 @@ export function usePersistedStore() {
       if (state.rewardAvailable !== last.current.rewardAvailable) {
         last.current.rewardAvailable = state.rewardAvailable;
         persistRewardAvailable(state.rewardAvailable);
+      }
+      if (
+        state.earnedTrophies.length !== last.current.earnedTrophies.length ||
+        state.earnedTrophies.some((id, i) => id !== last.current.earnedTrophies[i])
+      ) {
+        last.current.earnedTrophies = [...state.earnedTrophies];
+        persistEarnedTrophies(state.earnedTrophies);
+      }
+      if (state.seenTrophiesCount !== last.current.seenTrophiesCount) {
+        last.current.seenTrophiesCount = state.seenTrophiesCount;
+        persistSeenTrophiesCount(state.seenTrophiesCount);
       }
     });
   }, []);

@@ -62,14 +62,14 @@ export function PressableScale({
     <TouchableOpacity
       onPress={handlePress}
       onPressIn={() => {
-        if (!disabled && !isProcessingRef.current) {
+        if (!disabled) {
           scale.value = withTiming(0.96, { duration: 80 });
         }
       }}
       onPressOut={() => {
         scale.value = withTiming(1, { duration: 150 });
       }}
-      disabled={disabled || isProcessingRef.current}
+      disabled={disabled}
       activeOpacity={1}
     >
       <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>

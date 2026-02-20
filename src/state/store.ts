@@ -82,13 +82,19 @@ export interface ProgressSlice {
   equippedSkinId: string;
   gamesPlayed: number;
   gameOversSinceLastInterstitial: number;
+  earnedTrophies: string[];
+  seenTrophiesCount: number;
   addTotalCoins: (n: number) => void;
   unlockSkin: (skinId: string) => void;
+  unlockTrophy: (trophyId: string) => void;
+  /** Evaluate all trophies and unlock new ones. Returns IDs of newly unlocked. */
+  evaluateAndUnlockTrophies: (runStats?: { coins: number; nearMisses: number }) => string[];
+  markTrophiesSeen: () => void;
   equipSkin: (skinId: string) => void;
   incrementGamesPlayed: () => void;
   incrementGameOversSinceLastInterstitial: () => void;
   resetGameOversSinceLastInterstitial: () => void;
-  setFromPersisted: (data: Partial<Pick<ProgressSlice, 'totalCoins' | 'unlockedSkins' | 'equippedSkinId' | 'gameOversSinceLastInterstitial'> & { highScore?: number; lastScore?: number; scoreMultiplier?: number; challengeGroupIndex?: number; challengeShuffleSeed?: number; currentGroupProgress?: CurrentGroupProgress; challengeGroupBaseline?: LifetimeStats; lifetimeStats?: LifetimeStats; rewardAvailable?: boolean }>) => void;
+  setFromPersisted: (data: Partial<Pick<ProgressSlice, 'totalCoins' | 'unlockedSkins' | 'equippedSkinId' | 'gameOversSinceLastInterstitial' | 'earnedTrophies' | 'seenTrophiesCount'> & { highScore?: number; lastScore?: number; scoreMultiplier?: number; challengeGroupIndex?: number; challengeShuffleSeed?: number; currentGroupProgress?: CurrentGroupProgress; challengeGroupBaseline?: LifetimeStats; lifetimeStats?: LifetimeStats; rewardAvailable?: boolean }>) => void;
 }
 
 export type ThemeMode = 'dark' | 'light' | 'system';
@@ -422,12 +428,41 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
   equippedSkinId: 'classic',
   gamesPlayed: 0,
   gameOversSinceLastInterstitial: 0,
+  earnedTrophies: [],
+  seenTrophiesCount: 0,
   addTotalCoins: (n) =>
     set((s) => ({ totalCoins: Math.max(0, s.totalCoins + n) })),
-  unlockSkin: (skinId) =>
+  unlockSkin: (skinId) => {
+    const s = get();
+    if (s.unlockedSkins.includes(skinId)) return;
+    set({ unlockedSkins: [...s.unlockedSkins, skinId] });
+    get().evaluateAndUnlockTrophies();
+  },
+  unlockTrophy: (trophyId) =>
     set((s) =>
-      s.unlockedSkins.includes(skinId) ? s : { unlockedSkins: [...s.unlockedSkins, skinId] }
+      s.earnedTrophies.includes(trophyId) ? s : { earnedTrophies: [...s.earnedTrophies, trophyId] }
     ),
+  evaluateAndUnlockTrophies: (runStats) => {
+    const { evaluateTrophies } = require('../engine/trophies');
+    const s = get();
+    const evalState = {
+      lifetimeStats: s.lifetimeStats,
+      highScore: s.highScore,
+      totalCoins: s.totalCoins,
+      unlockedSkins: s.unlockedSkins,
+      scoreMultiplier: s.scoreMultiplier,
+      challengeGroupIndex: s.challengeGroupIndex,
+      coinsThisRun: runStats ? runStats.coins : s.coinsThisRun,
+      nearMissesThisRun: runStats ? runStats.nearMisses : s.nearMissesThisRun,
+      earnedTrophies: s.earnedTrophies,
+    };
+    const newlyUnlocked: string[] = evaluateTrophies(evalState);
+    if (newlyUnlocked.length > 0) {
+      set({ earnedTrophies: [...s.earnedTrophies, ...newlyUnlocked] });
+    }
+    return newlyUnlocked;
+  },
+  markTrophiesSeen: () => set((s) => ({ seenTrophiesCount: s.earnedTrophies.length })),
   equipSkin: (skinId) => set({ equippedSkinId: skinId }),
   incrementGamesPlayed: () => set((s) => ({ gamesPlayed: s.gamesPlayed + 1 })),
   incrementGameOversSinceLastInterstitial: () =>

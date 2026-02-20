@@ -21,6 +21,8 @@ const KEY_CURRENT_GROUP_PROGRESS = '@onetapdodge/currentGroupProgress';
 const KEY_CHALLENGE_GROUP_BASELINE = '@onetapdodge/challengeGroupBaseline';
 const KEY_LIFETIME_STATS = '@onetapdodge/lifetimeStats';
 const KEY_REWARD_AVAILABLE = '@onetapdodge/rewardAvailable';
+const KEY_EARNED_TROPHIES = '@onetapdodge/earnedTrophies';
+const KEY_SEEN_TROPHIES_COUNT = '@onetapdodge/seenTrophiesCount';
 
 export async function hydrateStore(): Promise<void> {
   try {
@@ -39,6 +41,8 @@ export async function hydrateStore(): Promise<void> {
       challengeGroupBaselineJson,
       lifetimeStatsJson,
       rewardAvailable,
+      earnedTrophiesJson,
+      seenTrophiesCount,
     ] = await Promise.all([
       AsyncStorage.getItem(KEY_HIGH_SCORE),
       AsyncStorage.getItem(KEY_LAST_SCORE),
@@ -54,6 +58,8 @@ export async function hydrateStore(): Promise<void> {
       AsyncStorage.getItem(KEY_CHALLENGE_GROUP_BASELINE),
       AsyncStorage.getItem(KEY_LIFETIME_STATS),
       AsyncStorage.getItem(KEY_REWARD_AVAILABLE),
+      AsyncStorage.getItem(KEY_EARNED_TROPHIES),
+      AsyncStorage.getItem(KEY_SEEN_TROPHIES_COUNT),
     ]);
 
     const updates: Record<string, unknown> = {};
@@ -111,8 +117,22 @@ export async function hydrateStore(): Promise<void> {
     if (rewardAvailable != null) {
       updates.rewardAvailable = rewardAvailable === 'true';
     }
+    if (earnedTrophiesJson != null) {
+      try {
+        updates.earnedTrophies = JSON.parse(earnedTrophiesJson) as string[];
+      } catch {
+        // ignore
+      }
+    }
+    if (seenTrophiesCount != null) {
+      const v = parseInt(seenTrophiesCount, 10);
+      if (Number.isInteger(v) && v >= 0) updates.seenTrophiesCount = v;
+    }
 
     useGameStore.getState().setFromPersisted(updates as never);
+
+    // Retroactive trophy evaluation after hydration
+    useGameStore.getState().evaluateAndUnlockTrophies();
 
     if (settingsJson != null) {
       try {
@@ -212,4 +232,12 @@ export function persistLifetimeStats(stats: LifetimeStats): void {
 
 export function persistRewardAvailable(v: boolean): void {
   AsyncStorage.setItem(KEY_REWARD_AVAILABLE, String(v));
+}
+
+export function persistEarnedTrophies(trophies: string[]): void {
+  AsyncStorage.setItem(KEY_EARNED_TROPHIES, JSON.stringify(trophies));
+}
+
+export function persistSeenTrophiesCount(count: number): void {
+  AsyncStorage.setItem(KEY_SEEN_TROPHIES_COUNT, String(count));
 }

@@ -30,6 +30,9 @@ export function HomeScreen() {
   const highScore = useGameStore((s) => s.highScore);
   const lastScore = useGameStore((s) => s.lastScore);
   const rewardAvailable = useGameStore((s) => s.rewardAvailable);
+  const hasNewTrophies = useGameStore(
+    (s) => s.earnedTrophies.length > s.seenTrophiesCount,
+  );
   const skinVisual = SKIN_VISUALS[PRIME_SKIN_ID] ?? SKIN_VISUALS.classic;
   const pulseAnimatedStyle = usePulseAnimation(!!skinVisual.pulse);
   const isNavigatingRef = useRef(false);
@@ -267,7 +270,8 @@ export function HomeScreen() {
               onPress={() => navigation.navigate('Challenges')}
               variant="secondary"
               size="medium"
-              icon="emoji_events"
+              icon="target"
+              iconCommunity
               fullWidth
               style={rewardAvailable ? styles.challengesBtnRewardGlow : undefined}
             />
@@ -281,6 +285,10 @@ export function HomeScreen() {
         </PressableScale>
         <PressableScale style={styles.navBtn} onPress={() => navigation.navigate('Skins')}>
           <Icon name="checkroom" size={28} color={colors.text} style={styles.navIcon} />
+        </PressableScale>
+        <PressableScale style={styles.navBtn} onPress={() => navigation.navigate('Trophies')}>
+          <RewardBadge visible={hasNewTrophies} />
+          <Icon name="emoji_events" size={28} color={colors.text} style={styles.navIcon} />
         </PressableScale>
         <PressableScale style={styles.navBtn} onPress={() => navigation.navigate('Settings')}>
           <Icon name="settings" size={28} color={colors.text} style={styles.navIcon} />
