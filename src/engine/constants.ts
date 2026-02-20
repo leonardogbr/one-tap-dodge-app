@@ -30,7 +30,7 @@ export const SPAWN_INTERVAL_MS = 1200;
 /** Spawn: if the other lane has an obstacle with y < this (px from top), spawn in that lane instead to avoid both lanes blocked at same level. */
 export const SPAWN_OTHER_LANE_TOP_ZONE_Y = 140;
 /** Spawn: max obstacles in a row in the same lane; after this we force the other lane for variety. */
-export const MAX_CONSECUTIVE_OBSTACLES_SAME_LANE = 2;
+export const MAX_CONSECUTIVE_OBSTACLES_SAME_LANE = 3;
 
 /** Coins: size and spawn interval (ms). Design: slightly larger, with glow and pulse. */
 export const COIN_WIDTH = 36;

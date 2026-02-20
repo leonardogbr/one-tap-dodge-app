@@ -18,4 +18,5 @@ export type RootStackParamList = {
   Settings: undefined;
   HowToPlay: undefined;
   Challenges: undefined;
+  Trophies: undefined;
 };

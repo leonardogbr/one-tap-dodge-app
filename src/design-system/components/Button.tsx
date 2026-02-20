@@ -26,6 +26,8 @@ export interface ButtonProps {
   size?: ButtonSize;
   disabled?: boolean;
   icon?: string;
+  /** Use MaterialCommunityIcons set for the icon. */
+  iconCommunity?: boolean;
   style?: ViewStyle;
   fullWidth?: boolean;
 }
@@ -33,6 +35,7 @@ export interface ButtonProps {
 export function Button({
   title = '',
   onPress,
+  iconCommunity,
   variant = 'primary',
   size = 'medium',
   disabled = false,
@@ -155,7 +158,7 @@ export function Button({
       disabled={disabled}
     >
       {icon && (
-        <Icon name={icon} size={iconSize} color={iconColor} />
+        <Icon name={icon} size={iconSize} color={iconColor} community={iconCommunity} />
       )}
       {hasText && <Text style={textStyle}>{title}</Text>}
     </PressableScale>

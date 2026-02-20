@@ -278,6 +278,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
         challengeGroupBaseline,
       } = store;
       addRunToLifetimeStats({ coins: coinsThisRun, score: runScore, nearMisses: nearMissesThisRun });
+      store.evaluateAndUnlockTrophies({ coins: coinsThisRun, nearMisses: nearMissesThisRun });
       let stateAfter = useGameStore.getState();
       const challenges = getChallengesForGroup(groupIdx, shuffleSeed);
       
