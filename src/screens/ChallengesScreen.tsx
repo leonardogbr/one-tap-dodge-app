@@ -2,10 +2,19 @@
  * Challenges screen — current group of 2 challenges, progress, score multiplier.
  */
 
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -14,7 +23,7 @@ import { useGameStore } from '../state/store';
 import { getChallengesForGroup, CHALLENGE_SCOPE, getLifetimeValue } from '../engine/challenges';
 import { useTheme } from '../hooks/useTheme';
 import { spacing } from '../theme';
-import { Text, Card, Header, Button } from '../design-system';
+import { Text, Card, Header, Button, Icon } from '../design-system';
 import { borderRadius } from '../design-system/tokens';
 
 export function ChallengesScreen() {
@@ -36,17 +45,17 @@ export function ChallengesScreen() {
   const runStartedAfterClaim = useGameStore((s) => s.runStartedAfterClaim);
   const claimReward = useGameStore((s) => s.claimReward);
   const isClaimingRef = useRef(false);
+  const [claimSuccessValue, setClaimSuccessValue] = useState<number | null>(null);
 
   const handleClaimReward = () => {
     if (isClaimingRef.current || !rewardAvailable) return;
     isClaimingRef.current = true;
-    try {
-      claimReward();
-    } finally {
-      setTimeout(() => {
-        isClaimingRef.current = false;
-      }, 500);
-    }
+    setClaimSuccessValue(nextMultiplier);
+    claimReward();
+    setTimeout(() => {
+      setClaimSuccessValue(null);
+      isClaimingRef.current = false;
+    }, 1400);
   };
 
   const challenges = useMemo(
@@ -79,6 +88,26 @@ export function ChallengesScreen() {
 
   const nextMultiplier = challengeGroupIndex < 17 ? scoreMultiplier + 0.5 : 10;
 
+  const rewardBadgeScale = useSharedValue(1);
+  useEffect(() => {
+    if (rewardAvailable) {
+      rewardBadgeScale.value = withRepeat(
+        withSequence(
+          withTiming(1.04, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+          withTiming(1, { duration: 800, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        false
+      );
+    } else {
+      rewardBadgeScale.value = withTiming(1, { duration: 200 });
+    }
+  }, [rewardAvailable, rewardBadgeScale]);
+
+  const rewardBadgeAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: rewardBadgeScale.value }],
+  }));
+
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -92,15 +121,45 @@ export function ChallengesScreen() {
           marginBottom: spacing.xl,
           alignItems: 'center',
         },
-        rewardBanner: {
-          backgroundColor: colors.primary,
-          borderRadius: borderRadius.md,
-          padding: spacing.lg,
-          marginBottom: spacing.lg,
+        rewardBadge: {
+          marginTop: spacing.md,
+          paddingHorizontal: spacing.md,
+          paddingVertical: spacing.md,
+          backgroundColor: colors.success + '25',
+          borderRadius: borderRadius.sm,
+          borderWidth: 1.5,
+          borderColor: colors.success + '70',
+          alignSelf: 'stretch',
           alignItems: 'center',
+          shadowColor: colors.success,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.4,
+          shadowRadius: 8,
+          elevation: 4,
+        },
+        fixedCtaWrap: {
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          paddingHorizontal: spacing.lg,
+          paddingBottom: insets.bottom + spacing.lg,
+          paddingTop: spacing.md,
+          backgroundColor: colors.background,
         },
         challengeCard: {
           marginBottom: spacing.md,
+        },
+        challengeCardCompleted: {
+          borderWidth: 1.5,
+          borderColor: colors.success + '60',
+          backgroundColor: colors.success + '0C',
+        },
+        challengeHeaderRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: spacing.sm,
         },
         progressBar: {
           height: 8,
@@ -109,8 +168,31 @@ export function ChallengesScreen() {
           overflow: 'hidden',
         },
         progressFill: { height: '100%', backgroundColor: colors.secondary, borderRadius: borderRadius.xs },
+        progressFillComplete: { backgroundColor: colors.success },
+        claimSuccessOverlay: {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 100,
+        },
+        claimSuccessCard: {
+          backgroundColor: colors.success,
+          paddingHorizontal: spacing.xl * 2,
+          paddingVertical: spacing.lg,
+          borderRadius: borderRadius.lg,
+          alignItems: 'center',
+          shadowColor: colors.success,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.5,
+          shadowRadius: 12,
+          elevation: 12,
+        },
       }),
-    [colors, insets.top]
+    [colors, insets.top, insets.bottom]
   );
 
   return (
@@ -120,42 +202,59 @@ export function ChallengesScreen() {
         onBack={() => navigation.goBack()}
         backLabel={t('common.back')}
       />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.scrollContent,
+          rewardAvailable && { paddingBottom: 100 },
+        ]}
+      >
         <Card variant="default" style={styles.multiplierCard}>
           <Text variant="bodySmall" color="muted" style={{ marginBottom: spacing.xs }}>
             {t('challenges.currentMultiplier')}
           </Text>
           <Text variant="h2" color="primary">{scoreMultiplier}x</Text>
-          {challengeGroupIndex <= 17 && (
+          {challengeGroupIndex <= 17 && !rewardAvailable && (
             <Text variant="bodySmall" color="muted" style={{ marginTop: spacing.sm }}>
               {t('challenges.nextMultiplier', { value: nextMultiplier })}
             </Text>
           )}
+          {rewardAvailable && (
+            <Animated.View entering={FadeIn.duration(500)} exiting={FadeOut.duration(280)}>
+              <Animated.View style={[styles.rewardBadge, rewardBadgeAnimatedStyle]}>
+                <Text variant="bodySmall" style={{ color: colors.success, fontWeight: '700', textAlign: 'center' }}>
+                  🎉 {t('challenges.rewardUnlockMultiplier', { value: nextMultiplier })}
+                </Text>
+              </Animated.View>
+            </Animated.View>
+          )}
         </Card>
-        {rewardAvailable && (
-          <View style={styles.rewardBanner}>
-            <Text variant="button" style={{ color: colors.onPrimary, marginBottom: spacing.md }}>
-              {t('challenges.rewardAvailable')}
-            </Text>
-            <Button
-              title={t('challenges.claimReward')}
-              onPress={handleClaimReward}
-              variant="ghost"
-              size="medium"
-              style={{ backgroundColor: '#ffffff', minWidth: 200 }}
-            />
-          </View>
-        )}
         {challenges.map((ch) => {
           const current = getProgress(ch);
           const pct = ch.target > 0 ? Math.min(1, current / ch.target) : 0;
+          const isComplete = pct >= 1;
           return (
-            <Card key={ch.id} variant="default" style={styles.challengeCard}>
-              <Text variant="body" style={{ marginBottom: spacing.sm }}>
-                {t(ch.descriptionKey, { count: ch.target })}
-              </Text>
+            <Card
+              key={ch.id}
+              variant="default"
+              style={[styles.challengeCard, isComplete && styles.challengeCardCompleted]}
+            >
+              <View style={styles.challengeHeaderRow}>
+                <Text variant="body" style={{ flex: 1 }}>
+                  {t(ch.descriptionKey, { count: ch.target })}
+                </Text>
+                {isComplete && (
+                  <Icon name="check_circle" size={22} color={colors.success} />
+                )}
+              </View>
               <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: `${pct * 100}%` }]} />
+                <View
+                  style={[
+                    styles.progressFill,
+                    isComplete && styles.progressFillComplete,
+                    { width: `${pct * 100}%` },
+                  ]}
+                />
               </View>
               <Text variant="caption" color="muted" style={{ marginTop: spacing.xs }}>
                 {current} / {ch.target}
@@ -164,6 +263,36 @@ export function ChallengesScreen() {
           );
         })}
       </ScrollView>
+      {rewardAvailable && (
+        <Animated.View
+          style={styles.fixedCtaWrap}
+          entering={FadeIn.duration(400).delay(150)}
+          exiting={FadeOut.duration(280)}
+        >
+          <Button
+            title={t('challenges.claimReward')}
+            onPress={handleClaimReward}
+            variant="primary"
+            size="large"
+            fullWidth
+            icon="emoji_events"
+          />
+        </Animated.View>
+      )}
+      {claimSuccessValue !== null && (
+        <Animated.View
+          style={styles.claimSuccessOverlay}
+          pointerEvents="none"
+          entering={FadeIn.duration(300)}
+          exiting={FadeOut.duration(400)}
+        >
+          <View style={styles.claimSuccessCard}>
+            <Text variant="h2" style={{ color: colors.onPrimary }}>
+              🎉 {t('challenges.claimSuccess', { value: claimSuccessValue })}
+            </Text>
+          </View>
+        </Animated.View>
+      )}
     </Animated.View>
   );
 }

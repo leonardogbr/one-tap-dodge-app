@@ -91,6 +91,8 @@
     "nextMultiplier": "Complete os dois → {{value}}x",
     "rewardAvailable": "Recompensa disponível!",
     "claimReward": "Resgatar recompensa",
+    "claimSuccess": "{{value}}x desbloqueado!",
+    "rewardUnlockMultiplier": "Sua recompensa: desbloquear multiplicador {{value}}x",
     "near_miss_run": "Faça {{count}} near-misses em uma partida",
     "coins_run": "Colete {{count}} moedas em uma partida",
     "score_run": "Atinja {{count}} pontos em uma partida",

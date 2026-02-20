@@ -91,6 +91,8 @@
     "nextMultiplier": "Complete both → {{value}}x",
     "rewardAvailable": "Reward available!",
     "claimReward": "Claim reward",
+    "claimSuccess": "{{value}}x unlocked!",
+    "rewardUnlockMultiplier": "Your reward: unlock {{value}}x score multiplier",
     "near_miss_run": "Get {{count}} near-misses in one run",
     "coins_run": "Collect {{count}} coins in one run",
     "score_run": "Score {{count}} points in one run",

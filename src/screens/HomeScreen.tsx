@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { PressableScale } from '../components/PressableScale';
+import { RewardBadge } from '../components/RewardBadge';
 import { useTheme } from '../hooks/useTheme';
 import { usePulseAnimation } from '../hooks/usePulseAnimation';
 import { useInterstitialBeforeGame } from '../hooks/useInterstitialBeforeGame';
@@ -139,7 +140,30 @@ export function HomeScreen() {
           opacity: 0.9,
         },
         playBtnWrapper: { width: '100%', marginBottom: spacing.md },
-        challengesBtnWrapper: { width: '100%', marginBottom: spacing.xl },
+        challengesBtnWrapper: {
+          width: '100%',
+          marginBottom: spacing.xl,
+          position: 'relative',
+        },
+        challengesSection: {
+          width: '100%',
+          // alignItems: 'center',
+          gap: spacing.xs,
+        },
+        rewardHintText: {
+          fontSize: 12,
+          fontWeight: '600',
+          color: colors.coin,
+        },
+        challengesBtnRewardGlow: {
+          borderWidth: 2,
+          borderColor: colors.coin,
+          shadowColor: colors.coin,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.7,
+          shadowRadius: 12,
+          elevation: 8,
+        },
         navRow: {
           flexDirection: 'row',
           justifyContent: 'space-between',
@@ -157,14 +181,6 @@ export function HomeScreen() {
           justifyContent: 'center',
         },
         navIcon: { fontSize: 28, marginBottom: spacing.xs },
-        rewardBanner: {
-          backgroundColor: colors.primary,
-          borderRadius: borderRadius.md,
-          padding: spacing.md,
-          marginBottom: spacing.md,
-          width: '100%',
-          alignItems: 'center',
-        },
       }),
     [colors, insets.top, insets.bottom]
   );
@@ -193,15 +209,6 @@ export function HomeScreen() {
             </View>
           </Card>
         </View>
-
-        {rewardAvailable && (
-          <PressableScale
-            style={styles.rewardBanner}
-            onPress={() => navigation.navigate('Challenges')}
-          >
-            <Text variant="bodySmall" color="default" style={{ color: colors.onPrimary, textAlign: 'center' }}>{t('home.rewardBanner')}</Text>
-          </PressableScale>
-        )}
 
         <View style={styles.playerPreviewWrap}>
           {skinVisual.pulse && (
@@ -249,15 +256,22 @@ export function HomeScreen() {
             fullWidth
           />
         </View>
-        <View style={styles.challengesBtnWrapper}>
-          <Button
-            title={t('challenges.title')}
-            onPress={() => navigation.navigate('Challenges')}
-            variant="secondary"
-            size="medium"
-            icon="emoji_events"
-            fullWidth
-          />
+        <View style={styles.challengesSection}>
+          {rewardAvailable && (
+            <Text style={styles.rewardHintText}>{t('home.rewardBanner')}</Text>
+          )}
+          <View style={styles.challengesBtnWrapper}>
+            <RewardBadge visible={!!rewardAvailable} />
+            <Button
+              title={t('challenges.title')}
+              onPress={() => navigation.navigate('Challenges')}
+              variant="secondary"
+              size="medium"
+              icon="emoji_events"
+              fullWidth
+              style={rewardAvailable ? styles.challengesBtnRewardGlow : undefined}
+            />
+          </View>
         </View>
       </View>
 
