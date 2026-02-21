@@ -88,8 +88,8 @@ android {
         applicationId "com.onetapdodge"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 10
-        versionName "0.8.0"
+        versionCode 11
+        versionName "0.8.1"
         manifestPlaceholders = [
             ADMOB_APP_ID: project.env.get("ADMOB_APP_ID_ANDROID") ?: "ca-app-pub-3940256099942544~3347511713"
         ]
