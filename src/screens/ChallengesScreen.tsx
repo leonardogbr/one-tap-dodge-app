@@ -276,7 +276,6 @@ export function ChallengesScreen() {
             size="large"
             fullWidth
             icon="target"
-            iconCommunity
           />
         </Animated.View>
       )}

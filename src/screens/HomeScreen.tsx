@@ -271,7 +271,6 @@ export function HomeScreen() {
               variant="secondary"
               size="medium"
               icon="target"
-              iconCommunity
               fullWidth
               style={rewardAvailable ? styles.challengesBtnRewardGlow : undefined}
             />

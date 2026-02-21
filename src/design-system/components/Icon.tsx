@@ -1,57 +1,66 @@
 /**
  * Design System - Icon Component
- * Renders Material Icons or MaterialCommunityIcons via react-native-vector-icons.
- * Use `community` prop for icons from the MaterialCommunityIcons set (e.g. "target", "bullseye").
+ * Renders Material Symbols Outlined icons using the font directly (no createIconSet).
  * Falls back to character mapping for unknown names.
  */
 
 import React from 'react';
-import { Text, TextStyle } from 'react-native';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Platform, Text, TextStyle } from 'react-native';
+import glyphMap from '../tokens/MaterialSymbolsOutlined.json';
 import { getIconChar, isIconName, type IconName } from '../tokens/icons';
+
+const FONT_FAMILY = Platform.select({
+  ios: 'Material Symbols Outlined',
+  default: 'MaterialSymbolsOutlined',
+});
+
+const typedGlyphMap: Record<string, number> = glyphMap;
 
 export interface IconProps {
   name: IconName | string;
   size?: number;
   color?: string;
   style?: TextStyle;
-  /** Use MaterialCommunityIcons set instead of MaterialIcons. */
-  community?: boolean;
 }
 
 const DEFAULT_SIZE = 24;
 
-/** Material Icons use hyphens; our tokens use underscores. */
-function toMaterialIconName(name: string): string {
-  return name.replace(/_/g, '-');
-}
+export function Icon({ name, size = DEFAULT_SIZE, color, style }: IconProps) {
+  const underscoreName = name.replace(/-/g, '_');
+  const codepoint = typedGlyphMap[underscoreName];
 
-export function Icon({ name, size = DEFAULT_SIZE, color, style, community }: IconProps) {
-  if (community) {
+  if (codepoint != null) {
     return (
-      <MaterialCommunityIcons
-        name={toMaterialIconName(name)}
-        size={size}
-        color={color}
-        style={style}
-      />
+      <Text
+        style={[
+          {
+            fontFamily: FONT_FAMILY,
+            fontSize: size,
+            color,
+            fontWeight: 'normal',
+            fontStyle: 'normal',
+          },
+          style,
+        ]}
+        selectable={false}
+      >
+        {String.fromCodePoint(codepoint)}
+      </Text>
     );
   }
+
   if (isIconName(name)) {
-    return (
-      <MaterialIcons
-        name={toMaterialIconName(name) as never}
-        size={size}
-        color={color}
-        style={style}
-      />
-    );
+    const char = getIconChar(name);
+    const textStyle: TextStyle = {
+      fontSize: size,
+      ...(color != null && { color }),
+    };
+    return <Text style={[textStyle, style]}>{char}</Text>;
   }
-  const char = getIconChar(name);
+
   const textStyle: TextStyle = {
     fontSize: size,
     ...(color != null && { color }),
   };
-  return <Text style={[textStyle, style]}>{char}</Text>;
+  return <Text style={[textStyle, style]}>{name}</Text>;
 }
