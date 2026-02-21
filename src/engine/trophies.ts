@@ -40,7 +40,7 @@ const EARNABLE_IDS = [
   'first_skin',
   'coins_250',
   'games_10',
-  'near_miss_25',
+  'near_miss_100',
   'high_score_1000',
   'coins_run_15',
   'near_miss_run_5',

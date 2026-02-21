@@ -3,14 +3,11 @@
  * Tests for design system tokens and components
  */
 
-jest.mock('react-native-vector-icons/MaterialIcons', () => 'Icon');
-
 import React from 'react';
-import ReactTestRenderer from 'react-test-renderer';
+import ReactTestRenderer, { act } from 'react-test-renderer';
 import { Text, Button, Card } from '../src/design-system';
 import { spacing, borderRadius, typography, darkColors, lightColors } from '../src/design-system/tokens';
 
-// Mock useTheme hook
 jest.mock('../src/hooks/useTheme', () => ({
   useTheme: () => ({
     colors: {
@@ -30,23 +27,21 @@ jest.mock('../src/hooks/useTheme', () => ({
   }),
 }));
 
-// Mock useSafeAreaInsets
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
-// Mock PressableScale
-jest.mock('../src/components/PressableScale', () => ({
-  PressableScale: ({ children, onPress, style, disabled }: any) => {
-    const React = require('react');
-    const { TouchableOpacity } = require('react-native');
-    return (
+jest.mock('../src/components/PressableScale', () => {
+  const React = require('react');
+  const { TouchableOpacity } = require('react-native');
+  return {
+    PressableScale: ({ children, onPress, style, disabled }: any) => (
       <TouchableOpacity onPress={onPress} disabled={disabled} style={style}>
         {children}
       </TouchableOpacity>
-    );
-  },
-}));
+    ),
+  };
+});
 
 describe('Design System Tokens', () => {
   describe('Spacing', () => {
@@ -93,77 +88,107 @@ describe('Design System Tokens', () => {
       expect(lightColors.text).toBe('#1E2633');
     });
   });
+
 });
 
 describe('Design System Components', () => {
   describe('Text', () => {
     it('should render text with default variant', () => {
-      const tree = ReactTestRenderer.create(<Text>Hello World</Text>);
-      expect(tree).toBeTruthy();
+      let tree: ReactTestRenderer.ReactTestRenderer;
+      act(() => {
+        tree = ReactTestRenderer.create(<Text>Hello World</Text>);
+      });
+      expect(tree!).toBeTruthy();
     });
 
     it('should render text with h1 variant', () => {
-      const tree = ReactTestRenderer.create(<Text variant="h1">Title</Text>);
-      expect(tree).toBeTruthy();
+      let tree: ReactTestRenderer.ReactTestRenderer;
+      act(() => {
+        tree = ReactTestRenderer.create(<Text variant="h1">Title</Text>);
+      });
+      expect(tree!).toBeTruthy();
     });
 
     it('should render text with primary color', () => {
-      const tree = ReactTestRenderer.create(<Text color="primary">Primary Text</Text>);
-      expect(tree).toBeTruthy();
+      let tree: ReactTestRenderer.ReactTestRenderer;
+      act(() => {
+        tree = ReactTestRenderer.create(<Text color="primary">Primary Text</Text>);
+      });
+      expect(tree!).toBeTruthy();
     });
   });
 
   describe('Button', () => {
     it('should render button with title', () => {
       const onPress = jest.fn();
-      const tree = ReactTestRenderer.create(<Button title="Click Me" onPress={onPress} />);
-      expect(tree).toBeTruthy();
+      let tree: ReactTestRenderer.ReactTestRenderer;
+      act(() => {
+        tree = ReactTestRenderer.create(<Button title="Click Me" onPress={onPress} />);
+      });
+      expect(tree!).toBeTruthy();
     });
 
     it('should render button with icon', () => {
       const onPress = jest.fn();
-      const tree = ReactTestRenderer.create(<Button title="Click" onPress={onPress} icon="▶" />);
-      expect(tree).toBeTruthy();
+      let tree: ReactTestRenderer.ReactTestRenderer;
+      act(() => {
+        tree = ReactTestRenderer.create(<Button title="Click" onPress={onPress} icon="play_arrow" />);
+      });
+      expect(tree!).toBeTruthy();
     });
 
     it('should render disabled button', () => {
       const onPress = jest.fn();
-      const tree = ReactTestRenderer.create(<Button title="Disabled" onPress={onPress} disabled />);
-      expect(tree).toBeTruthy();
+      let tree: ReactTestRenderer.ReactTestRenderer;
+      act(() => {
+        tree = ReactTestRenderer.create(<Button title="Disabled" onPress={onPress} disabled />);
+      });
+      expect(tree!).toBeTruthy();
     });
 
     it('should render button with different variants', () => {
       const onPress = jest.fn();
-      const primaryTree = ReactTestRenderer.create(<Button title="Primary" onPress={onPress} variant="primary" />);
-      const secondaryTree = ReactTestRenderer.create(<Button title="Secondary" onPress={onPress} variant="secondary" />);
-      expect(primaryTree).toBeTruthy();
-      expect(secondaryTree).toBeTruthy();
+      let primaryTree: ReactTestRenderer.ReactTestRenderer;
+      let secondaryTree: ReactTestRenderer.ReactTestRenderer;
+      act(() => {
+        primaryTree = ReactTestRenderer.create(<Button title="Primary" onPress={onPress} variant="primary" />);
+        secondaryTree = ReactTestRenderer.create(<Button title="Secondary" onPress={onPress} variant="secondary" />);
+      });
+      expect(primaryTree!).toBeTruthy();
+      expect(secondaryTree!).toBeTruthy();
     });
   });
 
   describe('Card', () => {
     it('should render card with children', () => {
-      const tree = ReactTestRenderer.create(
-        <Card>
-          <Text>Card Content</Text>
-        </Card>
-      );
-      expect(tree).toBeTruthy();
+      let tree: ReactTestRenderer.ReactTestRenderer;
+      act(() => {
+        tree = ReactTestRenderer.create(
+          <Card>
+            <Text>Card Content</Text>
+          </Card>
+        );
+      });
+      expect(tree!).toBeTruthy();
     });
 
     it('should render card with different variants', () => {
-      const defaultTree = ReactTestRenderer.create(
-        <Card variant="default">
-          <Text>Default</Text>
-        </Card>
-      );
-      const elevatedTree = ReactTestRenderer.create(
-        <Card variant="elevated">
-          <Text>Elevated</Text>
-        </Card>
-      );
-      expect(defaultTree).toBeTruthy();
-      expect(elevatedTree).toBeTruthy();
+      let defaultTree: ReactTestRenderer.ReactTestRenderer;
+      let elevatedTree: ReactTestRenderer.ReactTestRenderer;
+      act(() => {
+        defaultTree = ReactTestRenderer.create(
+          <Card variant="default">
+            <Text>Default</Text>
+          </Card>
+        );
+        elevatedTree = ReactTestRenderer.create(
+          <Card variant="elevated">
+            <Text>Elevated</Text>
+          </Card>
+        );
+      });
+      expect(defaultTree!).toBeTruthy();
+      expect(elevatedTree!).toBeTruthy();
     });
   });
 });

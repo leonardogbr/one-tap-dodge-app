@@ -1,13 +1,11 @@
 /**
  * Design System - Icon Component
- * Renders Material Symbols Outlined icons using the font directly (no createIconSet).
- * Falls back to character mapping for unknown names.
+ * Renders Material Symbols Outlined icons directly via Text + fontFamily.
  */
 
 import React from 'react';
 import { Platform, Text, TextStyle } from 'react-native';
 import glyphMap from '../tokens/MaterialSymbolsOutlined.json';
-import { getIconChar, isIconName, type IconName } from '../tokens/icons';
 
 const FONT_FAMILY = Platform.select({
   ios: 'Material Symbols Outlined',
@@ -17,7 +15,7 @@ const FONT_FAMILY = Platform.select({
 const typedGlyphMap: Record<string, number> = glyphMap;
 
 export interface IconProps {
-  name: IconName | string;
+  name: string;
   size?: number;
   color?: string;
   style?: TextStyle;
@@ -49,18 +47,12 @@ export function Icon({ name, size = DEFAULT_SIZE, color, style }: IconProps) {
     );
   }
 
-  if (isIconName(name)) {
-    const char = getIconChar(name);
-    const textStyle: TextStyle = {
-      fontSize: size,
-      ...(color != null && { color }),
-    };
-    return <Text style={[textStyle, style]}>{char}</Text>;
-  }
-
-  const textStyle: TextStyle = {
-    fontSize: size,
-    ...(color != null && { color }),
-  };
-  return <Text style={[textStyle, style]}>{name}</Text>;
+  return (
+    <Text
+      style={[{ fontSize: size, ...(color != null && { color }) }, style]}
+      selectable={false}
+    >
+      {name}
+    </Text>
+  );
 }

@@ -18,7 +18,7 @@ import { useInterstitialBeforeGame } from '../hooks/useInterstitialBeforeGame';
 import { useGameStore, SKIN_VISUALS, PRIME_SKIN_ID } from '../state/store';
 import { spacing } from '../theme';
 import { Text, Card, Button, Icon } from '../design-system';
-import { borderRadius, shadows } from '../design-system/tokens';
+import { borderRadius } from '../design-system/tokens';
 
 const PLAYER_PREVIEW_SIZE = 80;
 

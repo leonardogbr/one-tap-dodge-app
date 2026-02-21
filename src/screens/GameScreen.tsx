@@ -36,7 +36,7 @@ import { PressableScale } from '../components/PressableScale';
 import { useTheme } from '../hooks/useTheme';
 import { spacing } from '../theme';
 import { Text, Button, Card, Icon } from '../design-system';
-import { borderRadius, shadows } from '../design-system/tokens';
+import { borderRadius } from '../design-system/tokens';
 import {
   PLAYER_RADIUS,
   OBSTACLE_WIDTH,

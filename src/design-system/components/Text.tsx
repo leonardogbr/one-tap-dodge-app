@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Text as RNText, StyleSheet, TextStyle } from 'react-native';
+import { Text as RNText, TextStyle } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { typography, TypographyVariant } from '../tokens/typography';
 
