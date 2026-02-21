@@ -35,8 +35,8 @@ export const MAX_CONSECUTIVE_OBSTACLES_SAME_LANE = 3;
 /** Coins: size and spawn interval (ms). Design: slightly larger, with glow and pulse. */
 export const COIN_WIDTH = 36;
 export const COIN_HEIGHT = 36;
-/** Min gap (px) between coin spawn rect and obstacles; avoids coin partly inside obstacle. */
-export const COIN_OBSTACLE_SPAWN_MARGIN = 6;
+/** Min gap (px) between coin rect and obstacle rect; prevents visual overlap. */
+export const COIN_OBSTACLE_SPAWN_MARGIN = 12;
 export const COIN_SPAWN_INTERVAL_MS = 4000;
 /** Coins start spawning only after this many ms of gameplay (e.g. 5s). */
 export const COIN_FIRST_SPAWN_DELAY_MS = 5000;

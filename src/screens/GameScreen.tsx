@@ -20,6 +20,7 @@ import Animated, {
   useAnimatedStyle,
   withSequence,
   withTiming,
+  withSpring,
   withDelay,
   withRepeat,
   Easing,
@@ -107,14 +108,15 @@ export function GameScreen() {
     }
   }, [dimensions, player, phase, playerLeft]);
 
-  // On lane swap: only animate position (smooth transition). Scale pulse is countdown-only.
+  // On lane swap: spring with overshoot for a "bounce off wall" feel.
   useEffect(() => {
     if (!dimensions || !player || laneSwapTick <= 0) return;
     const laneCenters = dimensions.laneCenterX;
     const targetLeft = laneCenters[player.lane] - PLAYER_RADIUS;
-    playerLeft.value = withTiming(targetLeft, {
-      duration: 180,
-      easing: Easing.out(Easing.cubic),
+    playerLeft.value = withSpring(targetLeft, {
+      damping: 17,
+      stiffness: 550,
+      mass: 0.45,
     });
   }, [laneSwapTick, dimensions, player, playerLeft]);
 
@@ -405,7 +407,10 @@ export function GameScreen() {
           borderWidth: 1,
           borderColor: colors.success + '4D',
           borderRadius: borderRadius.sm,
-          padding: spacing.xs,
+          paddingHorizontal: spacing.sm,
+          paddingVertical: spacing.xs,
+          justifyContent: 'center',
+          alignItems: 'center',
         },
         overlay: {
           ...StyleSheet.absoluteFillObject,
@@ -658,7 +663,7 @@ export function GameScreen() {
                   )}
                   {shieldMeter >= 1 && (
                     <View style={styles.shieldIconActive}>
-                      <Icon name="gpp_good" size={18} color={colors.success} />
+                      <Icon name="gpp_good" size={16} color={colors.success} />
                     </View>
                   )}
                 </View>

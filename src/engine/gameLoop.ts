@@ -14,6 +14,7 @@ import {
   LANE_RIGHT,
   PLAYER_RADIUS,
   PLAYER_CENTER_Y_FRACTION,
+  OBSTACLE_WIDTH,
   OBSTACLE_HEIGHT,
   COIN_SPAWN_INTERVAL_MS,
   COIN_FIRST_SPAWN_DELAY_MS,
@@ -139,12 +140,40 @@ export function tick(
     }
 
     const laneX = state.laneCenterX[lane];
-    const halfW = 30;
-    const newObs = createObstacle(
-      lane,
-      laneX - halfW,
-      -OBSTACLE_HEIGHT
-    );
+    const halfW = OBSTACLE_WIDTH / 2;
+    const obsX = laneX - halfW;
+    const obsY = -OBSTACLE_HEIGHT;
+
+    const m = COIN_OBSTACLE_SPAWN_MARGIN;
+    const coinOverlapsRect = (
+      c: Coin,
+      rx: number, ry: number, rw: number, rh: number,
+    ): boolean =>
+      rx - m < c.x + c.width &&
+      rx + rw + m > c.x &&
+      ry - m < c.y + c.height &&
+      ry + rh + m > c.y;
+
+    for (const c of state.coins) {
+      if (c.lane !== lane) continue;
+      if (!coinOverlapsRect(c, obsX, obsY, OBSTACLE_WIDTH, OBSTACLE_HEIGHT)) continue;
+
+      const altLane: Lane = lane === LANE_LEFT ? LANE_RIGHT : LANE_LEFT;
+      const altX = state.laneCenterX[altLane] - COIN_WIDTH / 2;
+      const altHasObstacle = state.obstacles.some(
+        (o) => o.lane === altLane &&
+          coinOverlapsRect(c, o.x, o.y, o.width, o.height),
+      );
+
+      if (!altHasObstacle) {
+        c.lane = altLane;
+        c.x = altX;
+      } else {
+        c.y = obsY - COIN_HEIGHT - m;
+      }
+    }
+
+    const newObs = createObstacle(lane, obsX, obsY);
     state.obstacles.push(newObs);
     state.lastSpawnTime = currentTimeMs;
     const prevLane = state.lastSpawnLane;

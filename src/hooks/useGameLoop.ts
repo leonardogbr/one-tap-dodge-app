@@ -239,6 +239,11 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
     try {
       lastCollidedObstacleIdRef.current = null;
       if (id) removeObstacleById(state, id);
+
+      const now = Date.now();
+      state.lastSpawnTime = now;
+      state.lastCoinSpawnTime = now;
+
       incrementRevivesUsedThisRun();
       setShieldMeter(0);
       state.phase = 'paused';
@@ -258,8 +263,11 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
   const resumeFromRevive = useCallback(() => {
     const state = stateRef.current;
     if (!state || state.phase !== 'paused') return;
+    const now = Date.now();
     state.phase = 'playing';
-    lastTimeRef.current = Date.now();
+    state.lastSpawnTime = now;
+    state.lastCoinSpawnTime = now;
+    lastTimeRef.current = now;
     setLoopResumeKey((k) => k + 1);
     setPhase('playing');
   }, []);
