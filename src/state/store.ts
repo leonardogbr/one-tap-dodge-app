@@ -83,7 +83,7 @@ export interface ProgressSlice {
   gamesPlayed: number;
   gameOversSinceLastInterstitial: number;
   earnedTrophies: string[];
-  seenTrophiesCount: number;
+  seenTrophyIds: string[];
   addTotalCoins: (n: number) => void;
   unlockSkin: (skinId: string) => void;
   unlockTrophy: (trophyId: string) => void;
@@ -94,7 +94,7 @@ export interface ProgressSlice {
   incrementGamesPlayed: () => void;
   incrementGameOversSinceLastInterstitial: () => void;
   resetGameOversSinceLastInterstitial: () => void;
-  setFromPersisted: (data: Partial<Pick<ProgressSlice, 'totalCoins' | 'unlockedSkins' | 'equippedSkinId' | 'gameOversSinceLastInterstitial' | 'earnedTrophies' | 'seenTrophiesCount'> & { highScore?: number; lastScore?: number; scoreMultiplier?: number; challengeGroupIndex?: number; challengeShuffleSeed?: number; currentGroupProgress?: CurrentGroupProgress; challengeGroupBaseline?: LifetimeStats; lifetimeStats?: LifetimeStats; rewardAvailable?: boolean }>) => void;
+  setFromPersisted: (data: Partial<Pick<ProgressSlice, 'totalCoins' | 'unlockedSkins' | 'equippedSkinId' | 'gameOversSinceLastInterstitial' | 'earnedTrophies' | 'seenTrophyIds'> & { highScore?: number; lastScore?: number; scoreMultiplier?: number; challengeGroupIndex?: number; challengeShuffleSeed?: number; currentGroupProgress?: CurrentGroupProgress; challengeGroupBaseline?: LifetimeStats; lifetimeStats?: LifetimeStats; rewardAvailable?: boolean }>) => void;
 }
 
 export type ThemeMode = 'dark' | 'light' | 'system';
@@ -429,7 +429,7 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
   gamesPlayed: 0,
   gameOversSinceLastInterstitial: 0,
   earnedTrophies: [],
-  seenTrophiesCount: 0,
+  seenTrophyIds: [],
   addTotalCoins: (n) =>
     set((s) => ({ totalCoins: Math.max(0, s.totalCoins + n) })),
   unlockSkin: (skinId) => {
@@ -462,7 +462,7 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
     }
     return newlyUnlocked;
   },
-  markTrophiesSeen: () => set((s) => ({ seenTrophiesCount: s.earnedTrophies.length })),
+  markTrophiesSeen: () => set((s) => ({ seenTrophyIds: [...s.earnedTrophies] })),
   equipSkin: (skinId) => set({ equippedSkinId: skinId }),
   incrementGamesPlayed: () => set((s) => ({ gamesPlayed: s.gamesPlayed + 1 })),
   incrementGameOversSinceLastInterstitial: () =>

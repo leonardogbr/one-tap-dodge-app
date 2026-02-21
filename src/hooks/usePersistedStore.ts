@@ -20,7 +20,7 @@ import {
   persistLifetimeStats,
   persistRewardAvailable,
   persistEarnedTrophies,
-  persistSeenTrophiesCount,
+  persistSeenTrophyIds,
 } from '../state/persistence';
 import { useGameStore } from '../state/store';
 import type { CurrentGroupProgress, LifetimeStats } from '../state/store';
@@ -57,7 +57,7 @@ export function usePersistedStore() {
     } as LifetimeStats,
     rewardAvailable: false,
     earnedTrophies: [] as string[],
-    seenTrophiesCount: 0,
+    seenTrophyIds: [] as string[],
   });
 
   useEffect(() => {
@@ -164,9 +164,12 @@ export function usePersistedStore() {
         last.current.earnedTrophies = [...state.earnedTrophies];
         persistEarnedTrophies(state.earnedTrophies);
       }
-      if (state.seenTrophiesCount !== last.current.seenTrophiesCount) {
-        last.current.seenTrophiesCount = state.seenTrophiesCount;
-        persistSeenTrophiesCount(state.seenTrophiesCount);
+      if (
+        state.seenTrophyIds.length !== last.current.seenTrophyIds.length ||
+        state.seenTrophyIds.some((id, i) => id !== last.current.seenTrophyIds[i])
+      ) {
+        last.current.seenTrophyIds = [...state.seenTrophyIds];
+        persistSeenTrophyIds(state.seenTrophyIds);
       }
     });
   }, []);

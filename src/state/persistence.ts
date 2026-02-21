@@ -22,7 +22,7 @@ const KEY_CHALLENGE_GROUP_BASELINE = '@onetapdodge/challengeGroupBaseline';
 const KEY_LIFETIME_STATS = '@onetapdodge/lifetimeStats';
 const KEY_REWARD_AVAILABLE = '@onetapdodge/rewardAvailable';
 const KEY_EARNED_TROPHIES = '@onetapdodge/earnedTrophies';
-const KEY_SEEN_TROPHIES_COUNT = '@onetapdodge/seenTrophiesCount';
+const KEY_SEEN_TROPHY_IDS = '@onetapdodge/seenTrophyIds';
 
 export async function hydrateStore(): Promise<void> {
   try {
@@ -42,7 +42,7 @@ export async function hydrateStore(): Promise<void> {
       lifetimeStatsJson,
       rewardAvailable,
       earnedTrophiesJson,
-      seenTrophiesCount,
+      seenTrophyIdsJson,
     ] = await Promise.all([
       AsyncStorage.getItem(KEY_HIGH_SCORE),
       AsyncStorage.getItem(KEY_LAST_SCORE),
@@ -59,7 +59,7 @@ export async function hydrateStore(): Promise<void> {
       AsyncStorage.getItem(KEY_LIFETIME_STATS),
       AsyncStorage.getItem(KEY_REWARD_AVAILABLE),
       AsyncStorage.getItem(KEY_EARNED_TROPHIES),
-      AsyncStorage.getItem(KEY_SEEN_TROPHIES_COUNT),
+      AsyncStorage.getItem(KEY_SEEN_TROPHY_IDS),
     ]);
 
     const updates: Record<string, unknown> = {};
@@ -124,9 +124,12 @@ export async function hydrateStore(): Promise<void> {
         // ignore
       }
     }
-    if (seenTrophiesCount != null) {
-      const v = parseInt(seenTrophiesCount, 10);
-      if (Number.isInteger(v) && v >= 0) updates.seenTrophiesCount = v;
+    if (seenTrophyIdsJson != null) {
+      try {
+        updates.seenTrophyIds = JSON.parse(seenTrophyIdsJson) as string[];
+      } catch {
+        // ignore
+      }
     }
 
     useGameStore.getState().setFromPersisted(updates as never);
@@ -238,6 +241,6 @@ export function persistEarnedTrophies(trophies: string[]): void {
   AsyncStorage.setItem(KEY_EARNED_TROPHIES, JSON.stringify(trophies));
 }
 
-export function persistSeenTrophiesCount(count: number): void {
-  AsyncStorage.setItem(KEY_SEEN_TROPHIES_COUNT, String(count));
+export function persistSeenTrophyIds(ids: string[]): void {
+  AsyncStorage.setItem(KEY_SEEN_TROPHY_IDS, JSON.stringify(ids));
 }

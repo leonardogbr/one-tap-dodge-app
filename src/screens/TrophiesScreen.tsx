@@ -3,7 +3,7 @@
  * Uses DS components (Card, Icon, Text, Header) and color tokens.
  */
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -80,10 +80,12 @@ const separatorStyles = StyleSheet.create({
 function TrophyCard({
   trophy,
   unlocked,
+  isNew,
   colors,
 }: {
   trophy: TrophyDef;
   unlocked: boolean;
+  isNew: boolean;
   colors: ColorPalette;
 }) {
   const { t } = useTranslation();
@@ -93,8 +95,33 @@ function TrophyCard({
     <Card
       variant="elevated"
       padding="md"
-      style={[trophyCardStyles.card, { borderWidth: 1, borderColor: colors.backgroundLight }]}
+      style={[
+        trophyCardStyles.card,
+        {
+          borderWidth: 1,
+          borderColor: isNew ? colors.primary + '60' : colors.backgroundLight,
+        },
+      ]}
     >
+      {isNew && (
+        <View style={[trophyCardStyles.ribbonWrap]}>
+          <View style={[trophyCardStyles.ribbon, { backgroundColor: colors.primary }]}>
+            <Text
+              variant="caption"
+              style={{
+                color: colors.background,
+                fontWeight: '900',
+                fontSize: 7,
+                letterSpacing: 0.5,
+                textTransform: 'uppercase',
+                textAlign: 'center',
+              }}
+            >
+              NEW
+            </Text>
+          </View>
+        </View>
+      )}
       <View style={[trophyCardStyles.content, !unlocked && { opacity: 0.45 }]}>
         <View
           style={[
@@ -208,6 +235,25 @@ const trophyCardStyles = StyleSheet.create({
     borderRadius: borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  ribbonWrap: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 48,
+    height: 48,
+    overflow: 'hidden',
+    zIndex: 1,
+  },
+  ribbon: {
+    position: 'absolute',
+    top: 10,
+    left: -16,
+    width: 72,
+    paddingVertical: 2.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: [{ rotate: '-45deg' }],
   },
 });
 
@@ -502,9 +548,19 @@ export function TrophiesScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList, 'Trophies'>>();
   const earnedTrophies = useGameStore((s) => s.earnedTrophies);
+  const seenTrophyIds = useGameStore((s) => s.seenTrophyIds);
   const markTrophiesSeen = useGameStore((s) => s.markTrophiesSeen);
   const earnedCount = earnedTrophies.length;
   const groups = useMemo(() => groupTrophiesByTier(), []);
+
+  const seenAtOpenRef = useRef<Set<string> | null>(null);
+  if (seenAtOpenRef.current === null) {
+    seenAtOpenRef.current = new Set(seenTrophyIds);
+  }
+  const newTrophyIds = useMemo(
+    () => earnedTrophies.filter((id) => !seenAtOpenRef.current!.has(id)),
+    [earnedTrophies],
+  );
 
   useEffect(() => {
     markTrophiesSeen();
@@ -627,6 +683,7 @@ export function TrophiesScreen() {
                   key={trophy.id}
                   trophy={trophy}
                   unlocked={earnedTrophies.includes(trophy.id)}
+                  isNew={newTrophyIds.includes(trophy.id)}
                   colors={colors}
                 />
               ))}

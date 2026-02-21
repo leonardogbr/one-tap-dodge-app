@@ -31,7 +31,7 @@ export function HomeScreen() {
   const lastScore = useGameStore((s) => s.lastScore);
   const rewardAvailable = useGameStore((s) => s.rewardAvailable);
   const hasNewTrophies = useGameStore(
-    (s) => s.earnedTrophies.length > s.seenTrophiesCount,
+    (s) => s.earnedTrophies.some((id) => !s.seenTrophyIds.includes(id)),
   );
   const skinVisual = SKIN_VISUALS[PRIME_SKIN_ID] ?? SKIN_VISUALS.classic;
   const pulseAnimatedStyle = usePulseAnimation(!!skinVisual.pulse);
