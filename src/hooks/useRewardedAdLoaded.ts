@@ -1,6 +1,6 @@
 /**
  * Hook that returns whether the rewarded ad is loaded and re-renders when the load state changes.
- * Use this so the "Watch ad to continue" button updates from "Carregando anúncio..." to enabled
+ * Use this so the "Watch ad to continue" button updates from loading to enabled
  * as soon as the ad finishes loading in the background.
  */
 

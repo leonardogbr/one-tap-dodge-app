@@ -2,7 +2,7 @@
  * Challenges screen — current group of 2 challenges, progress, score multiplier.
  */
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -10,9 +10,9 @@ import Animated, {
   FadeOut,
   useSharedValue,
   useAnimatedStyle,
-  withRepeat,
   withSequence,
   withTiming,
+  withDelay,
   Easing,
 } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
@@ -45,17 +45,42 @@ export function ChallengesScreen() {
   const runStartedAfterClaim = useGameStore((s) => s.runStartedAfterClaim);
   const claimReward = useGameStore((s) => s.claimReward);
   const isClaimingRef = useRef(false);
-  const [claimSuccessValue, setClaimSuccessValue] = useState<number | null>(null);
+  const [celebrating, setCelebrating] = useState(false);
+  const [celebrateValue, setCelebrateValue] = useState<number | null>(null);
+
+  const cardScale = useSharedValue(1);
+  const multiplierScale = useSharedValue(1);
+  const celebrateOpacity = useSharedValue(0);
 
   const handleClaimReward = () => {
     if (isClaimingRef.current || !rewardAvailable) return;
     isClaimingRef.current = true;
-    setClaimSuccessValue(nextMultiplier);
+    const newValue = nextMultiplier;
+    setCelebrateValue(newValue);
+    setCelebrating(true);
+
     claimReward();
+
+    cardScale.value = withSequence(
+      withTiming(1.06, { duration: 200, easing: Easing.out(Easing.cubic) }),
+      withDelay(2000, withTiming(1, { duration: 400, easing: Easing.inOut(Easing.ease) })),
+    );
+
+    multiplierScale.value = withSequence(
+      withTiming(1.4, { duration: 250, easing: Easing.out(Easing.back(2)) }),
+      withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) }),
+    );
+
+    celebrateOpacity.value = withSequence(
+      withTiming(1, { duration: 250 }),
+      withDelay(1800, withTiming(0, { duration: 400 })),
+    );
+
     setTimeout(() => {
-      setClaimSuccessValue(null);
+      setCelebrating(false);
+      setCelebrateValue(null);
       isClaimingRef.current = false;
-    }, 1400);
+    }, 2700);
   };
 
   const challenges = useMemo(
@@ -66,46 +91,33 @@ export function ChallengesScreen() {
   const getProgress = (ch: (typeof challenges)[0]): number => {
     if (CHALLENGE_SCOPE[ch.type] === 'run') {
       const persisted = currentGroupProgress[ch.id];
-      // If challenge was already completed (persisted), always show that (survives app restart)
       if (persisted !== undefined && persisted >= ch.target) {
         return persisted;
       }
-      // For in-progress run challenges, only count after user has started a new game (after claim)
       if (!runStartedAfterClaim) return 0;
       if (ch.type === 'coins_run') return coinsThisRun;
       if (ch.type === 'score_run') return score;
       if (ch.type === 'near_miss_run') return nearMissesThisRun;
       return 0;
     }
-    // For cumulative challenges, calculate progress as difference from baseline
-    // This ensures each group starts counting from 0
     const currentValue = getLifetimeValue(ch.type, lifetimeStats);
     const baselineValue = getLifetimeValue(ch.type, challengeGroupBaseline);
     const progress = Math.max(0, currentValue - baselineValue);
-    // Use persisted progress if available (for completed challenges), otherwise use calculated progress
     return currentGroupProgress[ch.id] ?? progress;
   };
 
   const nextMultiplier = challengeGroupIndex < 17 ? scoreMultiplier + 0.5 : 10;
 
-  const rewardBadgeScale = useSharedValue(1);
-  useEffect(() => {
-    if (rewardAvailable) {
-      rewardBadgeScale.value = withRepeat(
-        withSequence(
-          withTiming(1.04, { duration: 800, easing: Easing.inOut(Easing.ease) }),
-          withTiming(1, { duration: 800, easing: Easing.inOut(Easing.ease) })
-        ),
-        -1,
-        false
-      );
-    } else {
-      rewardBadgeScale.value = withTiming(1, { duration: 200 });
-    }
-  }, [rewardAvailable, rewardBadgeScale]);
+  const cardAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: cardScale.value }],
+  }));
 
-  const rewardBadgeAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: rewardBadgeScale.value }],
+  const multiplierAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: multiplierScale.value }],
+  }));
+
+  const celebrateTextStyle = useAnimatedStyle(() => ({
+    opacity: celebrateOpacity.value,
   }));
 
   const styles = useMemo(
@@ -121,21 +133,19 @@ export function ChallengesScreen() {
           marginBottom: spacing.xl,
           alignItems: 'center',
         },
-        rewardBadge: {
-          marginTop: spacing.md,
-          paddingHorizontal: spacing.md,
-          paddingVertical: spacing.md,
-          backgroundColor: colors.success + '25',
-          borderRadius: borderRadius.sm,
+        multiplierCardCelebrating: {
           borderWidth: 1.5,
-          borderColor: colors.success + '70',
+          borderColor: colors.primary + '80',
+          shadowColor: colors.primary,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.5,
+          shadowRadius: 16,
+          elevation: 8,
+        },
+        celebrateText: {
+          marginTop: spacing.sm,
           alignSelf: 'stretch',
           alignItems: 'center',
-          shadowColor: colors.success,
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.4,
-          shadowRadius: 8,
-          elevation: 4,
         },
         fixedCtaWrap: {
           position: 'absolute',
@@ -169,30 +179,8 @@ export function ChallengesScreen() {
         },
         progressFill: { height: '100%', backgroundColor: colors.secondary, borderRadius: borderRadius.xs },
         progressFillComplete: { backgroundColor: colors.success },
-        claimSuccessOverlay: {
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 100,
-        },
-        claimSuccessCard: {
-          backgroundColor: colors.success,
-          paddingHorizontal: spacing.xl * 2,
-          paddingVertical: spacing.lg,
-          borderRadius: borderRadius.lg,
-          alignItems: 'center',
-          shadowColor: colors.success,
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.5,
-          shadowRadius: 12,
-          elevation: 12,
-        },
       }),
-    [colors, insets.top, insets.bottom]
+    [colors, insets.bottom]
   );
 
   return (
@@ -209,26 +197,49 @@ export function ChallengesScreen() {
           rewardAvailable && { paddingBottom: 100 },
         ]}
       >
-        <Card variant="default" style={styles.multiplierCard}>
-          <Text variant="bodySmall" color="muted" style={{ marginBottom: spacing.xs }}>
-            {t('challenges.currentMultiplier')}
-          </Text>
-          <Text variant="h2" color="primary">{scoreMultiplier}x</Text>
-          {challengeGroupIndex <= 17 && !rewardAvailable && (
-            <Text variant="bodySmall" color="muted" style={{ marginTop: spacing.sm }}>
-              {t('challenges.nextMultiplier', { value: nextMultiplier })}
+        <Animated.View style={cardAnimatedStyle}>
+          <Card
+            variant="default"
+            style={[
+              styles.multiplierCard,
+              celebrating && styles.multiplierCardCelebrating,
+            ]}
+          >
+            <Text variant="bodySmall" color="muted" style={{ marginBottom: spacing.xs }}>
+              {t('challenges.currentMultiplier')}
             </Text>
-          )}
-          {rewardAvailable && (
-            <Animated.View entering={FadeIn.duration(500)} exiting={FadeOut.duration(280)}>
-              <Animated.View style={[styles.rewardBadge, rewardBadgeAnimatedStyle]}>
-                <Text variant="bodySmall" style={{ color: colors.success, fontWeight: '700', textAlign: 'center' }}>
-                  🎉 {t('challenges.rewardUnlockMultiplier', { value: nextMultiplier })}
+            <Animated.View style={multiplierAnimatedStyle}>
+              <Text variant="h2" color="primary" style={{ fontSize: 32 }}>
+                {scoreMultiplier}x
+              </Text>
+            </Animated.View>
+            {celebrating && celebrateValue !== null && (
+              <Animated.View style={[styles.celebrateText, celebrateTextStyle]}>
+                <Text
+                  variant="bodySmall"
+                  style={{ color: colors.primary, fontWeight: '700', textAlign: 'center' }}
+                >
+                  {t('challenges.claimSuccess', { value: celebrateValue })}
                 </Text>
               </Animated.View>
-            </Animated.View>
-          )}
-        </Card>
+            )}
+            {!celebrating && challengeGroupIndex <= 17 && !rewardAvailable && (
+              <Text variant="bodySmall" color="muted" style={{ marginTop: spacing.sm }}>
+                {t('challenges.nextMultiplier', { value: nextMultiplier })}
+              </Text>
+            )}
+            {!celebrating && rewardAvailable && (
+              <Animated.View entering={FadeIn.duration(400)} style={{ marginTop: spacing.sm }}>
+                <Text
+                  variant="bodySmall"
+                  style={{ color: colors.success, fontWeight: '700', textAlign: 'center' }}
+                >
+                  {t('challenges.rewardUnlockMultiplier', { value: nextMultiplier })}
+                </Text>
+              </Animated.View>
+            )}
+          </Card>
+        </Animated.View>
         {challenges.map((ch) => {
           const current = getProgress(ch);
           const pct = ch.target > 0 ? Math.min(1, current / ch.target) : 0;
@@ -277,20 +288,6 @@ export function ChallengesScreen() {
             fullWidth
             icon="target"
           />
-        </Animated.View>
-      )}
-      {claimSuccessValue !== null && (
-        <Animated.View
-          style={styles.claimSuccessOverlay}
-          pointerEvents="none"
-          entering={FadeIn.duration(300)}
-          exiting={FadeOut.duration(400)}
-        >
-          <View style={styles.claimSuccessCard}>
-            <Text variant="h2" style={{ color: colors.onPrimary }}>
-              🎉 {t('challenges.claimSuccess', { value: claimSuccessValue })}
-            </Text>
-          </View>
         </Animated.View>
       )}
     </Animated.View>

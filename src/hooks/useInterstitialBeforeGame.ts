@@ -1,5 +1,5 @@
 /**
- * Interstitial before new game: every 5 partidas (game overs) the user must see an interstitial
+ * Interstitial before new game: every 5 game overs the user must see an interstitial
  * before starting the next game. Exception: if the user just watched a Rewarded ad (revive),
  * we skip the next interstitial so they don't see two ads in a row.
  */

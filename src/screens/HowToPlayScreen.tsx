@@ -22,9 +22,6 @@ import {
 } from '../engine/constants';
 import { SKIN_VISUALS } from '../state/store';
 
-/** Accent for "near-miss" icon; works on both light and dark backgrounds */
-const NEAR_MISS_AMBER = '#d97706';
-
 const ILLUSTRATION_HEIGHT = 180;
 const INSTRUCTION_ICON_SIZE = 40;
 const INSTRUCTION_MIN_HEIGHT = 56;
@@ -52,7 +49,7 @@ export function HowToPlayScreen() {
     if (colorKey === 'primary') return colors.primary;
     if (colorKey === 'obstacle') return colors.obstacle;
     if (colorKey === 'success') return colors.success;
-    return NEAR_MISS_AMBER;
+    return colors.amber;
   };
 
   const getIconBgColor = (colorKey: 'primary' | 'obstacle' | 'amber' | 'success') => {

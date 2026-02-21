@@ -12,8 +12,10 @@ import {
   OBSTACLE_WIDTH,
   COIN_HEIGHT,
   COIN_WIDTH,
+  COIN_OBSTACLE_SPAWN_MARGIN,
   COIN_FIRST_SPAWN_DELAY_MS,
   COIN_SPAWN_INTERVAL_MS,
+  MAX_CONSECUTIVE_OBSTACLES_SAME_LANE,
   NEAR_MISS_THRESHOLD,
   PLAYER_CENTER_Y_FRACTION,
   PLAYER_RADIUS,
@@ -368,5 +370,49 @@ describe('engine/gameLoop', () => {
     expect(state.player.lane).toBe(LANE_RIGHT);
     swapPlayerLane(state);
     expect(state.player.lane).toBe(LANE_LEFT);
+  });
+
+  it('forces lane switch after MAX_CONSECUTIVE same-lane spawns', () => {
+    const state = createState({
+      lastSpawnLane: LANE_LEFT,
+      consecutiveSpawnsInSameLane: MAX_CONSECUTIVE_OBSTACLES_SAME_LANE,
+    });
+
+    tick(state, 0, 2000);
+
+    const spawned = state.obstacles.find((o) => o.y === -OBSTACLE_HEIGHT);
+    expect(spawned?.lane).toBe(LANE_RIGHT);
+  });
+
+  it('repositions coin to alt lane when obstacle spawns on it', () => {
+    const coinX = laneCenterX[LANE_LEFT] - COIN_WIDTH / 2;
+    const coin = makeCoin({ lane: LANE_LEFT, x: coinX, y: -COIN_HEIGHT });
+    const state = createState({
+      coins: [coin],
+      lastSpawnLane: LANE_RIGHT,
+      consecutiveSpawnsInSameLane: MAX_CONSECUTIVE_OBSTACLES_SAME_LANE,
+    });
+
+    tick(state, 0, 2000);
+
+    expect(coin.lane).toBe(LANE_RIGHT);
+    expect(coin.x).toBe(laneCenterX[LANE_RIGHT] - COIN_WIDTH / 2);
+  });
+
+  it('skips coin spawn when both lanes have obstacle overlap', () => {
+    const now = COIN_SPAWN_INTERVAL_MS + 1;
+    const state = createState({
+      gameTimeMs: COIN_FIRST_SPAWN_DELAY_MS + 1000,
+      lastCoinSpawnTime: 0,
+      lastSpawnTime: now,
+      obstacles: [
+        makeObstacle({ id: 'bl', lane: LANE_LEFT, x: laneCenterX[LANE_LEFT] - OBSTACLE_WIDTH / 2, y: -OBSTACLE_HEIGHT }),
+        makeObstacle({ id: 'br', lane: LANE_RIGHT, x: laneCenterX[LANE_RIGHT] - OBSTACLE_WIDTH / 2, y: -OBSTACLE_HEIGHT }),
+      ],
+    });
+
+    tick(state, 0, now);
+
+    expect(state.coins).toHaveLength(0);
   });
 });

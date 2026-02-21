@@ -13,6 +13,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { FONT_FAMILY } from '../design-system/tokens/typography';
+import { darkColors } from '../design-system/tokens/colors';
 
 const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 const ANIM_DURATION = 220;
@@ -102,7 +103,7 @@ export function OdometerNumber({
   }, [padded.length]);
 
   const fontSize = (style?.fontSize as number) ?? 14;
-  const color = (style?.color as string) ?? '#E6EDF3';
+  const color = (style?.color as string) ?? darkColors.text;
   const letterSpacing = (style?.letterSpacing as number) ?? 2;
 
   return (

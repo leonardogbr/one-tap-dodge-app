@@ -245,4 +245,15 @@ describe('services/ads', () => {
 
     await expect(ads.showInterstitial()).resolves.toBeUndefined();
   });
+
+  it('subscribeRewardedLoadState notifies listeners and supports unsubscribe', async () => {
+    const { ads } = loadAds({ dev: true, platform: 'android' });
+    await ads.initAds();
+
+    const listener = jest.fn();
+    const unsubscribe = ads.subscribeRewardedLoadState(listener);
+    expect(typeof unsubscribe).toBe('function');
+
+    unsubscribe();
+  });
 });

@@ -72,9 +72,6 @@ describe('state/store', () => {
     useGameStore.getState().equipSkin('magma');
     expect(useGameStore.getState().equippedSkinId).toBe('magma');
 
-    useGameStore.getState().incrementGamesPlayed();
-    expect(useGameStore.getState().gamesPlayed).toBe(1);
-
     useGameStore.getState().incrementGameOversSinceLastInterstitial();
     expect(useGameStore.getState().gameOversSinceLastInterstitial).toBe(1);
     useGameStore.getState().resetGameOversSinceLastInterstitial();
@@ -311,14 +308,5 @@ describe('state/store', () => {
       expect(s.scoreMultiplier).toBe(9.5);
     });
 
-    it('completeChallengeGroup advances group', () => {
-      useGameStore.setState({ challengeGroupIndex: 4, scoreMultiplier: 2 });
-      useGameStore.getState().completeChallengeGroup({ new_ch_a: 0, new_ch_b: 0 });
-
-      const s = useGameStore.getState();
-      expect(s.challengeGroupIndex).toBe(5);
-      expect(s.scoreMultiplier).toBe(2.5);
-      expect(s.currentGroupProgress).toEqual({ new_ch_a: 0, new_ch_b: 0 });
-    });
   });
 });

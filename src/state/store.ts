@@ -65,7 +65,6 @@ export interface GameSlice {
   updateChallengeProgress: (challengeId: string, value: number) => void;
   /** Add run stats to lifetime and update progress for cumulative challenges. */
   addRunToLifetimeStats: (run: { coins: number; score: number; nearMisses: number }) => void;
-  completeChallengeGroup: (nextGroupProgress: CurrentGroupProgress) => void;
   /** Set by GameOverScreen when user earns revive from ad; GameScreen reads and triggers revive then clears. */
   reviveEarnedFromAd: boolean;
   setReviveEarnedFromAd: (v: boolean) => void;
@@ -91,7 +90,6 @@ export interface ProgressSlice {
   evaluateAndUnlockTrophies: (runStats?: { coins: number; nearMisses: number }) => string[];
   markTrophiesSeen: () => void;
   equipSkin: (skinId: string) => void;
-  incrementGamesPlayed: () => void;
   incrementGameOversSinceLastInterstitial: () => void;
   resetGameOversSinceLastInterstitial: () => void;
   setFromPersisted: (data: Partial<Pick<ProgressSlice, 'totalCoins' | 'unlockedSkins' | 'equippedSkinId' | 'gameOversSinceLastInterstitial' | 'earnedTrophies' | 'seenTrophyIds'> & { highScore?: number; lastScore?: number; scoreMultiplier?: number; challengeGroupIndex?: number; challengeShuffleSeed?: number; currentGroupProgress?: CurrentGroupProgress; challengeGroupBaseline?: LifetimeStats; lifetimeStats?: LifetimeStats; rewardAvailable?: boolean }>) => void;
@@ -415,13 +413,6 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
         rewardAvailable: false,
       };
     }),
-  completeChallengeGroup: (nextGroupProgress) =>
-    set((s) => ({
-      scoreMultiplier: Math.min(MAX_SCORE_MULTIPLIER, s.scoreMultiplier + 0.5),
-      challengeGroupIndex: Math.min(17, s.challengeGroupIndex + 1),
-      currentGroupProgress: nextGroupProgress,
-    })),
-
   // Progress
   totalCoins: 0,
   unlockedSkins: ['classic'],
@@ -464,7 +455,6 @@ export const useGameStore = create<GameSlice & ProgressSlice & SettingsSlice>((s
   },
   markTrophiesSeen: () => set((s) => ({ seenTrophyIds: [...s.earnedTrophies] })),
   equipSkin: (skinId) => set({ equippedSkinId: skinId }),
-  incrementGamesPlayed: () => set((s) => ({ gamesPlayed: s.gamesPlayed + 1 })),
   incrementGameOversSinceLastInterstitial: () =>
     set((s) => ({ gameOversSinceLastInterstitial: s.gameOversSinceLastInterstitial + 1 })),
   resetGameOversSinceLastInterstitial: () => set({ gameOversSinceLastInterstitial: 0 }),

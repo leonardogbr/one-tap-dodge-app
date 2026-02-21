@@ -15,10 +15,12 @@ export type ColorPalette = {
   primaryDim: string;
   secondary: string;
   onPrimary: string;
+  onSecondary: string;
   text: string;
   textMuted: string;
   danger: string;
   success: string;
+  amber: string;
   obstacle: string;
   coin: string;
   onCoin: string;
@@ -34,10 +36,12 @@ export const darkColors: ColorPalette = {
   primaryDim: '#38E8FF40',
   secondary: '#8A5CFF',
   onPrimary: '#070A12',
+  onSecondary: '#FFFFFF',
   text: '#E6EDF3',
   textMuted: '#8B949E',
   danger: '#FF4D6D',
   success: '#3FB950',
+  amber: '#D97706',
   obstacle: '#FF4D6D',
   coin: '#FACC15',
   onCoin: '#0a0a0a',
@@ -53,10 +57,12 @@ export const lightColors: ColorPalette = {
   primaryDim: '#00B4D840',
   secondary: '#8A5CFF',
   onPrimary: '#FFFFFF', // White text on Vibrant Azure button (from doc)
+  onSecondary: '#FFFFFF',
   text: '#1E2633',
   textMuted: '#5C6578',
   danger: '#FF4D6D',
   success: '#16A34A',
+  amber: '#B45309',
   obstacle: '#FF4D6D',
   coin: '#EAB308',
   onCoin: '#0a0a0a',

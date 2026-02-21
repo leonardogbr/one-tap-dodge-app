@@ -4,11 +4,6 @@
 
 export type Lane = 0 | 1; // 0 = left, 1 = right
 
-export interface Vec2 {
-  x: number;
-  y: number;
-}
-
 export interface Player {
   lane: Lane;
   centerY: number;
@@ -35,28 +30,4 @@ export interface Coin {
   y: number;
   width: number;
   height: number;
-}
-
-export interface GameConfig {
-  screenWidth: number;
-  screenHeight: number;
-  playerRadius: number;
-  playerCenterY: number;
-  laneWidth: number;
-  baseObstacleSpeed: number;
-  nearMissThreshold: number;
-  spawnIntervalMs: number;
-}
-
-export type GamePhase = 'idle' | 'playing' | 'paused' | 'game_over';
-
-export interface GameState {
-  phase: GamePhase;
-  score: number;
-  obstacles: Obstacle[];
-  player: Player;
-  obstacleSpeed: number;
-  lastSpawnTime: number;
-  /** For difficulty: time or score-based scaling */
-  gameTimeMs: number;
 }

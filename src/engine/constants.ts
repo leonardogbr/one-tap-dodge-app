@@ -16,9 +16,6 @@ export const OBSTACLE_HEIGHT = 40;
 /** Player sits in bottom third: center Y as fraction of screen height from top (0–1) */
 export const PLAYER_CENTER_Y_FRACTION = 0.74;
 
-/** Collision: strict overlap only (no gap). */
-export const COLLISION_STRICT = true;
-
 /** Near-miss: bonus when min distance (while above) < this. Must be > 0 and not overlap hitbox. */
 export const NEAR_MISS_THRESHOLD = 28;
 
@@ -55,9 +52,6 @@ export const MIN_SPAWN_INTERVAL_MS = 500;
 export const INTERSTITIAL_AFTER_GAME_OVERS = 5;
 /** Monetization: max rewarded revives per run (more chances to continue same run). */
 export const MAX_REVIVES_PER_RUN = 2;
-
-/** Game over: seconds before "Play again" can be tapped (avoid accidental restart). */
-export const GAME_OVER_PLAY_AGAIN_DELAY_MS = 2000;
 
 /** Countdown: ms per step (3, 2, 1, Go) before start/resume/after revive. */
 export const COUNTDOWN_STEP_MS = 800;

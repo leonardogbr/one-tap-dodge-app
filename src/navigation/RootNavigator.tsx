@@ -14,6 +14,7 @@ import { HowToPlayScreen } from '../screens/HowToPlayScreen';
 import { ChallengesScreen } from '../screens/ChallengesScreen';
 import { TrophiesScreen } from '../screens/TrophiesScreen';
 import { GameOverScreen } from '../screens/GameOverScreen';
+import { darkColors } from '../design-system/tokens/colors';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -23,7 +24,7 @@ export function RootNavigator() {
       initialRouteName="Splash"
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: '#0d1117' },
+        contentStyle: { backgroundColor: darkColors.background },
       }}
     >
       <Stack.Screen name="Splash" component={SplashScreen} />

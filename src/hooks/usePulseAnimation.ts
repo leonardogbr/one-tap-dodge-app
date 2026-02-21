@@ -1,7 +1,7 @@
 /**
- * Hook para animação de pulse (scale + opacity) usada na skin prime e em skins com pulse.
- * Uma única fase 0→1 em loop com easing sinusoidal; scale e opacity derivados e sincronizados.
- * No light mode usa opacidade maior para o pulse ser visível no fundo claro.
+ * Pulse animation hook (scale + opacity) for prime and pulse-enabled skins.
+ * Single 0→1 phase loop with sinusoidal easing; scale and opacity derived and synced.
+ * Light mode uses higher opacity so the pulse is visible on light backgrounds.
  */
 
 import { useEffect } from 'react';

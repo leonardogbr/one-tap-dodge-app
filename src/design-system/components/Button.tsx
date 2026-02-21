@@ -58,7 +58,7 @@ export function Button({
     if (size === 'small') {
       baseStyle.paddingVertical = spacing.sm;
       baseStyle.paddingHorizontal = spacing.md;
-      // Aplicar gap apenas se houver tanto ícone quanto texto
+      // Apply gap only when both icon and text are present
       if (hasBoth) {
         baseStyle.gap = spacing.xs;
       }
@@ -76,7 +76,7 @@ export function Button({
       }
     }
 
-    // Se for apenas ícone, ajustar padding para manter proporção
+    // Icon-only: adjust padding to keep proportions
     if (hasIcon && !hasText) {
       if (size === 'small') {
         baseStyle.paddingHorizontal = spacing.sm;
@@ -130,7 +130,7 @@ export function Button({
     };
 
     if (variant === 'primary' || variant === 'success' || variant === 'revive') {
-      baseStyle.color = variant === 'revive' ? '#fff' : colors.onPrimary;
+      baseStyle.color = variant === 'revive' ? colors.onSecondary : colors.onPrimary;
     } else if (variant === 'secondary') {
       baseStyle.color = colors.textMuted;
     } else if (variant === 'danger') {

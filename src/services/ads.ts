@@ -98,11 +98,6 @@ function loadRewarded() {
   rewardedAd?.load();
 }
 
-/** Call to retry loading the rewarded ad (e.g. after a failure). UI can call this on "Tentar novamente". */
-export function retryLoadRewarded(): void {
-  if (rewardedAd && !rewardedLoaded) loadRewarded();
-}
-
 function loadInterstitial() {
   interstitialAd?.load();
 }
