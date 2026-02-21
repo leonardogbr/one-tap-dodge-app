@@ -10,12 +10,6 @@ import {
 
 function makeState(overrides: Partial<TrophyEvalState> = {}): TrophyEvalState {
   return {
-    lifetimeStats: {
-      totalCoins: 0,
-      totalScore: 0,
-      gamesPlayed: 0,
-      totalNearMisses: 0,
-    },
     highScore: 0,
     totalCoins: 0,
     unlockedSkins: ['classic'],
@@ -69,7 +63,7 @@ describe('engine/trophies', () => {
       const platinum = TROPHY_MAP.platinum;
       expect(platinum).toBeDefined();
       expect(platinum.order).toBe(46);
-      expect(platinum.tier).toBe('platina');
+      expect(platinum.tier).toBe('platinum');
     });
 
     it('every trophy has required fields', () => {
@@ -84,7 +78,7 @@ describe('engine/trophies', () => {
     });
 
     it('has valid tier colors for every tier', () => {
-      const tiers: TrophyTier[] = ['inicio', 'bronze', 'prata', 'ouro', 'elite', 'platina'];
+      const tiers: TrophyTier[] = ['starter', 'bronze', 'silver', 'gold', 'elite', 'platinum'];
       for (const tier of tiers) {
         expect(TIER_COLORS[tier]).toBeDefined();
         expect(TIER_COLORS[tier]).toMatch(/^#[0-9A-Fa-f]{6}$/);

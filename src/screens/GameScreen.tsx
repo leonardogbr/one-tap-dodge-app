@@ -658,7 +658,7 @@ export function GameScreen() {
                   )}
                   {shieldMeter >= 1 && (
                     <View style={styles.shieldIconActive}>
-                      <Icon name="shield" size={18} color={colors.success} />
+                      <Icon name="gpp_good" size={18} color={colors.success} />
                     </View>
                   )}
                 </View>

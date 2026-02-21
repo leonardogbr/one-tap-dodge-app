@@ -3,7 +3,7 @@
  * 46 trophies: 45 earnable + Platinum (earn all 45).
  */
 
-export type TrophyTier = 'inicio' | 'bronze' | 'prata' | 'ouro' | 'elite' | 'platina';
+export type TrophyTier = 'starter' | 'bronze' | 'silver' | 'gold' | 'elite' | 'platinum';
 
 export interface TrophyEvalState {
   lifetimeStats: {
@@ -84,12 +84,12 @@ export const TROPHY_IDS = [...EARNABLE_IDS, 'platinum'] as const;
 export type TrophyId = (typeof TROPHY_IDS)[number];
 
 export const TROPHIES: TrophyDef[] = [
-  // --- Início (1-5) ---
+  // --- Starter (1-5) ---
   {
     id: 'first_step',
     nameKey: 'trophies.first_step',
     descriptionKey: 'trophies.first_step_desc',
-    tier: 'inicio',
+    tier: 'starter',
     icon: 'directions_walk',
     order: 1,
     predicate: (s) => s.lifetimeStats.gamesPlayed >= 1,
@@ -98,7 +98,7 @@ export const TROPHIES: TrophyDef[] = [
     id: 'first_coin',
     nameKey: 'trophies.first_coin',
     descriptionKey: 'trophies.first_coin_desc',
-    tier: 'inicio',
+    tier: 'starter',
     icon: 'paid',
     order: 2,
     predicate: (s) => s.lifetimeStats.totalCoins >= 1,
@@ -107,7 +107,7 @@ export const TROPHIES: TrophyDef[] = [
     id: 'first_near_miss',
     nameKey: 'trophies.first_near_miss',
     descriptionKey: 'trophies.first_near_miss_desc',
-    tier: 'inicio',
+    tier: 'starter',
     icon: 'bolt',
     order: 3,
     predicate: (s) => s.lifetimeStats.totalNearMisses >= 1,
@@ -116,7 +116,7 @@ export const TROPHIES: TrophyDef[] = [
     id: 'high_score_100',
     nameKey: 'trophies.high_score_100',
     descriptionKey: 'trophies.high_score_100_desc',
-    tier: 'inicio',
+    tier: 'starter',
     icon: 'star_outline',
     order: 4,
     predicate: (s) => s.highScore >= 100,
@@ -125,7 +125,7 @@ export const TROPHIES: TrophyDef[] = [
     id: 'first_skin',
     nameKey: 'trophies.first_skin',
     descriptionKey: 'trophies.first_skin_desc',
-    tier: 'inicio',
+    tier: 'starter',
     icon: 'palette',
     order: 5,
     predicate: (s) => s.unlockedSkins.length >= 2,
@@ -178,12 +178,12 @@ export const TROPHIES: TrophyDef[] = [
     predicate: (s) => s.coinsThisRun >= 15,
   },
 
-  // --- Prata (11-17) ---
+  // --- Silver (11-17) ---
   {
     id: 'near_miss_run_5',
     nameKey: 'trophies.near_miss_run_5',
     descriptionKey: 'trophies.near_miss_run_5_desc',
-    tier: 'prata',
+    tier: 'silver',
     icon: 'flash_on',
     order: 11,
     predicate: (s) => s.nearMissesThisRun >= 5,
@@ -192,7 +192,7 @@ export const TROPHIES: TrophyDef[] = [
     id: 'coins_1000',
     nameKey: 'trophies.coins_1000',
     descriptionKey: 'trophies.coins_1000_desc',
-    tier: 'prata',
+    tier: 'silver',
     icon: 'account_balance',
     order: 12,
     predicate: (s) => s.totalCoins >= 1000,
@@ -201,7 +201,7 @@ export const TROPHIES: TrophyDef[] = [
     id: 'multiplier_3',
     nameKey: 'trophies.multiplier_3',
     descriptionKey: 'trophies.multiplier_3_desc',
-    tier: 'prata',
+    tier: 'silver',
     icon: 'speed',
     order: 13,
     predicate: (s) => s.scoreMultiplier >= 3,
@@ -210,7 +210,7 @@ export const TROPHIES: TrophyDef[] = [
     id: 'near_miss_run_20',
     nameKey: 'trophies.near_miss_run_20',
     descriptionKey: 'trophies.near_miss_run_20_desc',
-    tier: 'ouro',
+    tier: 'gold',
     icon: 'electric_bolt',
     order: 14,
     predicate: (s) => s.nearMissesThisRun >= 20,
@@ -219,7 +219,7 @@ export const TROPHIES: TrophyDef[] = [
     id: 'high_score_5000',
     nameKey: 'trophies.high_score_5000',
     descriptionKey: 'trophies.high_score_5000_desc',
-    tier: 'prata',
+    tier: 'silver',
     icon: 'military_tech',
     order: 15,
     predicate: (s) => s.highScore >= 5000,
@@ -228,7 +228,7 @@ export const TROPHIES: TrophyDef[] = [
     id: 'near_miss_250',
     nameKey: 'trophies.near_miss_250',
     descriptionKey: 'trophies.near_miss_250_desc',
-    tier: 'prata',
+    tier: 'silver',
     icon: 'track_changes',
     order: 16,
     predicate: (s) => s.lifetimeStats.totalNearMisses >= 250,
@@ -237,18 +237,18 @@ export const TROPHIES: TrophyDef[] = [
     id: 'coins_2500',
     nameKey: 'trophies.coins_2500',
     descriptionKey: 'trophies.coins_2500_desc',
-    tier: 'prata',
+    tier: 'silver',
     icon: 'toll',
     order: 17,
     predicate: (s) => s.totalCoins >= 2500,
   },
 
-  // --- Ouro (18-25) ---
+  // --- Gold (18-25) ---
   {
     id: 'high_score_15000',
     nameKey: 'trophies.high_score_15000',
     descriptionKey: 'trophies.high_score_15000_desc',
-    tier: 'ouro',
+    tier: 'gold',
     icon: 'workspace_premium',
     order: 18,
     predicate: (s) => s.highScore >= 15000,
@@ -257,7 +257,7 @@ export const TROPHIES: TrophyDef[] = [
     id: 'skins_5',
     nameKey: 'trophies.skins_5',
     descriptionKey: 'trophies.skins_5_desc',
-    tier: 'ouro',
+    tier: 'gold',
     icon: 'auto_awesome',
     order: 19,
     predicate: (s) => s.unlockedSkins.length >= 5,
@@ -266,7 +266,7 @@ export const TROPHIES: TrophyDef[] = [
     id: 'challenge_group_9',
     nameKey: 'trophies.challenge_group_9',
     descriptionKey: 'trophies.challenge_group_9_desc',
-    tier: 'ouro',
+    tier: 'gold',
     icon: 'verified',
     order: 20,
     predicate: (s) => s.challengeGroupIndex >= 9,
@@ -275,7 +275,7 @@ export const TROPHIES: TrophyDef[] = [
     id: 'games_50',
     nameKey: 'trophies.games_50',
     descriptionKey: 'trophies.games_50_desc',
-    tier: 'ouro',
+    tier: 'gold',
     icon: 'videogame_asset',
     order: 21,
     predicate: (s) => s.lifetimeStats.gamesPlayed >= 50,
@@ -284,7 +284,7 @@ export const TROPHIES: TrophyDef[] = [
     id: 'coins_run_25',
     nameKey: 'trophies.coins_run_25',
     descriptionKey: 'trophies.coins_run_25_desc',
-    tier: 'ouro',
+    tier: 'gold',
     icon: 'monetization_on',
     order: 22,
     predicate: (s) => s.coinsThisRun >= 25,
@@ -293,7 +293,7 @@ export const TROPHIES: TrophyDef[] = [
     id: 'coins_10000',
     nameKey: 'trophies.coins_10000',
     descriptionKey: 'trophies.coins_10000_desc',
-    tier: 'ouro',
+    tier: 'gold',
     icon: 'inventory_2',
     order: 23,
     predicate: (s) => s.totalCoins >= 10000,
@@ -302,7 +302,7 @@ export const TROPHIES: TrophyDef[] = [
     id: 'near_miss_500',
     nameKey: 'trophies.near_miss_500',
     descriptionKey: 'trophies.near_miss_500_desc',
-    tier: 'ouro',
+    tier: 'gold',
     icon: 'crisis_alert',
     order: 24,
     predicate: (s) => s.lifetimeStats.totalNearMisses >= 500,
@@ -311,7 +311,7 @@ export const TROPHIES: TrophyDef[] = [
     id: 'high_score_25000',
     nameKey: 'trophies.high_score_25000',
     descriptionKey: 'trophies.high_score_25000_desc',
-    tier: 'ouro',
+    tier: 'gold',
     icon: 'king_bed',
     order: 25,
     predicate: (s) => s.highScore >= 25000,
@@ -499,12 +499,12 @@ export const TROPHIES: TrophyDef[] = [
     predicate: (s) => s.unlockedSkins.length >= 21,
   },
 
-  // --- Platina ---
+  // --- Platinum ---
   {
     id: 'platinum',
     nameKey: 'trophies.platinum',
     descriptionKey: 'trophies.platinum_desc',
-    tier: 'platina',
+    tier: 'platinum',
     icon: 'emoji_events',
     order: 46,
     predicate: (s) =>
@@ -516,14 +516,7 @@ export const TROPHY_MAP: Record<string, TrophyDef> = Object.fromEntries(
   TROPHIES.map((t) => [t.id, t]),
 );
 
-export const TIER_COLORS: Record<TrophyTier, string> = {
-  inicio: '#94A3B8',
-  bronze: '#FB923C',
-  prata: '#CBD5E1',
-  ouro: '#EAB308',
-  elite: '#8A5CFF',
-  platina: '#38E8FF',
-};
+export { TIER_COLORS } from '../design-system/tokens/colors';
 
 /**
  * Evaluate all trophies against current state.

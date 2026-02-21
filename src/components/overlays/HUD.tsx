@@ -46,6 +46,7 @@ export function HUD({
   const scoreScale = useSharedValue(1);
   const prevScoreRef = useRef(score);
   const shieldBreath = useSharedValue(1);
+  const shieldFlex = useSharedValue(shieldMeter);
 
   const styles = useMemo(
     () =>
@@ -166,12 +167,27 @@ export function HUD({
     }
   }, [shieldMeter, shieldBreath]);
 
+  useEffect(() => {
+    shieldFlex.value = withTiming(shieldMeter, {
+      duration: 200,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [shieldMeter, shieldFlex]);
+
   const scoreAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scoreScale.value }],
   }));
 
   const shieldBreathStyle = useAnimatedStyle(() => ({
     transform: [{ scale: shieldBreath.value }],
+  }));
+
+  const shieldFillAnimStyle = useAnimatedStyle(() => ({
+    flex: shieldFlex.value,
+  }));
+
+  const shieldSpacerAnimStyle = useAnimatedStyle(() => ({
+    flex: 1 - shieldFlex.value,
   }));
 
   return (
@@ -211,7 +227,7 @@ export function HUD({
             <View style={styles.shieldHeader}>
               <View style={styles.shieldLabelRow}>
                 <Animated.View style={shieldBreathStyle}>
-                  <Icon name="shield" size={18} color={shieldMeter >= 1 ? colors.success : colors.secondary} />
+                  <Icon name={shieldMeter >= 1 ? 'gpp_good' : 'shield'} size={18} color={shieldMeter >= 1 ? colors.success : colors.secondary} />
                 </Animated.View>
                 <Text
                   style={[
@@ -232,14 +248,14 @@ export function HUD({
                 shieldMeter >= 1 && styles.shieldBarReady,
               ]}
             >
-              <View
+              <Animated.View
                 style={[
                   styles.shieldFill,
                   shieldMeter >= 1 && styles.shieldFillReady,
-                  { flex: shieldMeter },
+                  shieldFillAnimStyle,
                 ]}
               />
-              <View style={[styles.shieldBarSpacer, { flex: 1 - shieldMeter }]} />
+              <Animated.View style={[styles.shieldBarSpacer, shieldSpacerAnimStyle]} />
             </View>
           </View>
           <View style={styles.coinsPill}>

@@ -64,3 +64,25 @@ export const lightColors: ColorPalette = {
 
 /** Legacy export: defaults to dark. Prefer useTheme(). */
 export const colors = darkColors;
+
+/**
+ * Trophy tier accent colors.
+ * Used for tier badges, icon backgrounds, and accent bars.
+ */
+export const TIER_COLORS = {
+  starter: '#94A3B8',
+  bronze: '#FB923C',
+  silver: '#CBD5E1',
+  gold: '#EAB308',
+  elite: '#8A5CFF',
+  platinum: '#38E8FF',
+} as const;
+
+/**
+ * Light-mode overrides for tier colors that lack contrast on light backgrounds.
+ * Used to boost icon visibility for "starter" and "silver" tiers.
+ */
+export const TIER_COLORS_LIGHT: Partial<Record<keyof typeof TIER_COLORS, string>> = {
+  starter: '#6B7B8F',
+  silver: '#8896AB',
+} as const;

@@ -6,7 +6,7 @@
 import React from 'react';
 import ReactTestRenderer, { act } from 'react-test-renderer';
 import { Text, Button, Card } from '../src/design-system';
-import { spacing, borderRadius, typography, darkColors, lightColors } from '../src/design-system/tokens';
+import { spacing, borderRadius, typography, darkColors, lightColors, TIER_COLORS, TIER_COLORS_LIGHT } from '../src/design-system/tokens';
 
 jest.mock('../src/hooks/useTheme', () => ({
   useTheme: () => ({
@@ -86,6 +86,37 @@ describe('Design System Tokens', () => {
       expect(lightColors.background).toBe('#F4F7FF');
       expect(lightColors.primary).toBe('#00B4D8');
       expect(lightColors.text).toBe('#1E2633');
+    });
+
+    it('should have tier colors for all tiers', () => {
+      const tiers = ['starter', 'bronze', 'silver', 'gold', 'elite', 'platinum'] as const;
+      for (const tier of tiers) {
+        expect(TIER_COLORS[tier]).toBeDefined();
+        expect(TIER_COLORS[tier]).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      }
+    });
+
+    it('should have light-mode overrides for low-contrast tiers', () => {
+      expect(TIER_COLORS_LIGHT.starter).toBeDefined();
+      expect(TIER_COLORS_LIGHT.silver).toBeDefined();
+      expect(TIER_COLORS_LIGHT.starter).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      expect(TIER_COLORS_LIGHT.silver).toMatch(/^#[0-9A-Fa-f]{6}$/);
+    });
+
+    it('light overrides should be darker than their tier counterparts', () => {
+      const hexToLuminance = (hex: string) => {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return 0.299 * r + 0.587 * g + 0.114 * b;
+      };
+
+      expect(hexToLuminance(TIER_COLORS_LIGHT.starter!)).toBeLessThan(
+        hexToLuminance(TIER_COLORS.starter),
+      );
+      expect(hexToLuminance(TIER_COLORS_LIGHT.silver!)).toBeLessThan(
+        hexToLuminance(TIER_COLORS.silver),
+      );
     });
   });
 

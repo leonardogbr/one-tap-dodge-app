@@ -24,15 +24,16 @@ import {
   type TrophyDef,
   type TrophyTier,
 } from '../engine/trophies';
+import { TIER_COLORS_LIGHT } from '../design-system/tokens/colors';
 
 const TOTAL_TROPHIES = TROPHIES.length;
 const EARNABLE_COUNT = TOTAL_TROPHIES - 1;
 
-const TIER_ORDER: TrophyTier[] = ['inicio', 'bronze', 'prata', 'ouro', 'elite', 'platina'];
+const TIER_ORDER: TrophyTier[] = ['starter', 'bronze', 'silver', 'gold', 'elite', 'platinum'];
 
 function groupTrophiesByTier(): Record<TrophyTier, TrophyDef[]> {
   const groups: Record<TrophyTier, TrophyDef[]> = {
-    inicio: [], bronze: [], prata: [], ouro: [], elite: [], platina: [],
+    starter: [], bronze: [], silver: [], gold: [], elite: [], platinum: [],
   };
   for (const t of TROPHIES) groups[t.tier].push(t);
   return groups;
@@ -41,7 +42,7 @@ function groupTrophiesByTier(): Record<TrophyTier, TrophyDef[]> {
 function TierSeparator({ tier, colors }: { tier: TrophyTier; colors: ColorPalette }) {
   const { t } = useTranslation();
   const tierColor = TIER_COLORS[tier];
-  const isPlatina = tier === 'platina';
+  const isPlatinum = tier === 'platinum';
 
   return (
     <View style={separatorStyles.wrap}>
@@ -52,12 +53,12 @@ function TierSeparator({ tier, colors }: { tier: TrophyTier; colors: ColorPalett
           color: tierColor,
           fontWeight: '800',
           fontSize: 10,
-          letterSpacing: isPlatina ? 2.5 : 1.8,
+          letterSpacing: isPlatinum ? 2.5 : 1.8,
           textTransform: 'uppercase',
         }}
       >
-        {isPlatina
-          ? t('trophies.tier_platina')
+        {isPlatinum
+          ? t('trophies.tier_platinum')
           : `Tier: ${t(`trophies.tier_${tier}`)}`}
       </Text>
       <View style={[separatorStyles.line, { backgroundColor: tierColor + '30' }]} />
@@ -82,14 +83,20 @@ function TrophyCard({
   unlocked,
   isNew,
   colors,
+  isDark,
 }: {
   trophy: TrophyDef;
   unlocked: boolean;
   isNew: boolean;
   colors: ColorPalette;
+  isDark: boolean;
 }) {
   const { t } = useTranslation();
   const tierColor = TIER_COLORS[trophy.tier];
+  const lightOverride = !isDark ? TIER_COLORS_LIGHT[trophy.tier] : undefined;
+  const iconColor = lightOverride ?? tierColor;
+  const iconBgAlpha = isDark ? '15' : lightOverride ? '18' : '30';
+  const iconBorderAlpha = isDark ? '30' : lightOverride ? '35' : '50';
 
   return (
     <Card
@@ -122,20 +129,28 @@ function TrophyCard({
           </View>
         </View>
       )}
-      <View style={[trophyCardStyles.content, !unlocked && { opacity: 0.45 }]}>
+      {unlocked && (
+        <View
+          style={[
+            trophyCardStyles.accentBar,
+            { backgroundColor: tierColor },
+          ]}
+        />
+      )}
+      <View style={[trophyCardStyles.content, !unlocked && { opacity: isDark ? 0.45 : 0.35 }]}>
         <View
           style={[
             trophyCardStyles.iconWrap,
             {
-              backgroundColor: unlocked ? tierColor + '15' : colors.backgroundLight,
-              borderColor: unlocked ? tierColor + '30' : colors.backgroundLight,
+              backgroundColor: unlocked ? iconColor + iconBgAlpha : colors.backgroundLight,
+              borderColor: unlocked ? iconColor + iconBorderAlpha : colors.backgroundLight,
             },
           ]}
         >
           <Icon
             name={trophy.icon}
             size={28}
-            color={unlocked ? tierColor : colors.textMuted}
+            color={unlocked ? iconColor : colors.textMuted}
           />
         </View>
 
@@ -202,6 +217,16 @@ const trophyCardStyles = StyleSheet.create({
     overflow: 'hidden',
     padding: 0,
   },
+  accentBar: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3,
+    borderTopLeftRadius: borderRadius.md,
+    borderBottomLeftRadius: borderRadius.md,
+    zIndex: 1,
+  },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -266,7 +291,7 @@ function PlatinumCardLocked({
 }) {
   const { t } = useTranslation();
   const platinum = TROPHIES.find((tr) => tr.id === 'platinum')!;
-  const tierColor = TIER_COLORS.platina;
+  const tierColor = TIER_COLORS.platinum;
   const progressPct = EARNABLE_COUNT > 0 ? earnedCount / EARNABLE_COUNT : 0;
 
   return (
@@ -315,7 +340,7 @@ function PlatinumCardLocked({
                   textTransform: 'uppercase',
                 }}
               >
-                {t('trophies.tier_platina')}
+                {t('trophies.tier_platinum')}
               </Text>
             </View>
           </View>
@@ -413,7 +438,7 @@ function PlatinumCardUnlocked({
                   textTransform: 'uppercase',
                 }}
               >
-                {t('trophies.tier_platina')}
+                {t('trophies.tier_platinum')}
               </Text>
             </View>
           </View>
@@ -543,7 +568,7 @@ const platStyles = StyleSheet.create({
 
 export function TrophiesScreen() {
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { t } = useTranslation();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList, 'Trophies'>>();
@@ -672,7 +697,7 @@ export function TrophiesScreen() {
           </Text>
         </Card>
 
-        {TIER_ORDER.filter((tier) => tier !== 'platina').map((tier) => {
+        {TIER_ORDER.filter((tier) => tier !== 'platinum').map((tier) => {
           const trophiesInTier = groups[tier];
           if (trophiesInTier.length === 0) return null;
           return (
@@ -685,13 +710,14 @@ export function TrophiesScreen() {
                   unlocked={earnedTrophies.includes(trophy.id)}
                   isNew={newTrophyIds.includes(trophy.id)}
                   colors={colors}
+                  isDark={isDark}
                 />
               ))}
             </View>
           );
         })}
 
-        <TierSeparator tier="platina" colors={colors} />
+        <TierSeparator tier="platinum" colors={colors} />
         {earnedTrophies.includes('platinum') ? (
           <PlatinumCardUnlocked
             earnedCount={earnedCountWithoutPlatinum}
