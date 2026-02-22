@@ -13,6 +13,8 @@ import { useTheme } from './src/hooks/useTheme';
 import { initI18n, changeLanguage } from './src/i18n';
 import { useGameStore } from './src/state/store';
 import { initAds } from './src/services/ads';
+import { preloadSfx } from './src/services/sfx';
+import { initMusic, playTrack, setMusicEnabled } from './src/services/music';
 
 initI18n('system');
 
@@ -35,10 +37,25 @@ function AppContent() {
 function App() {
   usePersistedStore();
   const locale = useGameStore((s) => s.locale);
+  const musicOn = useGameStore((s) => s.musicOn);
+  const musicInitRef = React.useRef(false);
 
   useEffect(() => {
     initAds();
+    preloadSfx();
+    initMusic().then(() => {
+      musicInitRef.current = true;
+      if (useGameStore.getState().musicOn) {
+        playTrack('ambient');
+      }
+    });
   }, []);
+
+  useEffect(() => {
+    if (!musicInitRef.current) return;
+    setMusicEnabled(musicOn);
+    if (musicOn) playTrack('ambient');
+  }, [musicOn]);
 
   useEffect(() => {
     changeLanguage(locale);

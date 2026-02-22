@@ -1,11 +1,11 @@
 /**
  * React Native project configuration.
- * assets: fonts in assets/fonts/ are linked to the app (run "npx react-native-asset" after adding font files).
+ * assets: fonts and audio are linked to the app (run "npx react-native-asset" after adding files).
  */
 module.exports = {
   project: {
     ios: {},
     android: {},
   },
-  assets: ['./assets/fonts'],
+  assets: ['./assets/fonts', './assets/audio/music', './assets/audio/sfx'],
 };

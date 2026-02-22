@@ -19,6 +19,7 @@ import {
   AdEventType,
   MaxAdContentRating,
 } from 'react-native-google-mobile-ads';
+import { stopMusic } from './music';
 
 const REWARDED_AD_UNIT_ID: string =
   (!__DEV__ && (Platform.OS === 'android' ? Config.ADMOB_REWARDED_UNIT_ID_ANDROID : Config.ADMOB_REWARDED_UNIT_ID_IOS)) ||
@@ -140,6 +141,7 @@ export function showRewarded(): Promise<boolean> {
       // Resolve only when ad is closed; value is whether they earned the reward.
       setTimeout(() => finish(earnedReward), 200);
     });
+    stopMusic();
     rewardedAd!.show().catch(() => finish(false));
   });
 }
@@ -151,6 +153,7 @@ export function showInterstitial(): Promise<void> {
       unsubscribe?.();
       resolve();
     });
+    stopMusic();
     interstitialAd!.show().catch(() => {
       unsubscribe?.();
       resolve();

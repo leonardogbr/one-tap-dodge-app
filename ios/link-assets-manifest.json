@@ -44,6 +44,42 @@
     {
       "path": "assets/fonts/Inter_18pt-Regular.ttf",
       "sha1": "bd1976c1f019853ab6143ef1246e25aa66fd990e"
+    },
+    {
+      "path": "assets/audio/music/ambient.wav",
+      "sha1": "f1a61711769f3f5a62b8e76e562e242d9f7adc32"
+    },
+    {
+      "path": "assets/audio/music/gameplay.wav",
+      "sha1": "82abac25cee3d5a310ca2fdaeafca65639ccc6af"
+    },
+    {
+      "path": "assets/audio/sfx/countdown.wav",
+      "sha1": "4ff2f326fb1e6e91eda9593bcd613632c44bca3a"
+    },
+    {
+      "path": "assets/audio/sfx/shield_hit.wav",
+      "sha1": "7856103cc23735e662698d104a7b139d95efe72c"
+    },
+    {
+      "path": "assets/audio/sfx/near_miss.wav",
+      "sha1": "9bfa63f12ad6632d90db3b6edd0c4c0fe2bcd5ad"
+    },
+    {
+      "path": "assets/audio/sfx/countdown_go.wav",
+      "sha1": "9ffe4fb31b45bfa5114d0cd121287b6dd4c3042c"
+    },
+    {
+      "path": "assets/audio/sfx/game_over.wav",
+      "sha1": "bfc445b3cd60134a088e687f68462ae284abce69"
+    },
+    {
+      "path": "assets/audio/sfx/coin.wav",
+      "sha1": "54d164269170af4429f5aa92905d2d327d1d117e"
+    },
+    {
+      "path": "assets/audio/sfx/swap.wav",
+      "sha1": "96ed73a107f49570ff88e8d66efdaf92156848a3"
     }
   ]
 }

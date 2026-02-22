@@ -46,6 +46,8 @@ import {
   COIN_HEIGHT,
   COUNTDOWN_STEP_MS,
 } from '../engine/constants';
+import { triggerSFX } from '../services/sfx';
+import { playTrack, duckMusic, unduckMusic, stopMusic } from '../services/music';
 
 type CountdownStep = 3 | 2 | 1 | 'go' | null;
 
@@ -185,6 +187,7 @@ export function GameScreen() {
   useEffect(() => {
     if (countdownStep === null) return;
     runCountdownPulse();
+    triggerSFX(countdownStep === 'go' ? 'countdownGo' : 'countdown');
     if (countdownStep === 'go') {
       const tId = setTimeout(() => {
         setCountdownStep(null);
@@ -196,6 +199,30 @@ export function GameScreen() {
     const tId = setTimeout(() => setCountdownStep(next), COUNTDOWN_STEP_MS);
     return () => clearTimeout(tId);
   }, [countdownStep, runCountdownPulse]);
+
+  // Music transitions based on game phase.
+  // game_over: gameplay stops (silence during Game Over screen).
+  // idle: ambient resumes only when the player returns to the menu.
+  const musicOn = useGameStore((s) => s.musicOn);
+  useEffect(() => {
+    if (!musicOn) return;
+    if (phase === 'playing') {
+      playTrack('gameplay');
+    } else if (phase === 'paused' && countdownStep === null) {
+      duckMusic();
+    } else if (phase === 'game_over') {
+      stopMusic();
+    } else if (phase === 'idle') {
+      playTrack('ambient');
+    }
+  }, [phase, musicOn, countdownStep]);
+
+  useEffect(() => {
+    if (!musicOn) return;
+    if (countdownStep !== null && phase !== 'playing') {
+      unduckMusic();
+    }
+  }, [countdownStep, musicOn, phase]);
 
   // When returning from ad (revive): show countdown like after pause, then resume with revive grace.
   // useLayoutEffect so countdown starts synchronously after revive() sets paused + reviveCountdownPending.

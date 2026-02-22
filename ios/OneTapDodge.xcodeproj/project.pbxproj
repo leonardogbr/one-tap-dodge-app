@@ -9,23 +9,33 @@
 /* Begin PBXBuildFile section */
 		023129308E6B459E92652EF9 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 3166ECEEFC6240F4B09CFDC6 /* README.md */; };
 		03F5BB758602AF9015BB0994 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
+		0516B4DBDF5E48C78151B27A /* near_miss.wav in Resources */ = {isa = PBXBuildFile; fileRef = 94453D420F8B43FD9DA844C1 /* near_miss.wav */; };
 		0C80B921A6F3F58F76C31292 /* libPods-OneTapDodge.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-OneTapDodge.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		19A258B356A14B4AB9B49ABC /* Inter_28pt-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A00A3C483F3040D8B7109437 /* Inter_28pt-Bold.ttf */; };
 		1FB71CC186E74634BDDFE53A /* MaterialSymbolsOutlined.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 926A1E2DD71F4EE1B97302F3 /* MaterialSymbolsOutlined.ttf */; };
+		456F1980E2F44A6D875E5020 /* game_over.wav in Resources */ = {isa = PBXBuildFile; fileRef = 010F95C1C5294A2BAAAA539F /* game_over.wav */; };
 		6AD0C9DA1A374613B4846691 /* Inter_18pt-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8E61D73CF1A24ABB80C50B74 /* Inter_18pt-Regular.ttf */; };
+		6FCF0BA4046D439E990C34D2 /* coin.wav in Resources */ = {isa = PBXBuildFile; fileRef = 5482C0DC75174595B4CF1047 /* coin.wav */; };
 		71B630DD459E439E8F7A72EF /* Inter_24pt-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A3E4A4CD8B3146F096C62EC6 /* Inter_24pt-Bold.ttf */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		820CBA8F233543549A3F10CA /* shield_hit.wav in Resources */ = {isa = PBXBuildFile; fileRef = 83FBBF66EE34440B907A3485 /* shield_hit.wav */; };
 		85B621655C694ABEBFD4F85B /* Inter_18pt-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0340D1094BCD4AD8B0D468F4 /* Inter_18pt-Bold.ttf */; };
+		86C4CD428F28481584EAC28E /* countdown_go.wav in Resources */ = {isa = PBXBuildFile; fileRef = 40DF5E61A1EF442A8F2F9E09 /* countdown_go.wav */; };
 		913E74581F004388A7034C27 /* Inter_28pt-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 90E40BFA77634E1E8E28EA5F /* Inter_28pt-SemiBold.ttf */; };
 		A7C21561021D4009B8C6FC5B /* Inter_24pt-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D1BE912FF9974BFBAFBFB5A6 /* Inter_24pt-SemiBold.ttf */; };
 		B72641117BB042568F34D377 /* Inter_24pt-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AD96574EC2D948D78B6F152E /* Inter_24pt-Regular.ttf */; };
+		C36ACC0FA03F4AB695E3B2AF /* swap.wav in Resources */ = {isa = PBXBuildFile; fileRef = 53AB2DD7563E47678B6096A7 /* swap.wav */; };
+		D25594F6E08042D3A86EDD64 /* countdown.wav in Resources */ = {isa = PBXBuildFile; fileRef = 43072818C28247DEB32866B5 /* countdown.wav */; };
 		D580827358144EE780B8982D /* Inter_18pt-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0D7E9A35AF1B40A481BA6711 /* Inter_18pt-SemiBold.ttf */; };
+		E4AB7205390F41DAB80FBD9E /* ambient.wav in Resources */ = {isa = PBXBuildFile; fileRef = 33147B4FA8094B4191754272 /* ambient.wav */; };
 		F5F98E0FFEE8437BB790E410 /* Inter_28pt-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 85321A498CEE4348BDF17C33 /* Inter_28pt-Regular.ttf */; };
+		FB9E29B75EE141ABA7236762 /* gameplay.wav in Resources */ = {isa = PBXBuildFile; fileRef = 66E8E3F537314257B1AAD0A3 /* gameplay.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		010F95C1C5294A2BAAAA539F /* game_over.wav */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = game_over.wav; path = ../assets/audio/sfx/game_over.wav; sourceTree = "<group>"; };
 		0340D1094BCD4AD8B0D468F4 /* Inter_18pt-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter_18pt-Bold.ttf"; path = "../assets/fonts/Inter_18pt-Bold.ttf"; sourceTree = "<group>"; };
 		0D7E9A35AF1B40A481BA6711 /* Inter_18pt-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter_18pt-SemiBold.ttf"; path = "../assets/fonts/Inter_18pt-SemiBold.ttf"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* OneTapDodge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OneTapDodge.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -34,15 +44,23 @@
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = OneTapDodge/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		2AFC9EA62F31448D00C8483B /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		3166ECEEFC6240F4B09CFDC6 /* README.md */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = README.md; path = ../assets/fonts/README.md; sourceTree = "<group>"; };
+		33147B4FA8094B4191754272 /* ambient.wav */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = ambient.wav; path = ../assets/audio/music/ambient.wav; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-OneTapDodge.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OneTapDodge.debug.xcconfig"; path = "Target Support Files/Pods-OneTapDodge/Pods-OneTapDodge.debug.xcconfig"; sourceTree = "<group>"; };
+		40DF5E61A1EF442A8F2F9E09 /* countdown_go.wav */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = countdown_go.wav; path = ../assets/audio/sfx/countdown_go.wav; sourceTree = "<group>"; };
+		43072818C28247DEB32866B5 /* countdown.wav */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = countdown.wav; path = ../assets/audio/sfx/countdown.wav; sourceTree = "<group>"; };
+		53AB2DD7563E47678B6096A7 /* swap.wav */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = swap.wav; path = ../assets/audio/sfx/swap.wav; sourceTree = "<group>"; };
+		5482C0DC75174595B4CF1047 /* coin.wav */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = coin.wav; path = ../assets/audio/sfx/coin.wav; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-OneTapDodge.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OneTapDodge.release.xcconfig"; path = "Target Support Files/Pods-OneTapDodge/Pods-OneTapDodge.release.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-OneTapDodge.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-OneTapDodge.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		66E8E3F537314257B1AAD0A3 /* gameplay.wav */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = gameplay.wav; path = ../assets/audio/music/gameplay.wav; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = OneTapDodge/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = OneTapDodge/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		83FBBF66EE34440B907A3485 /* shield_hit.wav */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = shield_hit.wav; path = ../assets/audio/sfx/shield_hit.wav; sourceTree = "<group>"; };
 		85321A498CEE4348BDF17C33 /* Inter_28pt-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter_28pt-Regular.ttf"; path = "../assets/fonts/Inter_28pt-Regular.ttf"; sourceTree = "<group>"; };
 		8E61D73CF1A24ABB80C50B74 /* Inter_18pt-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter_18pt-Regular.ttf"; path = "../assets/fonts/Inter_18pt-Regular.ttf"; sourceTree = "<group>"; };
 		90E40BFA77634E1E8E28EA5F /* Inter_28pt-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter_28pt-SemiBold.ttf"; path = "../assets/fonts/Inter_28pt-SemiBold.ttf"; sourceTree = "<group>"; };
 		926A1E2DD71F4EE1B97302F3 /* MaterialSymbolsOutlined.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialSymbolsOutlined.ttf; path = ../assets/fonts/MaterialSymbolsOutlined.ttf; sourceTree = "<group>"; };
+		94453D420F8B43FD9DA844C1 /* near_miss.wav */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = near_miss.wav; path = ../assets/audio/sfx/near_miss.wav; sourceTree = "<group>"; };
 		A00A3C483F3040D8B7109437 /* Inter_28pt-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter_28pt-Bold.ttf"; path = "../assets/fonts/Inter_28pt-Bold.ttf"; sourceTree = "<group>"; };
 		A3E4A4CD8B3146F096C62EC6 /* Inter_24pt-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter_24pt-Bold.ttf"; path = "../assets/fonts/Inter_24pt-Bold.ttf"; sourceTree = "<group>"; };
 		AD96574EC2D948D78B6F152E /* Inter_24pt-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter_24pt-Regular.ttf"; path = "../assets/fonts/Inter_24pt-Regular.ttf"; sourceTree = "<group>"; };
@@ -88,6 +106,15 @@
 				8E61D73CF1A24ABB80C50B74 /* Inter_18pt-Regular.ttf */,
 				3166ECEEFC6240F4B09CFDC6 /* README.md */,
 				926A1E2DD71F4EE1B97302F3 /* MaterialSymbolsOutlined.ttf */,
+				33147B4FA8094B4191754272 /* ambient.wav */,
+				66E8E3F537314257B1AAD0A3 /* gameplay.wav */,
+				43072818C28247DEB32866B5 /* countdown.wav */,
+				83FBBF66EE34440B907A3485 /* shield_hit.wav */,
+				94453D420F8B43FD9DA844C1 /* near_miss.wav */,
+				40DF5E61A1EF442A8F2F9E09 /* countdown_go.wav */,
+				010F95C1C5294A2BAAAA539F /* game_over.wav */,
+				5482C0DC75174595B4CF1047 /* coin.wav */,
+				53AB2DD7563E47678B6096A7 /* swap.wav */,
 			);
 			name = Resources;
 			path = "";
@@ -217,6 +244,15 @@
 				6AD0C9DA1A374613B4846691 /* Inter_18pt-Regular.ttf in Resources */,
 				023129308E6B459E92652EF9 /* README.md in Resources */,
 				1FB71CC186E74634BDDFE53A /* MaterialSymbolsOutlined.ttf in Resources */,
+				E4AB7205390F41DAB80FBD9E /* ambient.wav in Resources */,
+				FB9E29B75EE141ABA7236762 /* gameplay.wav in Resources */,
+				D25594F6E08042D3A86EDD64 /* countdown.wav in Resources */,
+				820CBA8F233543549A3F10CA /* shield_hit.wav in Resources */,
+				0516B4DBDF5E48C78151B27A /* near_miss.wav in Resources */,
+				86C4CD428F28481584EAC28E /* countdown_go.wav in Resources */,
+				456F1980E2F44A6D875E5020 /* game_over.wav in Resources */,
+				6FCF0BA4046D439E990C34D2 /* coin.wav in Resources */,
+				C36ACC0FA03F4AB695E3B2AF /* swap.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -2,12 +2,12 @@
  * Home / Main menu — title (two lines), score cards, player skin preview, Play, Skins / Guide / Settings.
  */
 
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { PressableScale } from '../components/PressableScale';
@@ -19,6 +19,7 @@ import { useGameStore, SKIN_VISUALS, PRIME_SKIN_ID } from '../state/store';
 import { spacing } from '../theme';
 import { Text, Card, Button, Icon } from '../design-system';
 import { borderRadius } from '../design-system/tokens';
+import { playTrack } from '../services/music';
 
 const PLAYER_PREVIEW_SIZE = 80;
 
@@ -37,6 +38,12 @@ export function HomeScreen() {
   const pulseAnimatedStyle = usePulseAnimation(!!skinVisual.pulse);
   const isNavigatingRef = useRef(false);
   const maybeShowInterstitialThenProceed = useInterstitialBeforeGame();
+
+  useFocusEffect(
+    useCallback(() => {
+      playTrack('ambient');
+    }, [])
+  );
 
   const handlePlay = () => {
     if (isNavigatingRef.current) return;

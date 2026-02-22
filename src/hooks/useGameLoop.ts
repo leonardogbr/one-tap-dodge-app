@@ -20,6 +20,7 @@ import {
 } from '../engine/challenges';
 import { useGameStore } from '../state/store';
 import { triggerHaptic } from '../services/haptics';
+import { triggerSFX } from '../services/sfx';
 
 export interface GameLoopDimensions {
   width: number;
@@ -174,6 +175,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
       setPlayer((p) => (p ? { ...stateRef.current!.player } : null));
       setLaneSwapTick((t) => t + 1);
       triggerHaptic('swap');
+      triggerSFX('swap');
     }
   }, []);
 
@@ -375,6 +377,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
         const currentShield = useGameStore.getState().shieldMeter;
         setShieldMeter(currentShield + result.coinsCollected * COIN_TO_SHIELD);
         triggerHaptic('coin');
+        triggerSFX('coin');
       }
 
       if (result.obstaclePassedWithoutNearMiss) {
@@ -383,6 +386,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
       if (result.nearMissIds.length > 0) {
         addNearMissesThisRun(result.nearMissIds.length);
         triggerHaptic('nearMiss');
+        triggerSFX('nearMiss');
         setNearMissFlash(true);
         setTimeout(() => setNearMissFlash(false), 900);
         if (nowMs >= state.coinMultiplierActiveUntil) {
@@ -403,6 +407,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
         if (consumed && result.collidedObstacleId) {
           removeObstacleById(state, result.collidedObstacleId);
           setObstacles([...state.obstacles]);
+          triggerSFX('shieldHit');
         } else {
           lastCollidedObstacleIdRef.current = result.collidedObstacleId;
           finishRunAndCheckChallenges();
@@ -410,6 +415,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
           useGameStore.getState().revivesUsedThisRun < MAX_REVIVES_PER_RUN
         );
         triggerHaptic('gameOver');
+        triggerSFX('gameOver');
         setRunTimeMs(stateRef.current?.gameTimeMs ?? 0);
         setPhase('game_over');
         return;
@@ -421,6 +427,7 @@ export function useGameLoop(dimensions: GameLoopDimensions | null) {
           useGameStore.getState().revivesUsedThisRun < MAX_REVIVES_PER_RUN
         );
         triggerHaptic('gameOver');
+        triggerSFX('gameOver');
         setRunTimeMs(stateRef.current?.gameTimeMs ?? 0);
         setPhase('game_over');
         return;
